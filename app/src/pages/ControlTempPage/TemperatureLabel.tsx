@@ -6,12 +6,27 @@ type TemperatureLabelProps = {
   sliderColor: string;
   currentTargetTemp: number;
   currentTemperatureF: number;
+  displayCelsius: boolean;
 }
+
+function farenheitToCelcius(farenheit: number) {
+  return (farenheit - 32) * 5 / 9;
+}
+
+function roundToNearestHalf(number: number) {
+  return Math.round(number * 2) / 2;
+}
+
+function formatTemperature(temperature: number, celcius: boolean) {
+  return celcius ? `${roundToNearestHalf(farenheitToCelcius(temperature))}°C` : `${temperature}°F`;
+}
+
 export default function TemperatureLabel({
                                            sliderTemp,
                                            sliderColor,
                                            currentTargetTemp,
-                                           currentTemperatureF
+                                           currentTemperatureF,
+                                           displayCelsius
                                          }: TemperatureLabelProps) {
   let topTitle: string;
   // Handle user actively changing temp
@@ -61,7 +76,7 @@ export default function TemperatureLabel({
         color={sliderColor}
         className={styles.label}
       >
-        {`${currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp}°F`}
+        {formatTemperature(currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp, displayCelsius)}
       </Typography>
 
       {/* Currently at label */}
@@ -69,7 +84,7 @@ export default function TemperatureLabel({
         style={{ top: '105%' }}
         className={styles.label}
       >
-        {`Currently at ${currentTemperatureF}°F`}
+        {`Currently at ${formatTemperature(currentTemperatureF, displayCelsius)}`}
       </Typography>
     </div>
   );

@@ -15,7 +15,8 @@ export const SettingsSchema = z.object({
   primePodDaily: z.object({
     enabled: z.boolean(),
     time: TimeSchema,
-  })
+  }),
+  temperatureFormat: z.enum(['celsius', 'fahrenheit']),
 }).strict();
 
 export type SideSettings = z.infer<typeof SideSettingsSchema>;

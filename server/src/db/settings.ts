@@ -8,6 +8,7 @@ import config from '../config.js';
 
 const defaultData: Settings = {
   timeZone: null,
+  temperatureFormat: 'fahrenheit',
   left: {
     awayMode: false,
   },
