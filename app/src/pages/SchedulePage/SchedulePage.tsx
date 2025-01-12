@@ -18,6 +18,7 @@ import ApplyToOtherDaysAccordion from './ApplyToOtherDaysAccordion.tsx';
 import TemperatureAdjustmentsAccordion from './TemperatureAdjustmentsAccordion.tsx';
 import { useAppStore } from '@state/appStore.tsx';
 import { postSchedules } from '@api/schedules';
+import { useSettings } from '@api/settings';
 import AlarmAccordion from './AlarmAccordion.tsx';
 
 
@@ -25,6 +26,8 @@ export default function SchedulePage() {
   const { setIsUpdating, side } = useAppStore();
   const { data: schedules, refetch } = useSchedules();
   const { selectedSchedule, setOriginalSchedules, selectedDays, selectedDay, reloadScheduleData } = useScheduleStore();
+  const { data: settings } = useSettings();
+  const displayCelsius = settings?.temperatureFormat === 'celsius';
   // TODO: Add changes lost notification using changesPresent when user tries to switch tab before saving
 
   useEffect(() => {
@@ -70,7 +73,7 @@ export default function SchedulePage() {
     >
       <SideControl/>
       <DayTabs/>
-      <StartTimeSection/>
+      <StartTimeSection displayCelsius={displayCelsius} />
       <EndTime/>
       <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', width: '100%', mb: 2 }}>
         <EnabledSwitch/>
@@ -79,7 +82,7 @@ export default function SchedulePage() {
       {
         selectedSchedule?.power.enabled && (
           <>
-            <TemperatureAdjustmentsAccordion/>
+            <TemperatureAdjustmentsAccordion displayCelsius={displayCelsius} />
             <AlarmAccordion />
             <ApplyToOtherDaysAccordion/>
           </>

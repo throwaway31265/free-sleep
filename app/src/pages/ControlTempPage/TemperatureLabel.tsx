@@ -17,7 +17,7 @@ function roundToNearestHalf(number: number) {
   return Math.round(number * 2) / 2;
 }
 
-function formatTemperature(temperature: number, celcius: boolean) {
+export function formatTemperature(temperature: number, celcius: boolean) {
   return celcius ? `${roundToNearestHalf(farenheitToCelcius(temperature))}°C` : `${temperature}°F`;
 }
 

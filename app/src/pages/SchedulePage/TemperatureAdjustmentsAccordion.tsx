@@ -16,12 +16,17 @@ import moment from 'moment-timezone';
 import { useScheduleStore } from './scheduleStore';
 import { useAppStore } from '@state/appStore.tsx';
 import { DailySchedule } from '@api/schedulesSchema.ts';
+<<<<<<< HEAD
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 
+=======
+// There's probably a better way to share this function - I just don't know what it is
+import { formatTemperature } from '../ControlTempPage/TemperatureLabel';
+>>>>>>> 8d37924 (fix: missed some pages)
 const ACCORDION_NAME = 'temperatureAdjustments';
 const TEMPERATURES_LIST = _.range(55, 111); // Generates a range from 55 to 110 inclusive
 
-export default function TemperatureAdjustmentsAccordion() {
+export default function TemperatureAdjustmentsAccordion({ displayCelsius }: { displayCelsius: boolean }) {
   const {
     accordionExpanded,
     selectedSchedule,
@@ -156,7 +161,7 @@ export default function TemperatureAdjustmentsAccordion() {
                   {
                     TEMPERATURES_LIST.map((temp) => (
                       <MenuItem key={temp} value={temp}>
-                        {temp}°F
+                        {formatTemperature(temp, displayCelsius)}
                       </MenuItem>
                     ))
                   }
