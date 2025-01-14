@@ -7,12 +7,12 @@ import { useAppStore } from '@state/appStore.tsx';
 import Switch from '@mui/material/Switch';
 
 
-type PrimePodScheduleProps = {
+type AnalyseSleepProps = {
   settings?: Settings;
   updateSettings: (settings: DeepPartial<Settings>) => void;
 }
 
-export default function DailyPriming({ settings, updateSettings }: PrimePodScheduleProps) {
+export default function DailyAnalysis({ settings, updateSettings }: AnalyseSleepProps) {
   const { isUpdating } = useAppStore();
 
   return (
