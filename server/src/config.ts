@@ -45,19 +45,21 @@ class Config {
   public dbFolder: string;
   public remoteDevMode: boolean;
   public dacSockPath: string;
-
+  public analysisFolder: string;
   private constructor() {
     this.remoteDevMode = process.platform === 'darwin';
     this.dacSockPath = this.detectSockPath();
     this.dbFolder = this.remoteDevMode ? '~/free-sleep-database/' : '/home/dac/free-sleep-database/';
+    this.analysisFolder = `${this.dbFolder}analysis/`;
     this.initDBFolder();
   }
 
   private initDBFolder() {
-    if (!existsSync(this.dbFolder)) {
+    if (!existsSync(this.dbFolder) || !existsSync(this.analysisFolder)) {
       try {
         logger.debug(`Creating DB folder: ${this.dbFolder}`);
         mkdirSync(this.dbFolder, { recursive: true });
+        mkdirSync(this.analysisFolder, { recursive: true });
       } catch (error) {
         console.error(`Failed to create folder: ${this.dbFolder}`, error);
       }

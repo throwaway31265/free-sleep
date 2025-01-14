@@ -7,14 +7,20 @@ import { Settings } from '@api/settingsSchema.ts';
 import { postSettings, useSettings } from '@api/settings.ts';
 import { useAppStore } from '@state/appStore.tsx';
 import DailyPriming from './DailyPriming.tsx';
+import DailyAnalysis from './DailyAnalysis.tsx';
 import LicenseModal from './LicenseModal.tsx';
 import PrimeControl from './PrimeControl.tsx';
 import LedBrightnessSlider from './LedBrightnessSlider.tsx';
+import { useEffect } from 'react';
 
 
 export default function SettingsPage() {
   const { data: settings, refetch } = useSettings();
-  const { setIsUpdating } = useAppStore();
+  const { setIsUpdating, isUpdating } = useAppStore();
+
+  useEffect(() => {
+    console.log(settings);
+  }, [settings, isUpdating]);
 
   const updateSettings = (settings: DeepPartial<Settings>) => {
     setIsUpdating(true);
@@ -37,6 +43,8 @@ export default function SettingsPage() {
       <br />
       <DailyPriming settings={settings} updateSettings={updateSettings}/>
       <PrimeControl/>
+      <br />
+      <DailyAnalysis settings={settings} updateSettings={updateSettings}/>
       <br />
       <AwayModeSwitch side="left" settings={settings} updateSettings={updateSettings}/>
       <AwayModeSwitch side="right" settings={settings} updateSettings={updateSettings}/>

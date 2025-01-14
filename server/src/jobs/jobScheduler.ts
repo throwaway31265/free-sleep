@@ -8,6 +8,7 @@ import { DayOfWeek, Side } from '../db/schedulesSchema.js';
 import { schedulePowerOff, schedulePowerOn } from './powerScheduler.js';
 import { scheduleTemperatures } from './temperatureScheduler.js';
 import { schedulePriming } from './primeScheduler.js';
+import { scheduleAnalysis } from './analysisScheduler.js';
 import config from '../config.js';
 import { scheduleAlarm } from './alarmScheduler.js';
 
@@ -40,6 +41,7 @@ async function setupJobs() {
     });
   });
   schedulePriming(settingsData);
+  scheduleAnalysis(settingsData);
 
   logger.info('Done scheduling jobs!');
 }

@@ -15,8 +15,13 @@ export const SettingsSchema = z.object({
   primePodDaily: z.object({
     enabled: z.boolean(),
     time: TimeSchema,
+  }),
+  analysisDaily: z.object({
+    enabled: z.boolean(),
+    time: TimeSchema,
+    estimatedSleepStart: TimeSchema,
+    estimatedSleepEnd: TimeSchema,
   })
 }).strict();
-
 export type SideSettings = z.infer<typeof SideSettingsSchema>;
 export type Settings = z.infer<typeof SettingsSchema>;

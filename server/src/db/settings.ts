@@ -17,6 +17,12 @@ const defaultData: Settings = {
   primePodDaily: {
     enabled: false,
     time: '14:00',
+  },
+  analysisDaily: {
+    enabled: false,
+    time: '10:00',
+    estimatedSleepStart: '22:00',
+    estimatedSleepEnd: '09:00',
   }
 };
 
