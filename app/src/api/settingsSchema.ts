@@ -2,8 +2,11 @@
 
 import { z } from 'zod';
 import { TIME_ZONES } from './timeZones';
-import { TEMPERATURE_FORMATS } from './temperatureFormats';
 import { TimeSchema } from './schedulesSchema';
+
+export const TEMPERATURES = ['celsius', 'fahrenheit'] as const;
+const Temperatures = z.enum(TEMPERATURES)
+export type TemperatureFormat = z.infer<typeof Temperatures>;
 
 const SideSettingsSchema = z.object({
   awayMode: z.boolean(),
@@ -11,13 +14,13 @@ const SideSettingsSchema = z.object({
 
 export const SettingsSchema = z.object({
   timeZone: z.enum(TIME_ZONES).nullable(),
-  temperatureFormat: z.enum(TEMPERATURE_FORMATS).nullable(),
   left: SideSettingsSchema,
   right: SideSettingsSchema,
   primePodDaily: z.object({
     enabled: z.boolean(),
     time: TimeSchema,
-  })
+  }),
+  temperatureFormat: Temperatures,
 }).strict();
 
 export type SideSettings = z.infer<typeof SideSettingsSchema>;

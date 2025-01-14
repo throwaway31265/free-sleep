@@ -4,6 +4,7 @@ import { JSONFile } from 'lowdb/node';
 import config from '../config.js';
 const defaultData = {
     timeZone: null,
+    temperatureFormat: 'fahrenheit',
     left: {
         awayMode: false,
     },
