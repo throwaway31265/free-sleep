@@ -164,6 +164,9 @@ systemctl mask swupdate-progress swupdate defibrillator eight-kernel telegraf ve
 
 nmcli connection add type wifi con-name WIFI_NAME ifname wlan0 ssid WIFI_NAME wifi-sec.key-mgmt wpa-psk wifi-sec.psk "PASSWORD" ipv4.method auto ipv6.method auto
 
+# (OPTIONAL) This will take your Pod out of the "waiting to be setup" state, and will allow you to turn off the blue blinking LED.
+sed -i 's/uuid=.*/uuid=700a7a76-2105-4f46-b1b4-c9f3c791c440/' /persistent/system-connections/*.nmconnection
+
 # Reload the network manager
 nmcli connection reload
 ```
