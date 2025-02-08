@@ -149,6 +149,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
   setOriginalSchedules: (originalSchedules) => {
     const { side } = useAppStore.getState();
     const { selectedDay } = get();
+    if (originalSchedules[side] === undefined) return;
     const selectedSchedule = _.cloneDeep(originalSchedules[side][selectedDay]);
 
     set({ originalSchedules, selectedSchedule });

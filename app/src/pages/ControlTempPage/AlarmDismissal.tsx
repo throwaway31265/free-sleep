@@ -61,7 +61,7 @@ export default function AlarmDismissal({ deviceStatus, refetch }: AlarmDismissal
 
   return (
     <Dialog
-      open={ dismissed ? false : deviceStatus?.[side].isAlarmVibrating || false }
+      open={ dismissed ? false : deviceStatus?.[side]?.isAlarmVibrating || false }
       fullScreen={ isSmallScreen }
       PaperProps={ {
         sx: isSmallScreen

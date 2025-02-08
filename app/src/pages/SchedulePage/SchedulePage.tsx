@@ -105,7 +105,7 @@ export default function SchedulePage() {
         mb: 15,
       } }
     >
-      <SideControl/>
+      <SideControl title={ 'Schedules' }/>
       <DayTabs/>
       <StartTimeSection displayCelsius={ displayCelsius }/>
       <EndTime/>

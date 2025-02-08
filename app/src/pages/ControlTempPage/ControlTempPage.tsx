@@ -15,6 +15,15 @@ import { useDeviceStatus } from '@api/deviceStatus';
 import { useSettings } from '@api/settings.ts';
 import { useTheme } from '@mui/material/styles';
 
+function getTemperatureGradient(temp: number | undefined): string {
+  if (temp === undefined) return '#262626';
+  if (temp <= 68) return '#1b2d4c';
+  if (temp <= 75) return '#020f25';
+  if (temp <= 80) return '#0c0926';
+  if (temp <= 83) return '#311a1a';
+  if (temp <= 95) return '#4d2121';
+  return '#501111';
+}
 
 export default function ControlTempPage() {
   const { data: deviceStatusOriginal, isError, refetch } = useDeviceStatus();
@@ -29,6 +38,7 @@ export default function ControlTempPage() {
   }, [deviceStatusOriginal]);
 
   const sideStatus = deviceStatus?.[side];
+  const isOn = sideStatus?.isOn || false;
 
   useEffect(() => {
     refetch();
@@ -41,31 +51,44 @@ export default function ControlTempPage() {
         [theme.breakpoints.up('md')]: {
           maxWidth: '400px',
         },
-      } }>
-      <SideControl />
+      } }
+    >
+      { isOn && (
+        <div
+          style={ {
+            position: 'absolute',
+            inset: 0,
+            zIndex: -1,
+            background: `linear-gradient(${getTemperatureGradient(
+              sideStatus?.targetTemperatureF
+            )}, #0000 35%)`,
+          } }
+        />
+      ) }
+      <SideControl title={ 'Temperature' } />
       <Slider
-        isOn={ sideStatus?.isOn || false }
+        isOn={ isOn }
         currentTargetTemp={ sideStatus?.targetTemperatureF || 55 }
         refetch={ refetch }
         currentTemperatureF={ sideStatus?.currentTemperatureF || 55 }
         displayCelsius={ settings?.temperatureFormat === 'celsius' || false }
       />
-      {
-        isError ?
-          <Button variant="contained" onClick={ () => refetch() } disabled={ isUpdating }>
-            Try again
-          </Button>
-          :
-          <PowerButton
-            isOn={ sideStatus?.isOn || false }
-            refetch={ refetch }
-          />
-      }
+      { isError ? (
+        <Button
+          variant="contained"
+          onClick={ () => refetch() }
+          disabled={ isUpdating }
+        >
+          Try again
+        </Button>
+      ) : (
+        <PowerButton isOn={ sideStatus?.isOn || false } refetch={ refetch } />
+      ) }
 
-      <AwayNotification settings={ settings }/>
-      <WaterNotification deviceStatus={ deviceStatus }/>
-      <AlarmDismissal deviceStatus={ deviceStatus } refetch={ refetch }/>
-      { isUpdating && <CircularProgress/> }
+      <AwayNotification settings={ settings } />
+      <WaterNotification deviceStatus={ deviceStatus } />
+      <AlarmDismissal deviceStatus={ deviceStatus } refetch={ refetch } />
+      { isUpdating && <CircularProgress /> }
     </PageContainer>
   );
 }

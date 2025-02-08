@@ -11,7 +11,6 @@ import { useAppStore } from '@state/appStore.tsx';
 import { useTheme } from '@mui/material/styles';
 import { PAGES } from './pages';
 
-
 export default function Navbar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -22,24 +21,26 @@ export default function Navbar() {
     PAGES.findIndex((page) => page.route === pathname)
   );
 
-
   // Handle navigation for both desktop and mobile
   const handleNavigation = (route: string) => {
     navigate(route);
   };
 
-  const handleMobileNavChange = (_event: React.SyntheticEvent, newValue: number) => {
+  const handleMobileNavChange = (
+    _event: React.SyntheticEvent,
+    newValue: number
+  ) => {
     setMobileNavValue(newValue);
     handleNavigation(PAGES[newValue].route);
   };
 
   const gradient = `linear-gradient(
   90deg,
-  ${theme.palette.background.default},
+  transparent,
   ${theme.palette.primary.dark},
-  ${theme.palette.background.default},
+  transparent,
   ${theme.palette.primary.dark},
-  ${theme.palette.background.default}
+  transparent
 )`;
   return (
     <>
@@ -50,10 +51,12 @@ export default function Navbar() {
           top: 0,
           left: 0,
           width: '100%',
-          height: '8px',
+          height: '4px',
           background: isUpdating ? gradient : 'transparent',
           backgroundSize: '200% 100%',
-          animation: isUpdating ? 'slide-gradient 10s linear infinite reverse' : 'none',
+          animation: isUpdating
+            ? 'slide-gradient 10s linear infinite reverse'
+            : 'none',
           zIndex: 1201,
         } }
       />
@@ -109,14 +112,28 @@ export default function Navbar() {
         <BottomNavigation
           value={ mobileNavValue }
           onChange={ handleMobileNavChange }
-          sx={ { width: '100%', backgroundColor: theme.palette.background.default } }
+          sx={ {
+            width: '100%',
+            backgroundColor: theme.palette.background.default,
+            '& .Mui-selected': {
+              color: theme.palette.grey[100],
+            },
+            '& .MuiBottomNavigationAction-root': {
+              color: theme.palette.grey[500],
+            },
+          } }
         >
           { PAGES.map(({ title, icon }, index) => (
             <BottomNavigationAction
               key={ index }
-              label={ title }
               icon={ icon }
               disabled={ isUpdating }
+              aria-label={ title }
+              sx={ {
+                '&.Mui-selected': {
+                  color: theme.palette.grey[100], // Different selected color
+                },
+              } }
             />
           )) }
         </BottomNavigation>

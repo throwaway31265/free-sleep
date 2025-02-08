@@ -49,7 +49,7 @@ export default function SideSettings({ side, settings, updateSettings }: AwayMod
         <Typography alignContent="center">Away mode</Typography>
         <Switch
           disabled={ isUpdating }
-          checked={ settings?.[side].awayMode || false }
+          checked={ settings?.[side]?.awayMode || false }
           onChange={ (event) => updateSettings({ [side]: { awayMode: event.target.checked } }) }
         />
       </Grid>

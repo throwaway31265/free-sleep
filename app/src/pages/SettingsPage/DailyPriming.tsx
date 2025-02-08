@@ -21,7 +21,7 @@ export default function DailyPriming({ settings, updateSettings }: PrimePodSched
         control={
           <Switch
             disabled={ isUpdating }
-            checked={ settings?.primePodDaily.enabled || false }
+            checked={ settings?.primePodDaily?.enabled || false }
             onChange={ (event) => updateSettings({ primePodDaily: { enabled: event.target.checked } }) }
           />
         }
@@ -30,9 +30,9 @@ export default function DailyPriming({ settings, updateSettings }: PrimePodSched
       <TextField
         label="Prime time"
         type="time"
-        value={ settings?.primePodDaily.time || '12:00' }
+        value={ settings?.primePodDaily?.time || '12:00' }
         onChange={ (e) => updateSettings({ primePodDaily: { time: e.target.value } }) }
-        disabled={ isUpdating || settings?.primePodDaily.enabled === false }
+        disabled={ isUpdating || settings?.primePodDaily?.enabled === false }
         sx={ { mt: 2 } }
       />
     </Box>

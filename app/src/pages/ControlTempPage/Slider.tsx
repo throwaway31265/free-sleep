@@ -18,10 +18,17 @@ type SliderProps = {
 
 function getTemperatureColor(temp: number | undefined) {
   if (temp === undefined) return '#262626';
-  if (temp <= 70) return '#1c54b2';
-  if (temp <= 82) return '#5393ff';
-  if (temp <= 95) return '#db5858';
+  if (temp <= 68) return '#2c67cd';
+  if (temp <= 75) return '#003cff';
+  if (temp <= 80) return '#2e34a6';
+  if (temp <= 83) return '#854040';
+  if (temp <= 95) return '#cf4c4c';
   return '#d32f2f';
+  // if (temp === undefined) return '#262626';
+  // if (temp <= 70) return '#1c54b2';
+  // if (temp <= 82) return '#5393ff';
+  // if (temp <= 95) return '#252020';
+  // return '#d32f2f';
 }
 
 export default function Slider({ isOn, currentTargetTemp, refetch, currentTemperatureF, displayCelsius }: SliderProps) {
@@ -29,7 +36,7 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
   const { isUpdating, setIsUpdating, side } = useAppStore();
   const { width, ref } = useResizeDetector();
   const theme = useTheme();
-  const sliderColor = getTemperatureColor(deviceStatus?.[side].targetTemperatureF);
+  const sliderColor = getTemperatureColor(deviceStatus?.[side]?.targetTemperatureF);
 
   const handleControlFinished = async () => {
     if (!deviceStatus) return;
@@ -50,17 +57,22 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
   };
 
   const disabled = !isOn || isUpdating;
-  const arcBackgroundColor = theme.palette.grey[800];
+  const arcBackgroundColor = theme.palette.grey[700];
+
+  const sideStatus = deviceStatus?.[side];
+  const minTemp = Math.min(sideStatus?.currentTemperatureF || 55, sideStatus?.targetTemperatureF || 55);
+  const maxTemp = Math.max(sideStatus?.currentTemperatureF || 55, sideStatus?.targetTemperatureF || 55);
+  const isHeating = (sideStatus?.currentTemperatureF ?? 55) < (sideStatus?.targetTemperatureF ?? 55);
 
   return (
     <div ref={ ref } style={ { position: 'relative', display: 'inline-block', width: '100%' } }>
       { /* Circular Slider */ }
-      <div className={ `${styles.Slider} ${disabled && styles.Disabled}` }>
+      <div className={ `${styles.Slider} ${disabled && styles.Disabled} ${isHeating && styles.Heating}` }>
         <CircularSlider
           disabled={ disabled }
           onControlFinished={ handleControlFinished }
           size={ width }
-          trackWidth={ 30 }
+          trackWidth={ 6 }
           minValue={ 55 }
           maxValue={ 110 }
           startAngle={ 60 }
@@ -70,7 +82,7 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
             axis: '-y'
           } }
           handle1={ {
-            value: deviceStatus?.[side]?.targetTemperatureF || 55,
+            value: minTemp,
             onChange: (value) => {
               if (disabled) return;
               if (Math.round(value) !== deviceStatus?.[side]?.targetTemperatureF) {
@@ -81,6 +93,16 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
           } }
           arcColor={ isOn ? sliderColor : arcBackgroundColor }
           arcBackgroundColor={ arcBackgroundColor }
+          handle2={ {
+            value: maxTemp,
+            onChange: (value) => {
+              if (disabled) return;
+              if (Math.round(value) !== deviceStatus?.[side]?.targetTemperatureF) {
+                setDeviceStatus({ [side]: { targetTemperatureF: Math.round(value) } });
+              }
+            },
+          } }
+          handleSize={ 8 }
         />
       </div>
       <TemperatureLabel

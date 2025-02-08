@@ -25,7 +25,7 @@ export default function AwayNotification({ settings }: AwayNotificationProps) {
       </Alert>
     );
   }
-  if (settings?.[side].awayMode) {
+  if (settings?.[side]?.awayMode) {
     return (
       <Alert severity="info">
         This side is in away mode

@@ -44,7 +44,7 @@ export default function TemperatureLabel({
   const { data: settings } = useSettings();
   const currentDay = settings?.timeZone && moment.tz(settings?.timeZone).format('dddd').toLowerCase();
   // @ts-ignore
-  const power = currentDay ? schedules?.[side][currentDay].power : undefined;
+  const power = currentDay ? schedules?.[side]?.[currentDay]?.power : undefined;
   const formattedTime = moment(power?.on, 'HH:mm').format('h:mm A');
 
   let topTitle: string;

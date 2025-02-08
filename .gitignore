@@ -15,6 +15,7 @@ tmp
 *.log
 
 server/lowdb/*
+server/~/free-sleep-database
 !.gitkeep
 app/dist/
 
