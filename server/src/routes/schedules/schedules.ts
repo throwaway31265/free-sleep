@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import express, { Request, Response } from 'express';
+// @ts-ignore
 import { partialUtil } from 'zod/lib/helpers/partialUtil';
 import DeepPartial = partialUtil.DeepPartial;
 import { Schedules } from '../../db/schedulesSchema.js';

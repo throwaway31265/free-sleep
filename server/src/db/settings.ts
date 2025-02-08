@@ -23,7 +23,7 @@ const defaultData: Settings = {
   }
 };
 
-const file = new JSONFile<Settings>(`${config.dbFolder}settingsDB.json`);
+const file = new JSONFile<Settings>(`${config.lowDbFolder}settingsDB.json`);
 const settingsDB = new Low<Settings>(file, defaultData);
 await settingsDB.read();
 // Allows us to add default values to the settings if users have existing settingsDB.json data

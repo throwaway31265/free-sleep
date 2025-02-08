@@ -71,7 +71,7 @@ function waitForValidDateAndSetupJobs() {
 
 
 // Monitor the JSON file and refresh jobs on change
-chokidar.watch(config.dbFolder).on('change', () => {
+chokidar.watch(config.lowDbFolder).on('change', () => {
   logger.info('Detected DB change, reloading...');
   if (SYSTEM_DATE_SET) {
     setupJobs();

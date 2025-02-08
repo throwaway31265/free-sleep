@@ -16,9 +16,6 @@ export default function SideControl() {
 
   return (
     <Box sx={ { marginRight: 'auto' } }>
-      { /*<Typography variant='h6'>*/ }
-      { /*  {settings?.[side].name}*/ }
-      { /*</Typography>*/ }
       <Select
         value={ side }
         // @ts-ignore

@@ -1,50 +1,42 @@
 import express, { Request, Response } from 'express';
-import logger from '../../logger.js';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import moment from 'moment-timezone';
-import { SleepRecord } from '../../db/sleepRecordsSchema';
+import { loadSleepRecords } from '../../db/loadSleepRecords.js';
 const prisma = new PrismaClient();
-const router = express.Router();
-// /home/dac/bio/src/presence_detection/analyze_sleep.py --side=left --start_time=2025-02-06T02:15:00.121Z --end_time=2025-02-06T17:15:00.124Z
 
-router.get('/sleep', async (req: Request, res: Response) => {
+const router = express.Router();
+
+// Define query params
+interface SleepQuery {
+  side?: string;
+  startTime?: string;
+  endTime?: string;
+}
+
+
+router.get('/sleep', async (req: Request<object, object, object, SleepQuery>, res: Response) => {
   try {
     const { startTime, endTime, side } = req.query;
-    // Build the raw SQL query dynamically
-    let sql = `SELECT * FROM sleep_records WHERE 1=1`;
-    const params: any[] = [];
+    const query: Prisma.sleep_recordsWhereInput = {
+      entered_bed_at: {},
+      left_bed_at: {},
+    };
 
-    if (side) {
-      sql += ` AND side = $${params.length + 1}`;
-      params.push(side);
+    if (side) query.side = side;
+    if (startTime) { // @ts-ignore
+      query.left_bed_at!.gte = moment(startTime).unix();
     }
-    if (startTime) {
-      sql += ` AND entered_bed_at >= datetime($${params.length + 1})`;
-      params.push(startTime);
-    }
-    if (endTime) {
-      sql += ` AND entered_bed_at <= datetime($${params.length + 1})`;
-      params.push(endTime);
+    if (endTime) { // @ts-ignore
+      query.entered_bed_at!.lte = moment(endTime).unix();
     }
 
-    sql += ` ORDER BY entered_bed_at ASC`;
+    const sleepRecords = await prisma.sleep_records.findMany({
+      where: query,
+      orderBy: { entered_bed_at: "asc" },
+    });
 
-    // Execute the raw SQL query using Prisma
-    const sleepRecords = await prisma.$queryRawUnsafe(sql, ...params) as SleepRecord[];
-
-
-    // Parse JSON fields
-    const parsedRecords = sleepRecords.map((record: any) => ({
-      ...record,
-      present_intervals: record.present_intervals
-        ? JSON.parse(record.present_intervals)
-        : [],
-      not_present_intervals: record.not_present_intervals
-        ? JSON.parse(record.not_present_intervals)
-        : [],
-    }));
-
-    res.json(parsedRecords);
+    const formattedRecords = await loadSleepRecords(sleepRecords);
+    res.json(formattedRecords);
   } catch (error) {
     console.error('Error in GET /sleep:', error);
     res.status(500).json({ error: 'Internal server error' });

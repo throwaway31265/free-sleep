@@ -1,9 +1,9 @@
-import { existsSync, mkdirSync, readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import logger from './logger.js';
 function checkIfDacSockPathConfigured() {
     try {
         // Check if the file exists
-        const filePath = '/home/dac/dac_sock_path.txt';
+        const filePath = '/persistent/free-sleep-data/dac_sock_path.txt';
         if (!existsSync(filePath)) {
             logger.debug(`dac.sock path not configured, defaulting to pod 3 path...`);
             return;
@@ -30,24 +30,17 @@ const FIRMWARE_MAP = {
 class Config {
     static instance;
     dbFolder;
+    lowDbFolder;
     remoteDevMode;
     dacSockPath;
     constructor() {
-        this.remoteDevMode = process.platform === 'darwin';
-        this.dacSockPath = this.detectSockPath();
-        this.dbFolder = this.remoteDevMode ? '~/free-sleep-database/' : '/home/dac/free-sleep-database/';
-        this.initDBFolder();
-    }
-    initDBFolder() {
-        if (!existsSync(this.dbFolder)) {
-            try {
-                logger.debug(`Creating DB folder: ${this.dbFolder}`);
-                mkdirSync(this.dbFolder, { recursive: true });
-            }
-            catch (error) {
-                console.error(`Failed to create folder: ${this.dbFolder}`, error);
-            }
+        if (!process.env.DATA_FOLDER || !process.env.ENV) {
+            throw new Error('Missing DATA_FOLDER || ENV in env');
         }
+        this.remoteDevMode = process.env.ENV === 'local';
+        this.dacSockPath = this.detectSockPath();
+        this.dbFolder = process.env.DATA_FOLDER;
+        this.lowDbFolder = `${this.dbFolder}lowdb/`;
     }
     detectSockPath() {
         const dacSockPath = checkIfDacSockPathConfigured();

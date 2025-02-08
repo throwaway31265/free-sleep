@@ -1,12 +1,12 @@
 import { exec } from 'child_process';
 import schedule from 'node-schedule';
-import moment from 'moment-timezone';
 import { Settings } from '../db/settingsSchema.js';
 import logger from '../logger.js';
 import { updateDeviceStatus } from '../routes/deviceStatus/updateDeviceStatus.js';
 import { TimeZone } from '../db/timeZones.js';
-import { executeCalibrateSensors } from './calibrateSensors.js';
+// import { executeCalibrateSensors } from './calibrateSensors.js';
 import { Side } from '../db/schedulesSchema.js';
+// import moment from 'moment-timezone';
 
 
 const scheduleRebootJob = (onHour: number, onMinute: number, timeZone: TimeZone) => {
@@ -33,19 +33,19 @@ const scheduleRebootJob = (onHour: number, onMinute: number, timeZone: TimeZone)
   });
 }
 
-const scheduleCalibrationJob = (onHour: number, onMinute: number, timeZone: TimeZone, side: Side) => {
-  const dailyRule = new schedule.RecurrenceRule();
-  dailyRule.hour = onHour;
-  dailyRule.minute = onMinute;
-  dailyRule.tz = timeZone;
-
-  const time = `${String(onHour).padStart(2,'0')}:${String(onMinute).padStart(2,'0')}`
-  logger.debug(`Scheduling daily calibration job at ${time}`);
-  schedule.scheduleJob(`daily-calibration-${time}-${side}`, dailyRule, async () => {
-    logger.info(`Executing scheduled calibration job`);
-    executeCalibrateSensors(side, moment().subtract(6, 'hours').toISOString(), moment().toISOString())
-  });
-}
+// const scheduleCalibrationJob = (onHour: number, onMinute: number, timeZone: TimeZone, side: Side) => {
+//   const dailyRule = new schedule.RecurrenceRule();
+//   dailyRule.hour = onHour;
+//   dailyRule.minute = onMinute;
+//   dailyRule.tz = timeZone;
+//
+//   const time = `${String(onHour).padStart(2,'0')}:${String(onMinute).padStart(2,'0')}`
+//   logger.debug(`Scheduling daily calibration job at ${time}`);
+//   schedule.scheduleJob(`daily-calibration-${time}-${side}`, dailyRule, async () => {
+//     logger.info(`Executing scheduled calibration job`);
+//     executeCalibrateSensors(side, moment().subtract(6, 'hours').toISOString(), moment().toISOString())
+//   });
+// }
 
 
 
@@ -62,8 +62,8 @@ export const schedulePrimingRebootAndCalibration = (settingsData: Settings) => {
   dailyRule.tz = timeZone;
 
   scheduleRebootJob(onHour - 2, onMinute, timeZone);
-  scheduleCalibrationJob(onHour, 0, timeZone, 'left');
-  scheduleCalibrationJob(onHour, 30, timeZone, 'right');
+  // scheduleCalibrationJob(onHour, 0, timeZone, 'left');
+  // scheduleCalibrationJob(onHour, 30, timeZone, 'right');
 
   logger.debug(`Scheduling daily prime job at ${primePodDaily.time}`);
   schedule.scheduleJob(`daily-priming-${time}`, dailyRule, async () => {

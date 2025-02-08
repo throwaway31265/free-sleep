@@ -31,7 +31,22 @@ function isEndTimeSameDay(endTime) {
     const endHour = Number(endTime.split(':')[0]);
     return endHour > 11;
 }
-export const schedulePowerOff = (settingsData, side, day, power) => {
+const scheduleAnalyzeSleep = (dayOfWeek, offHour, offMinute, timeZone, side, day) => {
+    const dailyRule = new schedule.RecurrenceRule();
+    const adjustedOffMinute = offMinute + 15;
+    dailyRule.dayOfWeek = dayOfWeek;
+    dailyRule.hour = offHour;
+    dailyRule.minute = adjustedOffMinute;
+    dailyRule.tz = timeZone;
+    const time = `${String(offHour).padStart(2, '0')}:${String(adjustedOffMinute).padStart(2, '0')}`;
+    logger.debug(`Scheduling daily sleep analyzer job for ${side} side on ${day} at ${time}`);
+    // schedule.scheduleJob(`daily-analyze-sleep-${time}-${side}`, dailyRule, async () => {
+    //   logger.info(`Executing scheduled calibration job`);
+    //   // Subtract a fixed start time
+    //   executeAnalyzeSleep(side, moment().subtract(12, 'hours').toISOString(), moment().add(3, 'hours').toISOString())
+    // });
+};
+export const schedulePowerOffAndSleepAnalysis = (settingsData, side, day, power) => {
     if (!power.enabled)
         return;
     if (settingsData[side].awayMode)
@@ -40,17 +55,20 @@ export const schedulePowerOff = (settingsData, side, day, power) => {
         return;
     const offRule = new schedule.RecurrenceRule();
     // Handle if someone has odd sleeping schedule for w/e reason (goes to bed at 13:00, wakes up at 21:00)
+    let dayOfWeek;
     if (isEndTimeSameDay(power.off)) {
-        offRule.dayOfWeek = getDayOfWeekIndex(day);
+        dayOfWeek = getDayOfWeekIndex(day);
     }
     else {
-        offRule.dayOfWeek = getDayOfWeekIndex(day) + 1;
+        dayOfWeek = getDayOfWeekIndex(day) + 1;
     }
+    offRule.dayOfWeek = dayOfWeek;
     const time = power.off;
     const [offHour, offMinute] = time.split(':').map(Number);
     offRule.hour = offHour;
     offRule.minute = offMinute;
     offRule.tz = settingsData.timeZone;
+    scheduleAnalyzeSleep(dayOfWeek, offHour, offMinute, settingsData.timeZone, side, day);
     logger.debug(`Scheduling power off job for ${side} side on ${day} at ${power.off}`);
     schedule.scheduleJob(`${side}-${day}-${time}-power-off`, offRule, async () => {
         logger.info(`Executing scheduled power off job for ${side} side on ${day} at ${power.off}`);

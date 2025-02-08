@@ -5,9 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/server.js",
+    "start": "dotenv -e .env.pod -- node dist/server.js",
     "build": "tsc",
-    "dev": "nodemon --watch src --ext ts --exec \"node --loader ts-node/esm\" src/server.ts",
+    "dev": "dotenv -e .env.pod -- nodemon --watch src --ext ts --exec \"node --loader ts-node/esm\" src/server.ts",
     "dev:local": "dotenv -e .env.local -- nodemon --watch src --ext ts --exec \"node --loader ts-node/esm\" src/server.ts",
     "lint": "npx eslint src/ --ext .ts,.tsx",
     "migrate": "dotenv -e .env.pod -- npx prisma migrate dev --name ",

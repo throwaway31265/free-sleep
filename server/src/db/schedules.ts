@@ -38,7 +38,7 @@ const defaultData: Schedules = {
   right: _.cloneDeep(defaultSideSchedule),
 };
 
-const file = new JSONFile<Schedules>(`${config.dbFolder}schedulesDB.json`);
+const file = new JSONFile<Schedules>(`${config.lowDbFolder}schedulesDB.json`);
 const schedulesDB = new Low<Schedules>(file, defaultData);
 await schedulesDB.read();
 // Allows us to add default values to the schedules if users have existing schedulesDB.json data

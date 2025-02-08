@@ -1,42 +1,45 @@
 import express from 'express';
-import logger from '../../logger.js';
 import { PrismaClient } from '@prisma/client';
+import moment from 'moment-timezone';
+import { loadSleepRecords } from '../../db/loadSleepRecords.js';
 const prisma = new PrismaClient();
 const router = express.Router();
 router.get('/sleep', async (req, res) => {
     try {
-        // Extract query parameters
-        const { start_time, end_time, side } = req.query;
-        // Build dynamic where clause based on provided filters
-        const whereClause = {};
-        if (start_time) {
-            whereClause.entered_bed_at = {
-                gte: new Date(start_time),
-            };
+        const { startTime, endTime, side } = req.query;
+        const query = {
+            entered_bed_at: {},
+            left_bed_at: {},
+        };
+        if (side)
+            query.side = side;
+        if (startTime) { // @ts-ignore
+            query.left_bed_at.gte = moment(startTime).unix();
         }
-        if (end_time) {
-            whereClause.left_bed_at = {
-                lte: new Date(end_time),
-            };
+        if (endTime) { // @ts-ignore
+            query.entered_bed_at.lte = moment(endTime).unix();
         }
-        if (side) {
-            whereClause.side = side;
-        }
-        // Fetch records from the database with optional filters
         const sleepRecords = await prisma.sleep_records.findMany({
-            where: whereClause,
+            where: query,
+            orderBy: { entered_bed_at: "asc" },
         });
-        // Parse JSON fields for present_intervals and not_present_intervals
-        const parsedRecords = sleepRecords.map((record) => ({
-            ...record,
-            present_intervals: JSON.parse(record.present_intervals),
-            not_present_intervals: JSON.parse(record.not_present_intervals),
-        }));
-        res.json(parsedRecords);
+        const formattedRecords = await loadSleepRecords(sleepRecords);
+        res.json(formattedRecords);
     }
     catch (error) {
-        logger.error('Failed to fetch sleep records:', error);
+        console.error('Error in GET /sleep:', error);
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+router.delete('/sleep/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await prisma.sleep_records.delete({ where: { id: parseInt(id, 10) } });
+        res.status(204).send();
+    }
+    catch (error) {
+        console.error('Error deleting record:', error);
+        res.status(500).json({ error: 'Failed to delete record' });
     }
 });
 export default router;

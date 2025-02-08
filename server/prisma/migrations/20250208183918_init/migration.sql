@@ -2,8 +2,8 @@
 CREATE TABLE "sleep_records" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "side" TEXT NOT NULL,
-    "entered_bed_at" DATETIME NOT NULL,
-    "left_bed_at" DATETIME NOT NULL,
+    "entered_bed_at" INTEGER NOT NULL,
+    "left_bed_at" INTEGER NOT NULL,
     "sleep_period_seconds" INTEGER NOT NULL,
     "times_exited_bed" INTEGER NOT NULL,
     "present_intervals" TEXT NOT NULL,
@@ -15,7 +15,6 @@ CREATE TABLE "vitals" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "side" TEXT NOT NULL,
     "period_start" INTEGER NOT NULL,
-    "period_end" INTEGER NOT NULL,
     "heart_rate" REAL,
     "hrv" REAL,
     "breathing_rate" REAL

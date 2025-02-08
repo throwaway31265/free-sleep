@@ -107,6 +107,28 @@ fi
 
 # Create directories if they don't exist
 mkdir -p /persistent/free-sleep-data/logs/
+mkdir -p /persistent/free-sleep-data/lowdb/
+
+grep -oP '(?<=DAC_SOCKET=)[^ ]*dac.sock' /opt/eight/bin/frank.sh > /persistent/free-sleep-data/dac_sock_path.txt
+
+# DO NOT REMOVE, OLD VERSIONS WILL LOSE settings & schedules
+# Migrate old config/DB to new /persistent/free-sleep-data/
+FILES_TO_MOVE=(
+  "/home/dac/free-sleep-database/settingsDB.json:/persistent/free-sleep-data/lowdb/settingsDB.json"
+  "/home/dac/free-sleep-database/schedulesDB.json:/persistent/free-sleep-data/lowdb/schedulesDB.json"
+  "/home/dac/dac_sock_path.txt:/persistent/free-sleep-data/dac_sock_path.txt"
+)
+
+# Loop through each file and move if it exists
+for entry in "${FILES_TO_MOVE[@]}"; do
+  IFS=":" read -r SOURCE_FILE DESTINATION <<< "$entry"
+
+  if [ -f "$SOURCE_FILE" ]; then
+    mv "$SOURCE_FILE" "$DESTINATION"
+    echo "Moved $SOURCE_FILE to $DESTINATION"
+  fi
+done
+
 
 # Change ownership recursively (-R flag)
 chown -R dac:dac /persistent/free-sleep-data/

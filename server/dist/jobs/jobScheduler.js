@@ -4,9 +4,9 @@ import schedule from 'node-schedule';
 import logger from '../logger.js';
 import schedulesDB from '../db/schedules.js';
 import settingsDB from '../db/settings.js';
-import { schedulePowerOff, schedulePowerOn } from './powerScheduler.js';
+import { schedulePowerOffAndSleepAnalysis, schedulePowerOn } from './powerScheduler.js';
 import { scheduleTemperatures } from './temperatureScheduler.js';
-import { schedulePriming } from './primeScheduler.js';
+import { schedulePrimingRebootAndCalibration } from './primeScheduler.js';
 import config from '../config.js';
 import { scheduleAlarm } from './alarmScheduler.js';
 async function setupJobs() {
@@ -26,18 +26,45 @@ async function setupJobs() {
     Object.entries(schedulesData).forEach(([side, sideSchedule]) => {
         Object.entries(sideSchedule).forEach(([day, schedule]) => {
             schedulePowerOn(settingsData, side, day, schedule.power);
-            schedulePowerOff(settingsData, side, day, schedule.power);
+            schedulePowerOffAndSleepAnalysis(settingsData, side, day, schedule.power);
             scheduleTemperatures(settingsData, side, day, schedule.temperatures);
             scheduleAlarm(settingsData, side, day, schedule);
         });
     });
-    schedulePriming(settingsData);
+    schedulePrimingRebootAndCalibration(settingsData);
     logger.info('Done scheduling jobs!');
 }
+function isSystemDateValid() {
+    const currentYear = new Date().getFullYear();
+    return currentYear > 2010;
+}
+const MAX_RETRIES = 12;
+let RETRY_COUNT = 0;
+let SYSTEM_DATE_SET = false;
+function waitForValidDateAndSetupJobs() {
+    if (isSystemDateValid()) {
+        logger.info('System date is valid. Setting up jobs...');
+        SYSTEM_DATE_SET = true;
+        setupJobs();
+    }
+    else if (RETRY_COUNT < MAX_RETRIES) {
+        RETRY_COUNT++;
+        logger.debug(`System date is invalid (year 2010). Retrying in 10 seconds... (Attempt ${RETRY_COUNT}/${MAX_RETRIES})`);
+        setTimeout(waitForValidDateAndSetupJobs, 10_000);
+    }
+    else {
+        logger.error('System date is still invalid after 6 attempts. Stopping retries, jobs will not be scheduled');
+    }
+}
 // Monitor the JSON file and refresh jobs on change
-chokidar.watch(config.dbFolder).on('change', () => {
-    logger.debug('Detected DB change, reloading...');
-    setupJobs();
+chokidar.watch(config.lowDbFolder).on('change', () => {
+    logger.info('Detected DB change, reloading...');
+    if (SYSTEM_DATE_SET) {
+        setupJobs();
+    }
+    else {
+        waitForValidDateAndSetupJobs();
+    }
 });
 // Initial job setup
-await setupJobs();
+waitForValidDateAndSetupJobs();

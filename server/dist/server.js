@@ -10,14 +10,6 @@ import config from './config.js';
 const port = 3000;
 const app = express();
 let server;
-// Initialize Franken on server startup
-async function initFranken() {
-    logger.info('Initializing Franken on startup...');
-    // Force creation of the Franken and FrankenServer so it’s ready before we listen
-    await getFrankenServer();
-    await getFranken();
-    logger.info('Franken has been initialized successfully.');
-}
 // Graceful Shutdown Function
 async function gracefulShutdown(signal) {
     logger.debug(`\nReceived ${signal}. Initiating graceful shutdown...`);
@@ -55,23 +47,40 @@ async function gracefulShutdown(signal) {
     logger.debug('Exiting now...');
     process.exit(0);
 }
+// Initialize Franken on server startup
+async function initFranken() {
+    logger.info('Initializing Franken on startup...');
+    // Force creation of the Franken and FrankenServer so it’s ready before we listen
+    await getFrankenServer();
+    await getFranken();
+    logger.info('Franken has been initialized successfully.');
+}
 // Main startup function
 async function startServer() {
     setupMiddleware(app);
     setupRoutes(app);
-    // Initialize Franken once before listening
-    if (!config.remoteDevMode)
-        await initFranken();
     // Listen on desired port
     server = app.listen(port, () => {
         logger.debug(`Server running on http://localhost:${port}`);
     });
+    // Initialize Franken once before listening
+    if (!config.remoteDevMode) {
+        initFranken()
+            .then(resp => {
+            logger.info(resp);
+        })
+            .catch(error => {
+            logger.error(error);
+        });
+    }
+    ;
     // Register signal handlers for graceful shutdown
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
     // Handle uncaught exceptions and rejections
     process.on('uncaughtException', async (err) => {
         console.error('Uncaught Exception:', err);
+        logger.error(err);
         await gracefulShutdown('uncaughtException');
     });
     process.on('unhandledRejection', async (reason, promise) => {
