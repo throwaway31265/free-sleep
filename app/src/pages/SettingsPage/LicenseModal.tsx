@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import React, { useState } from 'react';
 import { Modal, Box, Typography, Button } from '@mui/material';
 
@@ -9,20 +10,20 @@ const LicenseModal: React.FC = () => {
 
   return (
     <div>
-      {/* Button to Open Modal */}
-      <Button variant="contained" onClick={handleOpen}>
+      { /* Button to Open Modal */ }
+      <Button variant="contained" onClick={ handleOpen }>
         View License and Disclaimer
       </Button>
 
-      {/* Modal Component */}
+      { /* Modal Component */ }
       <Modal
-        open={open}
-        onClose={handleClose}
+        open={ open }
+        onClose={ handleClose }
         aria-labelledby="license-modal-title"
         aria-describedby="license-modal-description"
       >
         <Box
-          sx={{
+          sx={ {
             position: 'absolute',
             top: '50%',
             left: '50%',
@@ -34,24 +35,24 @@ const LicenseModal: React.FC = () => {
             p: 4,
             overflowY: 'auto',
             borderRadius: '8px',
-          }}
+          } }
         >
-          {/* Modal Content */}
+          { /* Modal Content */ }
           <Typography id="license-modal-title" variant="h6" component="h2" gutterBottom>
             Open Source Disclaimer and License Agreement
           </Typography>
           <Typography
             id="license-modal-description"
             component="pre"
-            sx={{
+            sx={ {
               whiteSpace: 'pre-wrap',
               wordWrap: 'break-word',
               overflowY: 'auto',
               maxHeight: '60vh',
               lineHeight: '1.6',
-            }}
+            } }
           >
-            {`**Last Updated:** January 2, 2025
+            { `**Last Updated:** January 2, 2025
 
 **1. No Affiliation or Endorsement**
 This App is not affiliated with, authorized, endorsed, or supported by 8 Sleep, Inc. ("8 Sleep"). Use of this App may void your Device's warranty or violate 8 Sleep's terms of service.
@@ -108,12 +109,12 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.`}
+SOFTWARE.` }
           </Typography>
           <Button
             variant="outlined"
-            onClick={handleClose}
-            sx={{ mt: 2 }}
+            onClick={ handleClose }
+            sx={ { mt: 2 } }
           >
             Close
           </Button>

@@ -66,7 +66,7 @@ export default function TemperatureButtons({ refetch }: TemperatureButtonsProps)
 
   return (
     <Box
-      sx={{
+      sx={ {
         top: '75%',
         position: 'absolute',
         display: 'flex',
@@ -76,24 +76,24 @@ export default function TemperatureButtons({ refetch }: TemperatureButtonsProps)
         width: '100%',
         marginLeft: 'auto',
         marginRight: 'auto',
-      }}
+      } }
     >
       <Button
         variant="outlined"
         color="primary"
-        sx={buttonStyle}
-        onClick={() => handleClick(-1)}
-        disabled={isUpdating}
+        sx={ buttonStyle }
+        onClick={ () => handleClick(-1) }
+        disabled={ isUpdating }
       >
-        <Remove sx={{ color: iconColor }}/>
+        <Remove sx={ { color: iconColor } }/>
       </Button>
       <Button
         variant="outlined"
-        sx={buttonStyle}
-        onClick={() => handleClick(1)}
-        disabled={isUpdating}
+        sx={ buttonStyle }
+        onClick={ () => handleClick(1) }
+        disabled={ isUpdating }
       >
-        <Add sx={{ color: iconColor }}/>
+        <Add sx={ { color: iconColor } }/>
       </Button>
     </Box>
   );

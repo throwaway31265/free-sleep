@@ -43,9 +43,9 @@ export default function Navbar() {
 )`;
   return (
     <>
-      {/* Loading Bar */}
+      { /* Loading Bar */ }
       <Box
-        sx={{
+        sx={ {
           position: 'fixed',
           top: 0,
           left: 0,
@@ -55,46 +55,46 @@ export default function Navbar() {
           backgroundSize: '200% 100%',
           animation: isUpdating ? 'slide-gradient 10s linear infinite reverse' : 'none',
           zIndex: 1201,
-        }}
+        } }
       />
-      {/* Desktop Navigation */}
+      { /* Desktop Navigation */ }
       <AppBar
         position="fixed"
         color="transparent"
-        sx={{
+        sx={ {
           display: { xs: 'none', md: 'flex' },
           borderTop: `1px solid ${theme.palette.grey[700]}`,
           backgroundColor: theme.palette.background.default,
           boxShadow: 'none',
-          top: 'auto',   // Push it to the bottom
-          bottom: 0,     // Stick it to the bottom
+          top: 'auto', // Push it to the bottom
+          bottom: 0, // Stick it to the bottom
           left: 0,
           right: 0,
-        }}
+        } }
       >
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {currentTitle || 'Free sleep'}
+          <Typography variant="h6" component="div" sx={ { flexGrow: 1 } }>
+            { currentTitle || 'Free sleep' }
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            {PAGES.map(({ title, route }) => (
+          <Box sx={ { display: 'flex', gap: 2 } }>
+            { PAGES.map(({ title, route }) => (
               <Button
-                key={route}
-                onClick={() => handleNavigation(route)}
-                sx={{ color: 'white' }}
-                variant={pathname === route ? 'outlined' : 'text'}
-                disabled={isUpdating}
+                key={ route }
+                onClick={ () => handleNavigation(route) }
+                sx={ { color: 'white' } }
+                variant={ pathname === route ? 'outlined' : 'text' }
+                disabled={ isUpdating }
               >
-                {title}
+                { title }
               </Button>
-            ))}
+            )) }
           </Box>
         </Toolbar>
       </AppBar>
 
-      {/* Mobile Bottom Navigation */}
+      { /* Mobile Bottom Navigation */ }
       <Box
-        sx={{
+        sx={ {
           display: { xs: 'flex', md: 'none' },
           width: '100%',
           position: 'fixed',
@@ -104,25 +104,25 @@ export default function Navbar() {
           borderTop: `1px solid ${theme.palette.grey[700]}`,
           backgroundColor: theme.palette.background.default,
           zIndex: 10,
-        }}
+        } }
       >
         <BottomNavigation
-          value={mobileNavValue}
-          onChange={handleMobileNavChange}
-          sx={{ width: '100%', backgroundColor: theme.palette.background.default }}
+          value={ mobileNavValue }
+          onChange={ handleMobileNavChange }
+          sx={ { width: '100%', backgroundColor: theme.palette.background.default } }
         >
-          {PAGES.map(({ title, icon }, index) => (
+          { PAGES.map(({ title, icon }, index) => (
             <BottomNavigationAction
-              key={index}
-              label={title}
-              icon={icon}
-              disabled={isUpdating}
+              key={ index }
+              label={ title }
+              icon={ icon }
+              disabled={ isUpdating }
             />
-          ))}
+          )) }
         </BottomNavigation>
       </Box>
       <style>
-        {`
+        { `
 @keyframes slide-gradient {
   0% {
     background-position: 0% 50%;
@@ -132,7 +132,7 @@ export default function Navbar() {
   }
 }
 
-        `}
+        ` }
       </style>
     </>
   );

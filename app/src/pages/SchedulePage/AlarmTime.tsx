@@ -34,8 +34,8 @@ export default function AlarmTime() {
     <TextField
       label="Alarm time"
       type="time"
-      value={selectedSchedule?.alarm.time || '09:00'}
-      onChange={(e) => handleChange(e.target.value)}
+      value={ selectedSchedule?.alarm.time || '09:00' }
+      onChange={ (e) => handleChange(e.target.value) }
 
       // error={!validations.endTimeIsValid}
       // helperText={
@@ -43,8 +43,8 @@ export default function AlarmTime() {
       //     ? `Time must be no later than 12 hours the same day or next day`
       //     : ''
       // }
-      disabled={isUpdating}
-      sx={{ mt: 2, width: '100%' }}
+      disabled={ isUpdating }
+      sx={ { mt: 2, width: '100%' } }
     />
   );
 }

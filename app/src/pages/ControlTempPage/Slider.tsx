@@ -53,23 +53,23 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
   const arcBackgroundColor = theme.palette.grey[800];
 
   return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block', width: '100%'  }}>
-      {/* Circular Slider */}
-      <div className={`${styles.Slider} ${disabled && styles.Disabled}`}>
+    <div ref={ ref } style={ { position: 'relative', display: 'inline-block', width: '100%' } }>
+      { /* Circular Slider */ }
+      <div className={ `${styles.Slider} ${disabled && styles.Disabled}` }>
         <CircularSlider
-          disabled={disabled}
-          onControlFinished={handleControlFinished}
-          size={width}
-          trackWidth={30}
-          minValue={55}
-          maxValue={110}
-          startAngle={60}
-          endAngle={300}
-          angleType={{
+          disabled={ disabled }
+          onControlFinished={ handleControlFinished }
+          size={ width }
+          trackWidth={ 30 }
+          minValue={ 55 }
+          maxValue={ 110 }
+          startAngle={ 60 }
+          endAngle={ 300 }
+          angleType={ {
             direction: 'cw',
             axis: '-y'
-          }}
-          handle1={{
+          } }
+          handle1={ {
             value: deviceStatus?.[side]?.targetTemperatureF || 55,
             onChange: (value) => {
               if (disabled) return;
@@ -78,23 +78,23 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
               }
             },
 
-          }}
-          arcColor={isOn ? sliderColor : arcBackgroundColor}
-          arcBackgroundColor={arcBackgroundColor}
+          } }
+          arcColor={ isOn ? sliderColor : arcBackgroundColor }
+          arcBackgroundColor={ arcBackgroundColor }
         />
       </div>
       <TemperatureLabel
-        isOn={isOn}
-        sliderTemp={deviceStatus?.[side]?.targetTemperatureF || 55}
-        sliderColor={sliderColor}
-        currentTargetTemp={currentTargetTemp}
-        currentTemperatureF={currentTemperatureF}
-        displayCelsius={displayCelsius}
+        isOn={ isOn }
+        sliderTemp={ deviceStatus?.[side]?.targetTemperatureF || 55 }
+        sliderColor={ sliderColor }
+        currentTargetTemp={ currentTargetTemp }
+        currentTemperatureF={ currentTemperatureF }
+        displayCelsius={ displayCelsius }
       />
       {
         isOn && (
-          <TemperatureButtons refetch={refetch}/>
-        )}
+          <TemperatureButtons refetch={ refetch }/>
+        ) }
     </div>
   );
 };

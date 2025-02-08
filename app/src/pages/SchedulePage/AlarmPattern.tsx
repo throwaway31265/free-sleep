@@ -7,7 +7,7 @@ import { useAppStore } from '@state/appStore.tsx';
 import { useScheduleStore } from './scheduleStore.tsx';
 
 
-const PATTERNS = ['rise', 'double']
+const PATTERNS = ['rise', 'double'];
 export default function AlarmPattern() {
   const { isUpdating } = useAppStore();
   const {
@@ -16,13 +16,13 @@ export default function AlarmPattern() {
   } = useScheduleStore();
 
   return (
-    <Box sx={{ minWidth: 120 }}>
+    <Box sx={ { minWidth: 120 } }>
       <FormControl fullWidth>
         <InputLabel>Vibration pattern</InputLabel>
         <Select
-          disabled={isUpdating}
-          value={selectedSchedule?.alarm.vibrationPattern}
-          onChange={(event) => {
+          disabled={ isUpdating }
+          value={ selectedSchedule?.alarm.vibrationPattern }
+          onChange={ (event) => {
             updateSelectedSchedule(
               {
                 alarm: {
@@ -31,11 +31,11 @@ export default function AlarmPattern() {
                 },
               }
             );
-          }}
+          } }
         >
           {
             PATTERNS.map((pattern) => (
-              <MenuItem value={pattern} key={pattern}>{pattern}</MenuItem>
+              <MenuItem value={ pattern } key={ pattern }>{ pattern }</MenuItem>
             ))
           }
         </Select>

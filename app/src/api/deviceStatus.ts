@@ -15,7 +15,7 @@ export const useDeviceStatus = () => useQuery<DeviceStatus>({
 
 
 export const postDeviceStatus = (deviceStatus: DeepPartial<DeviceStatus>) => {
-  return axios.post('/deviceStatus', deviceStatus)
+  return axios.post('/deviceStatus', deviceStatus);
 };
 
 

@@ -39,27 +39,27 @@ export default function LedBrightnessSlider() {
   };
   return (
 
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      <Typography sx={{ mb: -1, textAlign: 'center' }}>
+    <Box sx={ { display: 'flex', flexDirection: 'column', gap: 1 } }>
+      <Typography sx={ { mb: -1, textAlign: 'center' } }>
         LED Brightness
       </Typography>
       <Slider
-        value={settingsCopy?.ledBrightness || 0}
-        onChangeCommitted={handleSave}
-        onChange={(_, newValue) => {
+        value={ settingsCopy?.ledBrightness || 0 }
+        onChangeCommitted={ handleSave }
+        onChange={ (_, newValue) => {
           handleChange({
             ledBrightness: newValue as number,
           });
-        }}
-        min={0}
-        max={100}
-        step={1}
-        marks={[
+        } }
+        min={ 0 }
+        max={ 100 }
+        step={ 1 }
+        marks={ [
           { value: 0, label: 'Off' },
           { value: 100, label: '100%' },
-        ]}
-        disabled={isUpdating}
-        sx={{ width: '100%' }}
+        ] }
+        disabled={ isUpdating }
+        sx={ { width: '100%' } }
       />
     </Box>
   );

@@ -88,6 +88,35 @@ echo "Updating device time"
 date -s "$(curl -s --head http://google.com | grep ^Date: | sed 's/Date: //g')"
 
 # -----------------------------------------------------------------------------------------------------
+# Setup ability to reboot pod without sudo permission for dac user
+USERNAME="dac"
+SUDOERS_FILE="/etc/sudoers.d/$USERNAME"
+SUDOERS_RULE="$USERNAME ALL=(ALL) NOPASSWD: /sbin/reboot"
 
-echo "Installation complete! The Free Sleep server is running and will start automatically on boot."
-echo "See free-sleep logs with journalctl -u free-sleep --no-pager --output=cat"
+# 2. Check if the sudoers rule already exists
+if sudo grep -Fxq "$SUDOERS_RULE" "$SUDOERS_FILE" 2>/dev/null; then
+    echo "Rule for '$USERNAME' reboot permissions already exists."
+else
+    echo "$SUDOERS_RULE" | sudo tee "$SUDOERS_FILE" > /dev/null
+    sudo chmod 440 "$SUDOERS_FILE"
+    echo "Passwordless permission for reboot granted to '$USERNAME'."
+fi
+
+# -----------------------------------------------------------------------------------------------------
+# Setup data folder
+
+# Create directories if they don't exist
+mkdir -p /persistent/free-sleep-data/logs/
+
+# Change ownership recursively (-R flag)
+chown -R dac:dac /persistent/free-sleep-data/
+
+# Set directory permissions
+chmod 770 /persistent/free-sleep-data/
+chmod g+s /persistent/free-sleep-data/
+
+# -----------------------------------------------------------------------------------------------------
+
+echo -e "\033[0;32mInstallation complete! The Free Sleep server is running and will start automatically on boot.\033[0m"
+echo -e "\033[0;32mSee free-sleep logs with journalctl -u free-sleep --no-pager --output=cat\033[0m"
+

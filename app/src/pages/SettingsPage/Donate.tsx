@@ -12,7 +12,7 @@ export default function Donate() {
   const theme = useTheme();
   const handleCopy = async () => {
     try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
+      if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(bitcoinAddress);
       } else {
         // Fallback for browsers without clipboard API support
@@ -29,54 +29,55 @@ export default function Donate() {
   };
 
   return (
-    <Box sx={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 1,
-      flexDirection: 'column',
-      [theme.breakpoints.up('sm')]: {
-        width: '100%',
-        maxWidth: '350px',
-      },
-      [theme.breakpoints.down('sm')]: {
-        width: '100%',
-      },
-    }}
+    <Box
+      sx={ {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        flexDirection: 'column',
+        [theme.breakpoints.up('sm')]: {
+          width: '100%',
+          maxWidth: '350px',
+        },
+        [theme.breakpoints.down('sm')]: {
+          width: '100%',
+        },
+      } }
     >
-      <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
+      <Typography variant="h6" sx={ { display: 'flex', alignItems: 'center' } }>
         Support the Project <CurrencyBitcoinIcon fontSize="large"/>
       </Typography>
       <Typography variant="body2" color="textSecondary">
         Like the app? Don't like paying $200/year elsewhere? Buy me a drink instead!
       </Typography>
       <TextField
-        inputRef={textFieldRef}
+        inputRef={ textFieldRef }
         variant="outlined"
         fullWidth
-        onSelect={handleCopy}
-        value={bitcoinAddress}
-        sx={{
+        onSelect={ handleCopy }
+        value={ bitcoinAddress }
+        sx={ {
           cursor: 'pointer',
           '& .MuiInputBase-input': {
             cursor: 'pointer',
-            fontSize: '12px',  // Adjust the font size here
+            fontSize: '12px', // Adjust the font size here
           }
-        }}
-        inputProps={{ readOnly: true }}
-        InputProps={{
+        } }
+        inputProps={ { readOnly: true } }
+        InputProps={ {
           endAdornment: (
             <InputAdornment position="end">
               <Tooltip title="Copy">
-                <IconButton onClick={handleCopy}>
+                <IconButton onClick={ handleCopy }>
                   <ContentCopyIcon/>
                 </IconButton>
               </Tooltip>
             </InputAdornment>
           ),
-        }}
+        } }
       />
       <Typography variant="body2" color="textSecondary">
-        {copySuccess ? 'Copied!' : 'Copy and send to the bitcoin address above.'}
+        { copySuccess ? 'Copied!' : 'Copy and send to the bitcoin address above.' }
       </Typography>
     </Box>
   );

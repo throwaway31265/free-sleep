@@ -23,9 +23,7 @@ export const useAppStore = create<AppState>((set) => ({
   setSide: (side: Side) => {
     set({ side });
     updateFieldInIndexedDB('side', side)
-      .then(resp => {
-        console.log(`appStore.tsx:29 | resp: `, resp);
-      })
+      .then(() => {})
       .catch(error => {
         console.error(error);
       });
@@ -53,21 +51,18 @@ export function AppStoreProvider({ children }: React.PropsWithChildren) {
   useEffect(() => {
     getFieldFromIndexedDB('side')
       .then((resp) => {
-        console.log(`Retrieved side from IndexedDB:`, resp);
         if (resp) {
           setSide(resp);
         } else {
           return updateFieldInIndexedDB('side', side);
         }
       })
-      .then(() => {
-        console.log('Side updated to default value.');
-      })
+      .then(() => {})
       .catch((error) => {
         console.error('Error initializing IndexedDB:', error);
       });
   }, []);
 
 
-  return <>{children}</>;
+  return <>{ children }</>;
 }

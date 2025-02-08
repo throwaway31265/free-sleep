@@ -8,20 +8,20 @@ export default function DayTabs() {
   const { isUpdating } = useAppStore();
   return (
     <Tabs
-      value={selectedDayIndex || 0}
-      onChange={(_, index) => selectDay(index)}
+      value={ selectedDayIndex || 0 }
+      onChange={ (_, index) => selectDay(index) }
       variant="scrollable"
       scrollButtons="auto"
       aria-label="Days of the week"
-      sx={{
+      sx={ {
         width: '100%',
         maxWidth: '100%',
         overflowX: 'auto',
-      }}
+      } }
     >
       {
         LOWERCASE_DAYS.map((day, index) => (
-          <Tab key={index} label={day} disabled={isUpdating}/>
+          <Tab key={ index } label={ day } disabled={ isUpdating }/>
         ))
       }
     </Tabs>

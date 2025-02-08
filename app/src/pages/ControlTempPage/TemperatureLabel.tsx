@@ -29,13 +29,13 @@ export function formatTemperature(temperature: number, celcius: boolean) {
 }
 
 export default function TemperatureLabel({
-                                           isOn,
-                                           sliderTemp,
-                                           sliderColor,
-                                           currentTargetTemp,
-                                           currentTemperatureF,
-                                           displayCelsius
-                                         }: TemperatureLabelProps) {
+  isOn,
+  sliderTemp,
+  sliderColor,
+  currentTargetTemp,
+  currentTemperatureF,
+  displayCelsius
+}: TemperatureLabelProps) {
 
 
   const theme = useTheme();
@@ -69,7 +69,7 @@ export default function TemperatureLabel({
 
   return (
     <div
-      style={{
+      style={ {
         position: 'absolute',
         top: '10%',
         left: '50%',
@@ -78,58 +78,58 @@ export default function TemperatureLabel({
         textAlign: 'center',
         height: '300px',
         width: '100%',
-      }}
+      } }
     >
       {
         isOn ? (
           <>
             <Typography
-              style={{ top: '70%', }}
-              className={styles.label}
-              color={theme.palette.grey[400]}
+              style={ { top: '70%', } }
+              className={ styles.label }
+              color={ theme.palette.grey[400] }
             >
-              {topTitle}
+              { topTitle }
             </Typography>
 
-            {/* Temperature */}
+            { /* Temperature */ }
             <Typography
-              style={{ top: '80%' }}
+              style={ { top: '80%' } }
               variant="h2"
-              color={sliderColor}
-              className={styles.label}
+              color={ sliderColor }
+              className={ styles.label }
             >
-              {formatTemperature(currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp, displayCelsius)}
+              { formatTemperature(currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp, displayCelsius) }
             </Typography>
 
-            {/* Currently at label */}
+            { /* Currently at label */ }
             <Typography
-              style={{ top: '105%' }}
-              className={styles.label}
-              color={theme.palette.grey[400]}
+              style={ { top: '105%' } }
+              className={ styles.label }
+              color={ theme.palette.grey[400] }
             >
-              {`Currently at ${formatTemperature(currentTemperatureF, displayCelsius)}`}
+              { `Currently at ${formatTemperature(currentTemperatureF, displayCelsius)}` }
             </Typography>
           </>
         ) : (
           <>
             <Typography
-              style={{ top: '80%' }}
+              style={ { top: '80%' } }
               variant="h3"
-              color={theme.palette.grey[800]}
-              className={styles.label}
+              color={ theme.palette.grey[800] }
+              className={ styles.label }
             >
               Off
             </Typography>
             {
               power?.enabled && (
                 <Typography
-                  style={{ top: '105%' }}
+                  style={ { top: '105%' } }
                   // variant="h3"
-                  color={theme.palette.grey[800]}
-                  className={styles.label}
+                  color={ theme.palette.grey[800] }
+                  className={ styles.label }
                 >
 
-                  Turns on at {formattedTime}
+                  Turns on at { formattedTime }
                 </Typography>
               )
             }

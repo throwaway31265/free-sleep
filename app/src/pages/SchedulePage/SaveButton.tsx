@@ -8,11 +8,11 @@ type SaveButtonProps = {
 
 export default function SaveButton({ onSave }: SaveButtonProps) {
   const { isUpdating } = useAppStore();
-  const {changesPresent} = useScheduleStore();
+  const { changesPresent } = useScheduleStore();
   if (!changesPresent) return null;
 
   return (
-    <Button variant="contained" onClick={onSave} disabled={isUpdating}>
+    <Button variant="contained" onClick={ onSave } disabled={ isUpdating }>
       Save
     </Button>
   );

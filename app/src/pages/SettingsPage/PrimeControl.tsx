@@ -7,12 +7,12 @@ export default function PrimeControl() {
   const { data: deviceStatus, refetch } = useDeviceStatus();
 
   return (
-    <Box sx={{ mt: -2 }}>
+    <Box sx={ { mt: -2 } }>
       {
         deviceStatus?.isPriming ?
           <PrimingNotification />
           :
-          <PrimeButton refetch={refetch}/>
+          <PrimeButton refetch={ refetch }/>
       }
     </Box>
   );

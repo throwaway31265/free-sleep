@@ -11,24 +11,23 @@ export default function SideControl() {
   const { data: settings } = useSettings();
   const theme = useTheme();
   const onSelect = (side: Side) => {
-    console.log(`SideControl.tsx:33 | side: `, side);
     setSide(side);
   };
 
   return (
-    <Box sx={{ marginRight: 'auto' }}>
-      {/*<Typography variant='h6'>*/}
-      {/*  {settings?.[side].name}*/}
-      {/*</Typography>*/}
+    <Box sx={ { marginRight: 'auto' } }>
+      { /*<Typography variant='h6'>*/ }
+      { /*  {settings?.[side].name}*/ }
+      { /*</Typography>*/ }
       <Select
-        value={side}
+        value={ side }
         // @ts-ignore
-        onChange={(e) => onSelect(e.target.value)}
+        onChange={ (e) => onSelect(e.target.value) }
         label="Side"
         variant="standard"
-        IconComponent={ExpandMoreIcon}
-        disableUnderline={true}
-        sx={{
+        IconComponent={ ExpandMoreIcon }
+        disableUnderline={ true }
+        sx={ {
           color: theme.palette.text.secondary,
           // borderBottom: '0px solid red',
           boxShadow: 'none',
@@ -36,24 +35,24 @@ export default function SideControl() {
           '.MuiOutlinedInput-notchedOutline': { border: 0 },
           '.MuiInput': { border: 0 },
           '.MuiInput-underline': { border: 0 },
-        }}
+        } }
       >
-        <MenuItem value="left" sx={{ display: side === 'left' ? 'none' : 'block' }}>
+        <MenuItem value="left" sx={ { display: side === 'left' ? 'none' : 'block' } }>
           {
             side === 'left' && (
               <Typography variant="h6">
-                {settings?.[side].name}
+                { settings?.[side].name }
               </Typography>
             )
           }
           Left side
         </MenuItem>
         )
-        <MenuItem value="right" sx={{ display: side === 'right' ? 'none' : 'block' }}>
+        <MenuItem value="right" sx={ { display: side === 'right' ? 'none' : 'block' } }>
           {
             side === 'right' && (
               <Typography variant="h6">
-                {settings?.[side].name}
+                { settings?.[side].name }
               </Typography>
             )
           }

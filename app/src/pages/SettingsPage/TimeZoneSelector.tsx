@@ -21,23 +21,23 @@ export default function TimeZoneSelector({ settings, updateSettings }: TimeZoneS
   const handleChange = (event: SelectChangeEvent) => {
     updateSettings({
       timeZone: event.target.value as Settings['timeZone']
-    })
+    });
   };
 
   return (
-    <Box sx={{ minWidth: 120, width: 300 }}>
+    <Box sx={ { minWidth: 120, width: 300 } }>
       <FormControl fullWidth>
         <InputLabel>Time Zone</InputLabel>
         <Select
-          error={settings?.timeZone === null}
-          disabled={isUpdating}
-          value={settings?.timeZone || ''}
+          error={ settings?.timeZone === null }
+          disabled={ isUpdating }
+          value={ settings?.timeZone || '' }
           label="Time Zone"
-          onChange={handleChange}
+          onChange={ handleChange }
         >
           {
             TIME_ZONES.map(zone => (
-              <MenuItem value={zone} key={zone}>{zone}</MenuItem>
+              <MenuItem value={ zone } key={ zone }>{ zone }</MenuItem>
             ))
           }
         </Select>

@@ -42,13 +42,13 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
       return (
         <div>
           <h1>Something went wrong.</h1>
-          {process.env.NODE_ENV === 'development' && (
-            <details style={{ whiteSpace: 'pre-wrap' }}>
+          { process.env.NODE_ENV === 'development' && (
+            <details style={ { whiteSpace: 'pre-wrap' } }>
               <summary>Error details</summary>
-              <p>{this.state.error?.toString()}</p>
-              <pre>{this.state.errorInfo?.componentStack}</pre>
+              <p>{ this.state.error?.toString() }</p>
+              <pre>{ this.state.errorInfo?.componentStack }</pre>
             </details>
-          )}
+          ) }
         </div>
       );
     }

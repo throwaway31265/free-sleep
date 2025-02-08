@@ -7,7 +7,7 @@ type AwayNotificationProps = {
 }
 
 export default function AwayNotification({ settings }: AwayNotificationProps) {
-  const {side } = useAppStore();
+  const { side } = useAppStore();
 
   const otherSide = side === 'right' ? 'left' : 'right';
 

@@ -17,3 +17,6 @@ tmp
 server/lowdb/*
 !.gitkeep
 app/dist/
+
+free-sleep-data/
+

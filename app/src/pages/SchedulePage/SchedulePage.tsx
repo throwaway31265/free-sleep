@@ -98,25 +98,25 @@ export default function SchedulePage() {
 
   return (
     <PageContainer
-      sx={{
+      sx={ {
         width: '100%',
         maxWidth: { xs: '100%', sm: '800px' },
         mx: 'auto',
         mb: 15,
-      }}
+      } }
     >
       <SideControl/>
       <DayTabs/>
-      <StartTimeSection displayCelsius={displayCelsius}/>
+      <StartTimeSection displayCelsius={ displayCelsius }/>
       <EndTime/>
-      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', width: '100%', mb: 2 }}>
+      <Box sx={ { mt: 2, display: 'flex', justifyContent: 'space-between', width: '100%', mb: 2 } }>
         <EnabledSwitch/>
-        <SaveButton onSave={handleSave}/>
+        <SaveButton onSave={ handleSave }/>
       </Box>
       {
         selectedSchedule?.power.enabled && (
           <>
-            <TemperatureAdjustmentsAccordion displayCelsius={displayCelsius}/>
+            <TemperatureAdjustmentsAccordion displayCelsius={ displayCelsius }/>
             <AlarmAccordion/>
             <ApplyToOtherDaysAccordion/>
           </>

@@ -8,7 +8,12 @@
     "start": "node dist/server.js",
     "build": "tsc",
     "dev": "nodemon --watch src --ext ts --exec \"node --loader ts-node/esm\" src/server.ts",
-    "lint": "npx eslint src/ --ext .ts,.tsx"
+    "dev:local": "dotenv -e .env.local -- nodemon --watch src --ext ts --exec \"node --loader ts-node/esm\" src/server.ts",
+    "lint": "npx eslint src/ --ext .ts,.tsx",
+    "migrate": "dotenv -e .env.pod -- npx prisma migrate dev --name ",
+    "generate": "dotenv -e .env.pod -- npx prisma generate",
+    "migrate:local": "dotenv -e .env.local -- npx prisma migrate dev --name ",
+    "generate:local": "dotenv -e .env.local -- npx prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -17,15 +22,19 @@
     "node": "22.13.0"
   },
   "dependencies": {
+    "@prisma/client": "^6.3.1",
     "bree": "^9.2.4",
     "cbor": "^9.0.2",
     "chokidar": "^4.0.3",
     "cors": "^2.8.5",
+    "dotenv-cli": "^8.0.0",
     "express": "^4.21.2",
     "lodash": "^4.17.21",
     "lowdb": "^6.1.1",
     "moment-timezone": "^0.5.46",
     "node-schedule": "^2.1.1",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "winston": "^3.17.0",
     "zod": "^3.24.1"
   },
@@ -38,6 +47,7 @@
     "@typescript-eslint/parser": "^5.62.0",
     "eslint": "^8.57.1",
     "nodemon": "^3.1.9",
+    "prisma": "^6.3.1",
     "ts-essentials": "^10.0.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"

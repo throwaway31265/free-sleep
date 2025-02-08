@@ -9,10 +9,10 @@ export default function Divider() {
     <>
       <br />
       <MuiDivider
-        sx={{
+        sx={ {
           border: `1px solid ${theme.palette.grey[800]}`,
           width: '100%'
-        }}
+        } }
       />
       <br />
     </>

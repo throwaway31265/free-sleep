@@ -87,6 +87,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
 
   accordionExpanded: undefined,
   setAccordionExpanded: (accordionExpanded) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     get().accordionExpanded === accordionExpanded ? set({ accordionExpanded: undefined }) : set({ accordionExpanded });
   },
 

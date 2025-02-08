@@ -40,17 +40,17 @@ export default function EndTime() {
     <TextField
       label="End Time"
       type="time"
-      value={selectedSchedule?.power?.off || '09:00'}
-      onChange={(e) => handleChange(e.target.value)}
+      value={ selectedSchedule?.power?.off || '09:00' }
+      onChange={ (e) => handleChange(e.target.value) }
 
-      error={!validations.endTimeIsValid}
+      error={ !validations.endTimeIsValid }
       helperText={
         !validations.endTimeIsValid
           ? `Time must be no later than 12 hours the same day or next day`
           : ''
       }
-      disabled={disabled}
-      sx={{ mt: 2, width: '100%' }}
+      disabled={ disabled }
+      sx={ { mt: 2, width: '100%' } }
     />
   );
 }

@@ -95,17 +95,17 @@ export default function TemperatureAdjustmentsAccordion({ displayCelsius }: { di
 
   return (
     <Accordion
-      sx={{ width: '100%' }}
-      expanded={accordionExpanded === ACCORDION_NAME}
-      onChange={() => setAccordionExpanded(ACCORDION_NAME)}
+      sx={ { width: '100%' } }
+      expanded={ accordionExpanded === ACCORDION_NAME }
+      onChange={ () => setAccordionExpanded(ACCORDION_NAME) }
     >
-      <AccordionSummary expandIcon={<ExpandMore/>} >
-        <Typography sx={{alignItems: 'center', display: 'flex', gap: 3}}>
+      <AccordionSummary expandIcon={ <ExpandMore/> } >
+        <Typography sx={ { alignItems: 'center', display: 'flex', gap: 3 } }>
           <ThermostatIcon /> Temperature adjustments
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {/* Dynamic schedule rows */}
+        { /* Dynamic schedule rows */ }
         {
           selectedSchedule && Object.entries(selectedSchedule.temperatures)
             .sort(([timeA], [timeB]) => {
@@ -121,68 +121,68 @@ export default function TemperatureAdjustmentsAccordion({ displayCelsius }: { di
             })
             .map(([time, temperature]) => (
               <Box
-                key={time}
-                sx={{
+                key={ time }
+                sx={ {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   mb: 2,
                   gap: 1,
-                }}
+                } }
               >
-                {/* Time selector */}
+                { /* Time selector */ }
                 <TextField
                   label="Time"
                   type="time"
-                  value={time}
-                  sx={{ flexGrow: 1 }}
-                  onChange={(event) => handleUpdateTime(time, event.target.value)}
-                  error={!isTimeValid(time)}
+                  value={ time }
+                  sx={ { flexGrow: 1 } }
+                  onChange={ (event) => handleUpdateTime(time, event.target.value) }
+                  error={ !isTimeValid(time) }
                   helperText={
                     !isTimeValid(time)
                       ? `Time must be between ${selectedSchedule?.power.on} and ${selectedSchedule?.power.off}`
                       : ''
                   }
-                  disabled={isUpdating}
+                  disabled={ isUpdating }
                 />
 
-                {/* Temperature selector */}
+                { /* Temperature selector */ }
                 <Select
-                  value={temperature}
-                  onChange={(event) =>
+                  value={ temperature }
+                  onChange={ (event) =>
                     handleUpdateTemperature(time, event.target.value as number)
                   }
-                  sx={{ width: '90px' }}
-                  disabled={isUpdating}
+                  sx={ { width: '110px' } }
+                  disabled={ isUpdating }
                 >
                   {
                     TEMPERATURES_LIST.map((temp) => (
-                      <MenuItem key={temp} value={temp}>
-                        {formatTemperature(temp, displayCelsius)}
+                      <MenuItem key={ temp } value={ temp }>
+                        { formatTemperature(temp, displayCelsius) }
                       </MenuItem>
                     ))
                   }
                 </Select>
 
-                {/* Remove button */}
+                { /* Remove button */ }
                 <IconButton
-                  onClick={() => deleteTime(time)}
+                  onClick={ () => deleteTime(time) }
                   color="error"
                   aria-label="remove schedule"
-                  disabled={isUpdating}
+                  disabled={ isUpdating }
                 >
                   <Remove/>
                 </IconButton>
               </Box>
-            ))}
+            )) }
 
-        {/* Add schedule button */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+        { /* Add schedule button */ }
+        <Box sx={ { display: 'flex', justifyContent: 'center', mt: 2 } }>
           <Button
             variant="contained"
-            startIcon={<Add/>}
-            onClick={addSchedule}
-            disabled={isUpdating}
+            startIcon={ <Add/> }
+            onClick={ addSchedule }
+            disabled={ isUpdating }
           >
             Add schedule
           </Button>

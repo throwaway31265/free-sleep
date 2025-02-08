@@ -232,7 +232,7 @@ http://192.168.1.50:3000/
    2. Login as root to your device with your minicom session again and paste the output of these commands
 ```
 systemctl list-units --type=service --no-pager
-journalctl -u free-sleep --no-pager --output=cat
+journalctl -u free-sleep --no-pager --output=cat -n 50
 ps aux
 find /home/dac/free-sleep/server -path /home/dac/free-sleep/server/node_modules -prune -o -type f -print
 which npm

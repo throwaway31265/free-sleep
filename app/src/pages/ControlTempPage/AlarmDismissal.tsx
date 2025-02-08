@@ -61,9 +61,9 @@ export default function AlarmDismissal({ deviceStatus, refetch }: AlarmDismissal
 
   return (
     <Dialog
-      open={dismissed ? false : deviceStatus?.[side].isAlarmVibrating || false }
-      fullScreen={isSmallScreen}
-      PaperProps={{
+      open={ dismissed ? false : deviceStatus?.[side].isAlarmVibrating || false }
+      fullScreen={ isSmallScreen }
+      PaperProps={ {
         sx: isSmallScreen
           ? {
             display: 'flex',
@@ -79,20 +79,20 @@ export default function AlarmDismissal({ deviceStatus, refetch }: AlarmDismissal
             width: '50%',
             height: '200px'
           },
-      }}
+      } }
     >
       <DialogActions
-        sx={{
+        sx={ {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           height: '100%',
-        }}
+        } }
       >
-        <AlarmIcon fontSize="large" sx={{ mb: 4,animation: `${pulse} 2s infinite`, }}/>
+        <AlarmIcon fontSize="large" sx={ { mb: 4,animation: `${pulse} 2s infinite`, } }/>
         <Button
-          onClick={handleDismiss}
+          onClick={ handleDismiss }
           color="error"
           variant="contained"
         >

@@ -14,16 +14,16 @@ export default function SideControl() {
   return (
     <ButtonGroup variant="contained">
       <Button
-        variant={side === 'left' ? 'contained' : 'outlined'}
-        onClick={() => handleSelectSide('left')}
-        disabled={isUpdating}
+        variant={ side === 'left' ? 'contained' : 'outlined' }
+        onClick={ () => handleSelectSide('left') }
+        disabled={ isUpdating }
       >
         Left Side
       </Button>
       <Button
-        variant={side === 'right' ? 'contained' : 'outlined'}
-        onClick={() => handleSelectSide('right')}
-        disabled={isUpdating}
+        variant={ side === 'right' ? 'contained' : 'outlined' }
+        onClick={ () => handleSelectSide('right') }
+        disabled={ isUpdating }
       >
         Right Side
       </Button>

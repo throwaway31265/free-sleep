@@ -30,20 +30,20 @@ export default function TemperatureFormatSelector({
   };
 
   return (
-    <Box sx={{ minWidth: 120 }}>
+    <Box sx={ { minWidth: 120 } }>
       <ToggleButtonGroup
-        disabled={isUpdating}
+        disabled={ isUpdating }
         color='primary'
-        value={settings?.temperatureFormat || 'farenheit'}
+        value={ settings?.temperatureFormat || 'farenheit' }
         exclusive
-        onChange={handleChange}
+        onChange={ handleChange }
       >
-        {TEMPERATURES.map((format) => (
-          <ToggleButton value={format} key={format}>
-            {format}
+        { TEMPERATURES.map((format) => (
+          <ToggleButton value={ format } key={ format }>
+            { format }
           </ToggleButton>
-        ))}
+        )) }
       </ToggleButtonGroup>
     </Box>
-  )
+  );
 }

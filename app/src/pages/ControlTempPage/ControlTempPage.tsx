@@ -21,7 +21,7 @@ export default function ControlTempPage() {
   const { setOriginalDeviceStatus, deviceStatus } = useControlTempStore();
   const { data: settings } = useSettings();
   const { isUpdating, side } = useAppStore();
-  const theme = useTheme()
+  const theme = useTheme();
 
   useEffect(() => {
     if (!deviceStatusOriginal) return;
@@ -35,36 +35,37 @@ export default function ControlTempPage() {
   }, [side]);
 
   return (
-    <PageContainer sx={{
-      maxWidth: '500px',
-      [theme.breakpoints.up('md')]: {
-        maxWidth: '400px',
-      },
-    }}>
+    <PageContainer
+      sx={ {
+        maxWidth: '500px',
+        [theme.breakpoints.up('md')]: {
+          maxWidth: '400px',
+        },
+      } }>
       <SideControl />
       <Slider
-        isOn={sideStatus?.isOn || false}
-        currentTargetTemp={sideStatus?.targetTemperatureF || 55}
-        refetch={refetch}
-        currentTemperatureF={sideStatus?.currentTemperatureF || 55}
-        displayCelsius={settings?.temperatureFormat === 'celsius' || false}
+        isOn={ sideStatus?.isOn || false }
+        currentTargetTemp={ sideStatus?.targetTemperatureF || 55 }
+        refetch={ refetch }
+        currentTemperatureF={ sideStatus?.currentTemperatureF || 55 }
+        displayCelsius={ settings?.temperatureFormat === 'celsius' || false }
       />
       {
         isError ?
-          <Button variant="contained" onClick={() => refetch()} disabled={isUpdating}>
+          <Button variant="contained" onClick={ () => refetch() } disabled={ isUpdating }>
             Try again
           </Button>
           :
           <PowerButton
-            isOn={sideStatus?.isOn || false}
-            refetch={refetch}
+            isOn={ sideStatus?.isOn || false }
+            refetch={ refetch }
           />
       }
 
-      <AwayNotification settings={settings}/>
-      <WaterNotification deviceStatus={deviceStatus}/>
-      <AlarmDismissal deviceStatus={deviceStatus} refetch={refetch}/>
-      {isUpdating && <CircularProgress/>}
+      <AwayNotification settings={ settings }/>
+      <WaterNotification deviceStatus={ deviceStatus }/>
+      <AlarmDismissal deviceStatus={ deviceStatus } refetch={ refetch }/>
+      { isUpdating && <CircularProgress/> }
     </PageContainer>
   );
 }

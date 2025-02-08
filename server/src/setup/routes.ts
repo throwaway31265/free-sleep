@@ -5,16 +5,17 @@ import deviceStatus from '../routes/deviceStatus/deviceStatus.js';
 import execute from '../routes/execute/execute.js';
 import settings from '../routes/settings/settings.js';
 import schedules from '../routes/schedules/schedules.js';
+import sleep from '../routes/metrics/sleep.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 
 export default function (app: Express) {
   app.use('/api/', deviceStatus);
   app.use('/api/', execute);
   app.use('/api/', schedules);
   app.use('/api/', settings);
+  app.use('/api/metrics/', sleep);
   // // Serve static files from the Vite output directory
   app.use(express.static(path.join(__dirname, '../../public')));
 

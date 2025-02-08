@@ -7,7 +7,7 @@ export default function Layout() {
   return (
     <Box
       id="Layout"
-      sx={{
+      sx={ {
         display: 'flex',
         flexDirection: 'column',
         flexGrow: 1,
@@ -17,9 +17,9 @@ export default function Layout() {
         margin: 0,
         width: '100vw',
         justifyContent: 'center',
-      }}
+      } }
     >
-      {/* Renders current route */}
+      { /* Renders current route */ }
       <Outlet/>
       <Navbar/>
     </Box>

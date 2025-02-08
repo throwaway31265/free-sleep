@@ -25,7 +25,7 @@ export default function PrimeButton({ refetch }: PrimeButtonProps) {
   };
 
   return (
-    <Button variant="contained" onClick={handleClick} disabled={isUpdating}>
+    <Button variant="contained" onClick={ handleClick } disabled={ isUpdating }>
       Prime now
     </Button>
   );

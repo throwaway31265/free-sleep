@@ -11,16 +11,16 @@ export default function EnabledSwitch() {
     <FormControlLabel
       control={
         <Switch
-          checked={selectedSchedule?.power.enabled || false}
-          onChange={() => {
+          checked={ selectedSchedule?.power.enabled || false }
+          onChange={ () => {
             updateSelectedSchedule({
-                power: {
-                  enabled: !selectedSchedule?.power.enabled
-                }
+              power: {
+                enabled: !selectedSchedule?.power.enabled
               }
+            }
             );
-          }}
-          disabled={isUpdating}
+          } }
+          disabled={ isUpdating }
         />
       }
       label="Enabled"

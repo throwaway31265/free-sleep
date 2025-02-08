@@ -6,7 +6,8 @@ const router = express.Router();
 
 import settingsDB from '../../db/settings.js';
 import { SettingsSchema } from '../../db/settingsSchema.js';
-
+// import { executeAnalyzeSleep } from '../../jobs/analyzeSleep.js';
+// import { executeCalibrateSensors } from '../../jobs/calibrateSensors';
 
 router.get('/settings', async (req: Request, res: Response) => {
   await settingsDB.read();
@@ -15,6 +16,15 @@ router.get('/settings', async (req: Request, res: Response) => {
 
 
 router.post('/settings', async (req: Request, res: Response) => {
+
+  const side = 'left';
+  // const startTime = new Date('2025-02-05T04:00:00Z').toISOString();
+  const startTime = new Date('2025-02-05T17:00:00Z').toISOString();
+  // const endTime = new Date('2025-02-05T15:00:00Z').toISOString();
+  const endTime = new Date('2025-02-05T20:00:00Z').toISOString();
+
+  // executeCalibrateSensors(side, startTime, endTime);
+
   const { body } = req;
   const validationResult = SettingsSchema.deepPartial().safeParse(body);
   if (!validationResult.success) {
@@ -27,7 +37,7 @@ router.post('/settings', async (req: Request, res: Response) => {
   }
   await settingsDB.read();
   _.merge(settingsDB.data, body);
-  await settingsDB.write()
+  await settingsDB.write();
   res.status(200).json(settingsDB.data);
 });
 

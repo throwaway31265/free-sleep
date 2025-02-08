@@ -11,16 +11,16 @@ export default function AlarmEnabledSwitch() {
     <FormControlLabel
       control={
         <Switch
-          checked={selectedSchedule?.alarm.enabled || false}
-          onChange={() => {
+          checked={ selectedSchedule?.alarm.enabled || false }
+          onChange={ () => {
             updateSelectedSchedule({
-                alarm: {
-                  enabled: !selectedSchedule?.alarm.enabled
-                }
+              alarm: {
+                enabled: !selectedSchedule?.alarm.enabled
               }
+            }
             );
-          }}
-          disabled={isUpdating}
+          } }
+          disabled={ isUpdating }
         />
       }
       label="Enabled"

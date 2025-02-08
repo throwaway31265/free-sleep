@@ -38,18 +38,18 @@ export default function SettingsPage() {
   };
 
   return (
-    <PageContainer sx={{ mb: 15 }}>
-      <TimeZoneSelector settings={settings} updateSettings={updateSettings}/>
-      <TemperatureFormatSelector settings={settings} updateSettings={updateSettings} />
+    <PageContainer sx={ { mb: 15, mt: 2 } }>
+      <TimeZoneSelector settings={ settings } updateSettings={ updateSettings }/>
+      <TemperatureFormatSelector settings={ settings } updateSettings={ updateSettings } />
 
       <Divider />
-      <DailyPriming settings={settings} updateSettings={updateSettings}/>
+      <DailyPriming settings={ settings } updateSettings={ updateSettings }/>
       <PrimeControl/>
 
       <Divider />
-      <SideSettings side="left" settings={settings} updateSettings={updateSettings}/>
+      <SideSettings side="left" settings={ settings } updateSettings={ updateSettings }/>
       <br />
-      <SideSettings side="right" settings={settings} updateSettings={updateSettings}/>
+      <SideSettings side="right" settings={ settings } updateSettings={ updateSettings }/>
       <Divider />
       <LedBrightnessSlider/>
 

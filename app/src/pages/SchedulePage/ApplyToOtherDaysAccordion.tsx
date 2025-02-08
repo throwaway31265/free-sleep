@@ -21,31 +21,31 @@ export default function ApplyToOtherDaysAccordion() {
 
   return (
     <Accordion
-      sx={{ width: '100%', mt: -2 }}
-      expanded={accordionExpanded === ACCORDION_NAME}
-      onChange={() => setAccordionExpanded(ACCORDION_NAME)}
+      sx={ { width: '100%', mt: -2 } }
+      expanded={ accordionExpanded === ACCORDION_NAME }
+      onChange={ () => setAccordionExpanded(ACCORDION_NAME) }
     >
-      <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-        <Typography sx={{display: 'flex', alignItems: 'center', gap: 3}}>
+      <AccordionSummary expandIcon={ <ExpandMoreIcon/> }>
+        <Typography sx={ { display: 'flex', alignItems: 'center', gap: 3 } }>
           <EventRepeatIcon /> Apply settings to other days
         </Typography>
       </AccordionSummary>
-      <Box sx={{ mt: -2, p: 2 }}>
+      <Box sx={ { mt: -2, p: 2 } }>
         <FormGroup>
           {
             daysOfWeek.map((day) => {
               const lowerCaseDay = day.toLowerCase() as DayOfWeek;
               return (
                 <FormControlLabel
-                  key={day}
+                  key={ day }
                   control={
                     <Checkbox
-                      disabled={isUpdating}
-                      checked={selectedDays[lowerCaseDay]}
-                      onChange={() => toggleSelectedDay(lowerCaseDay)}
+                      disabled={ isUpdating }
+                      checked={ selectedDays[lowerCaseDay] }
+                      onChange={ () => toggleSelectedDay(lowerCaseDay) }
                     />
                   }
-                  label={day}
+                  label={ day }
                 />
               );
             })

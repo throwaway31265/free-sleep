@@ -6,14 +6,6 @@ const DB_VERSION = 3;
 const KEY_PATH = 'user_key';
 const USER_SETTINGS = 'user-settings';
 
-// Define the database schema according to the idb documentation
-interface FreeSleepDB extends DBSchema {
-  user_store: {
-    key: string; // The primary key of the object store
-    value: UserSettings; // The type of data stored in the object store
-  };
-}
-
 // Define the structure of the data stored in IndexedDB
 export type UserSettings = {
   user_key: string; // This is the primary key as per IndexedDB schema
@@ -28,6 +20,16 @@ export type UserSettings = {
     sleep_mode: boolean;
   };
 };
+
+
+// Define the database schema according to the idb documentation
+interface FreeSleepDB extends DBSchema {
+  user_store: {
+    key: string; // The primary key of the object store
+    value: UserSettings; // The type of data stored in the object store
+  };
+}
+
 
 // Singleton instance of IndexedDB with proper typing
 let dbInstance: IDBPDatabase<FreeSleepDB> | null = null;
@@ -77,12 +79,13 @@ export const getFieldFromIndexedDB = async <T extends keyof UserSettings>(
 ): Promise<UserSettings[T] | null> => {
   try {
     const data = await getAllDataFromIndexedDB();
-    if (data && data.hasOwnProperty(field)) {
+    if (data?.hasOwnProperty(field)) {
       return data[field];
     } else {
       return null;
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(`Error retrieving field '${field}' from IndexedDB:`, error);
     return null;
   }
