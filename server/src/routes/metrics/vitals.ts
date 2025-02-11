@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
-import { PrismaClient, Prisma, vitals as VitalRecord } from '@prisma/client'; // Import the type
+import { Prisma, vitals as VitalRecord } from '@prisma/client'; // Import the type
 import moment from 'moment-timezone';
 import settingsDB from '../../db/settings.js';
 import { loadVitals } from '../../db/loadVitals.js';
+import prisma from '../../db/prisma.js';
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 // Define query params

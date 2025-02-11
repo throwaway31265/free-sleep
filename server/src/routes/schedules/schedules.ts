@@ -1,12 +1,9 @@
 import _ from 'lodash';
 import express, { Request, Response } from 'express';
-// @ts-ignore
-import { partialUtil } from 'zod/lib/helpers/partialUtil';
-import DeepPartial = partialUtil.DeepPartial;
+import type { DeepPartial } from 'ts-essentials';
 import { Schedules } from '../../db/schedulesSchema.js';
 import logger from '../../logger.js';
 import schedulesDB from '../../db/schedules.js';
-
 
 import {
   DailySchedule,
@@ -35,8 +32,7 @@ router.post('/schedules', async (req: Request, res: Response) => {
     });
     return;
   }
-  // @ts-ignore
-  const schedules: DeepPartial<Schedules> = validationResult.data;
+  const schedules = validationResult.data as DeepPartial<Schedules>;
   await schedulesDB.read();
 
   (

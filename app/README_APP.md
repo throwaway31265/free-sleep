@@ -9,8 +9,8 @@ The app uses Material-UI for styling and layout, Zustand for state management, a
 ## Developing
 1. **Optional**: If you also want to make changes to the back-end server at the same time, setup the back-end server to run in hot reload mode [server/README_SERVER.md](../server/README_SERVER.md#Developing)
 1. Run vite hot reloading & specify the IP address for your Pod. This tells axios to make API requests at a different IP (see [app/src/api/api.ts](app/src/api/api.ts))
-- `VITE_POD_IP=<YOUR_POD_IP> npm run dev`
-- `VITE_POD_IP=192.168.1.50 npm run dev`
+- `VITE_POD_IP=<YOUR_POD_IP> bun run dev`
+- `VITE_POD_IP=192.168.1.50 bun run dev`
 
 ---
 
