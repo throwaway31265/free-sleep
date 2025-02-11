@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables
-REPO_URL="https://github.com/throwaway31265/free-sleep/archive/refs/heads/main.zip"
+REPO_URL="https://github.com/nikita/free-sleep/archive/refs/heads/main.zip"
 ZIP_FILE="free-sleep.zip"
 REPO_DIR="/home/dac/free-sleep"
 SERVER_DIR="$REPO_DIR/server"
@@ -26,20 +26,19 @@ mv free-sleep-main "$REPO_DIR"
 chown -R dac:dac "$REPO_DIR"
 
 # -----------------------------------------------------------------------------------------------------
-# Install volta
 
-sudo -u dac bash -c 'curl https://get.volta.sh | bash'
-
-if sudo -u dac bash -c 'command -v volta' > /dev/null 2>&1; then
-    echo "Volta is already installed for user 'dac'."
+# Check and install Bun if not present
+if sudo -u dac bash -c 'command -v bun' > /dev/null 2>&1; then
+    echo "Bun is already installed for user 'dac'."
 else
-    echo "Volta is not installed. Installing for user 'dac'..."
-    sudo -u dac bash -c 'curl https://get.volta.sh | bash'
-    echo -e '\nexport VOLTA_HOME="/home/dac/.volta"\nexport PATH="$VOLTA_HOME/bin:$PATH"\n' >> /home/root/.profile
+    echo "Bun is not installed. Installing for user 'dac'..."
+    sudo -u dac bash -c 'curl -fsSL https://bun.sh/install | bash'
+    echo "Adding Bun to PATH..."
+    echo -e '\nexport BUN_INSTALL="$HOME/.bun"\nexport PATH="$BUN_INSTALL/bin:$PATH"\n' >> /home/root/.profile
+    echo -e '\nexport BUN_INSTALL="$HOME/.bun"\nexport PATH="$BUN_INSTALL/bin:$PATH"\n' >> /home/dac/.profile
+    source /home/dac/.profile
 fi
 
-# This will skip automatically if this node version is already installed
-sudo -u dac bash -c "source /home/dac/.profile && cd /home/dac/free-sleep/server && volta install node@22.13.0"
 # -----------------------------------------------------------------------------------------------------
 # Setup data folder in /persistent/
 
@@ -79,10 +78,9 @@ chmod g+s /persistent/free-sleep-data/
 # Install dependencies as user dac
 
 echo "Installing dependencies..."
-sudo -u dac bash -c "cd $SERVER_DIR && /home/dac/.volta/bin/npm install"
-
+sudo -u dac bash -c "cd $SERVER_DIR && bun install"
 echo "Running prisma migration"
-sudo -u dac bash -c "cd $SERVER_DIR && /home/dac/.volta/bin/npm run migrate deploy"
+sudo -u dac bash -c "cd $SERVER_DIR && bun run migrate deploy"
 
 # -----------------------------------------------------------------------------------------------------
 
@@ -94,13 +92,13 @@ Description=Free Sleep Server
 After=network.target
 
 [Service]
-ExecStart=/home/dac/.volta/bin/npm run start
+ExecStart=/home/dac/.bun/bin/bun run start
 WorkingDirectory=$SERVER_DIR
 Restart=always
 User=dac
 Environment=NODE_ENV=production
-Environment=VOLTA_HOME=/home/dac/.volta
-Environment=PATH=/home/dac/.volta/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
+Environment=BUN_INSTALL=/home/dac/.bun
+Environment=PATH=/home/dac/.bun/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
 
 [Install]
 WantedBy=multi-user.target

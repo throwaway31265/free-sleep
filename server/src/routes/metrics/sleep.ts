@@ -1,9 +1,9 @@
 import express, { Request, Response } from 'express';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import moment from 'moment-timezone';
 import { sleepRecordSchema, SleepRecord } from '../../db/sleepRecordsSchema.js';
 import { loadSleepRecords } from '../../db/loadSleepRecords.js';
-const prisma = new PrismaClient();
+import prisma from '../../db/prisma.js';
 
 const router = express.Router();
 
