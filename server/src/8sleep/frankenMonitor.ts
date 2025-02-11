@@ -77,17 +77,25 @@ export class FrankenMonitor {
 
     //private doubleTapNotification: ((d: { [i: string]: number }) => Promise<void>) | undefined;
     public async doubleTapNotification(times: { [i: string]: number}) {
-        // Decrease temperature by one level for both sides
-        const currentLeft = parseInt(this.variableValues.heatLevelL);
-        const currentRight = parseInt(this.variableValues.heatLevelR);
+        // Determine which side was tapped by checking which timestamp is newer
+        const leftTime = times['l'] || 0;
+        const rightTime = times['r'] || 0;
         
-        const newLeft = Math.max(0, currentLeft - 10).toString(); // Decrease by 10 (one level)
-        const newRight = Math.max(0, currentRight - 10).toString();
+        // Get the side that was most recently tapped
+        const tappedSide = leftTime > rightTime ? 'left' : 'right';
+        const currentLevel = parseInt(tappedSide === 'left' ? this.variableValues.heatLevelL : this.variableValues.heatLevelR);
+        
+        // Decrease by 10 (one level)
+        const newLevel = Math.max(0, currentLevel - 10).toString();
 
-        logger.info(`[doubleTap] times: ${JSON.stringify(times)} | currentLeft: ${currentLeft}, currentRight: ${currentRight} | newLeft: ${newLeft}, newRight: ${newRight}`, "double tap");
+        logger.debug(`[doubleTap] times: ${JSON.stringify(times)} | side: ${tappedSide} | currentLevel: ${currentLevel} | newLevel: ${newLevel}`, "double tap");
         
-        await executeFunction('TEMP_LEVEL_LEFT', newLeft);
-        await executeFunction('TEMP_LEVEL_RIGHT', newRight);
+        // Only update the tapped side
+        if (tappedSide === 'left') {
+            await executeFunction('TEMP_LEVEL_LEFT', newLevel);
+        } else {
+            await executeFunction('TEMP_LEVEL_RIGHT', newLevel);
+        }
     }
     private async tryNotifyDoubleTap(doubleTap: { [i: string]: number }) {
         if (this.doubleTapNotification === undefined) return;
@@ -96,17 +104,25 @@ export class FrankenMonitor {
 
     // private tripleTapNotification: ((d: { [i: string]: number }) => Promise<void>) | undefined;
     public async tripleTapNotification(times: { [i: string]: number}) {
-        // Increase temperature by one level for both sides
-        const currentLeft = parseInt(this.variableValues.heatLevelL);
-        const currentRight = parseInt(this.variableValues.heatLevelR);
+        // Determine which side was tapped by checking which timestamp is newer
+        const leftTime = times['l'] ?? 0;
+        const rightTime = times['r'] ?? 0;
         
-        const newLeft = Math.min(100, currentLeft + 10).toString(); // Increase by 10 (one level)
-        const newRight = Math.min(100, currentRight + 10).toString();
+        // Get the side that was most recently tapped
+        const tappedSide = leftTime > rightTime ? 'left' : 'right';
+        const currentLevel = parseInt(tappedSide === 'left' ? this.variableValues.heatLevelL : this.variableValues.heatLevelR);
+        
+        // Increase by 10 (one level)
+        const newLevel = Math.min(100, currentLevel + 10).toString();
 
-        logger.info(`[tripleTap] times: ${JSON.stringify(times)} | currentLeft: ${currentLeft}, currentRight: ${currentRight} | newLeft: ${newLeft}, newRight: ${newRight}`, "triple tap");
+        logger.debug(`[tripleTap] times: ${JSON.stringify(times)} | side: ${tappedSide} | currentLevel: ${currentLevel} | newLevel: ${newLevel}`, "triple tap");
         
-        await executeFunction('TEMP_LEVEL_LEFT', newLeft);
-        await executeFunction('TEMP_LEVEL_RIGHT', newRight);
+        // Only update the tapped side
+        if (tappedSide === 'left') {
+            await executeFunction('TEMP_LEVEL_LEFT', newLevel);
+        } else {
+            await executeFunction('TEMP_LEVEL_RIGHT', newLevel);
+        }
     }
     private async tryNotifyTripleTap(tripleTap: { [i: string]: number }) {
         if (this.tripleTapNotification === undefined) return;
@@ -115,7 +131,7 @@ export class FrankenMonitor {
 
     // private quadTapNotification: ((d: { [i: string]: number }) => Promise<void>) | undefined;
     public async quadTapNotification(times: { [i: string]: number}) {
-        logger.info(`[tripleTap] times: ${JSON.stringify(times)}`, "quad tap");
+        logger.debug(`[quadTap] times: ${JSON.stringify(times)}`, "quad tap");
     }
     private async tryNotifyQuadTap(quadTap: { [i: string]: number }) {
         if (this.quadTapNotification === undefined) return;
@@ -141,7 +157,7 @@ export class FrankenMonitor {
         const current = currentState;
         const next = JSON.parse(this.variableValues[variableName]);
         if (next.l > current.l || next.r > current.r || next.s > current.s) {
-            logger.info(`[processGesture] next: ${next}`, `${variableName} state change`);
+            logger.debug(`[processGesture] next: ${JSON.stringify(next)}`, `${variableName} state change`);
 
             const diff: { [i: string]: number } = {};
             Object.keys(next).forEach((key) => {
