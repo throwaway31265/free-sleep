@@ -55,6 +55,14 @@ export class Franken {
     await this.sendMessage(`${commandNumber}\n${cleanedArg}`);
   }
 
+  public async getVariables() {
+    const command: FrankenCommand = "DEVICE_STATUS";
+    const commandNumber = frankenCommands[command];
+    const varResp = await this.sendMessage(commandNumber);
+    const parsedVars = Object.fromEntries(varResp.split("\n").map(l => l.split(" = ")));
+    return parsedVars as { [k: string]: string };
+}
+
   public async getDeviceStatus(): Promise<DeviceStatus> {
     const command: FrankenCommand = 'DEVICE_STATUS';
     const commandNumber = frankenCommands[command];
