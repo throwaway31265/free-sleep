@@ -34,7 +34,7 @@ else
     echo "Bun is not installed. Installing for user 'dac'..."
     sudo -u dac bash -c 'curl -fsSL https://bun.sh/install | bash'
     echo "Adding Bun to PATH..."
-    echo -e '\nexport BUN_INSTALL="$HOME/.bun"\nexport PATH="$BUN_INSTALL/bin:$PATH"\n' >> /home/root/.profile
+    echo -e '\nexport BUN_INSTALL="/home/dac/.bun"\nexport PATH="$BUN_INSTALL/bin:$PATH"\n' >> /home/root/.profile
     echo -e '\nexport BUN_INSTALL="$HOME/.bun"\nexport PATH="$BUN_INSTALL/bin:$PATH"\n' >> /home/dac/.profile
     source /home/dac/.profile
 fi
