@@ -1,4 +1,5 @@
 import logger from '../logger.js';
+import { executeFunction } from './deviceApi.js';
 import { getFranken } from './frankenServer.js';
 import { wait } from './promises.js';
 
@@ -31,7 +32,6 @@ const defaultVarValues: { [i: string]: string } = {
 
 export class FrankenMonitor {
     private variableValues = defaultVarValues;
-    private franken: Franken | undefined;
     // private networkInfo = DeviceApiNetworkInfo.default;
     private alarmDismiss = defaultAlarmDismiss;
     private doubleTap = defaultDoubleTap;
@@ -57,16 +57,14 @@ export class FrankenMonitor {
 
     public stop() {
         this.isRunning = false;
-        if (this.franken) {
-            this.franken.close();
-            this.franken = undefined;
-        }
+    
     }
 
     // private dismissNotification: ((d: { [i: string]: number }) => Promise<void>) | undefined;
 
     public async dismissNotification(times: { [i: string]: number}) {
         logger.info(`[dismissAlarm] times: ${JSON.stringify(times)}`, "dismiss alarm");
+        await executeFunction('ALARM_CLEAR', "empty");
     }
     private async tryNotifyDismiss(dismiss: { [i: string]: number }) {
         if (this.dismissNotification === undefined) return;
@@ -79,7 +77,17 @@ export class FrankenMonitor {
 
     //private doubleTapNotification: ((d: { [i: string]: number }) => Promise<void>) | undefined;
     public async doubleTapNotification(times: { [i: string]: number}) {
-        logger.info(`[doubleTap] times: ${JSON.stringify(times)}`, "double tap");
+        // Decrease temperature by one level for both sides
+        const currentLeft = parseInt(this.variableValues.heatLevelL);
+        const currentRight = parseInt(this.variableValues.heatLevelR);
+        
+        const newLeft = Math.max(0, currentLeft - 10).toString(); // Decrease by 10 (one level)
+        const newRight = Math.max(0, currentRight - 10).toString();
+
+        logger.info(`[doubleTap] times: ${JSON.stringify(times)} | currentLeft: ${currentLeft}, currentRight: ${currentRight} | newLeft: ${newLeft}, newRight: ${newRight}`, "double tap");
+        
+        await executeFunction('TEMP_LEVEL_LEFT', newLeft);
+        await executeFunction('TEMP_LEVEL_RIGHT', newRight);
     }
     private async tryNotifyDoubleTap(doubleTap: { [i: string]: number }) {
         if (this.doubleTapNotification === undefined) return;
@@ -88,7 +96,17 @@ export class FrankenMonitor {
 
     // private tripleTapNotification: ((d: { [i: string]: number }) => Promise<void>) | undefined;
     public async tripleTapNotification(times: { [i: string]: number}) {
-        logger.info(`[tripleTap] times: ${JSON.stringify(times)}`, "triple tap");
+        // Increase temperature by one level for both sides
+        const currentLeft = parseInt(this.variableValues.heatLevelL);
+        const currentRight = parseInt(this.variableValues.heatLevelR);
+        
+        const newLeft = Math.min(100, currentLeft + 10).toString(); // Increase by 10 (one level)
+        const newRight = Math.min(100, currentRight + 10).toString();
+
+        logger.info(`[tripleTap] times: ${JSON.stringify(times)} | currentLeft: ${currentLeft}, currentRight: ${currentRight} | newLeft: ${newLeft}, newRight: ${newRight}`, "triple tap");
+        
+        await executeFunction('TEMP_LEVEL_LEFT', newLeft);
+        await executeFunction('TEMP_LEVEL_RIGHT', newRight);
     }
     private async tryNotifyTripleTap(tripleTap: { [i: string]: number }) {
         if (this.tripleTapNotification === undefined) return;
@@ -143,24 +161,18 @@ export class FrankenMonitor {
         while (true) {
             try {
                 const franken = await getFranken();
-                try {
-                    this.franken = franken;
 
-                    while (true) {
-                        await wait(1000);
+                while (true) {
+                    await wait(1000);
 
-                        const resp = await franken.getVariables();
-                        logger.info(`[frankenLoop] resp: ${JSON.stringify(resp)}`, "franken variables");
-                        this.variableValues = { ...this.variableValues, ...resp };
+                    const resp = await franken.getVariables();
+                    // logger.info(`[frankenLoop] resp: ${JSON.stringify(resp)}`, "franken variables");
+                    this.variableValues = { ...this.variableValues, ...resp };
 
-                        await this.processAlarmDismiss();
-                        await this.processTTC();
-                        // await this.updateWaterState(this.variableValues["waterLevel"] == "true");
-                        // await this.updatePrimeNeeded(parseInt(this.variableValues["needsPrime"], 10));
-                    }
-                } finally {
-                    franken.close();
-                    this.franken = undefined;
+                    await this.processAlarmDismiss();
+                    await this.processTTC();
+                    // await this.updateWaterState(this.variableValues["waterLevel"] == "true");
+                    // await this.updatePrimeNeeded(parseInt(this.variableValues["needsPrime"], 10));
                 }
             } catch (err) {
                 logger.error(err instanceof Error ? err.message : String(err), "franken disconnected");
