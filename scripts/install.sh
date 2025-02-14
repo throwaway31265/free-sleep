@@ -22,6 +22,7 @@ rm "$ZIP_FILE"
 
 # Step 3: Move files to the installation directory
 echo "Setting up the installation directory..."
+rm -rf "$REPO_DIR"
 mv free-sleep-main "$REPO_DIR"
 chown -R dac:dac "$REPO_DIR"
 
