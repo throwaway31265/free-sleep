@@ -1,3 +1,5 @@
+import fs from 'fs';
+import cbor from 'cbor';
 import logger from '../logger.js';
 import { executeFunction } from './deviceApi.js';
 import { getFranken } from './frankenServer.js';
@@ -29,6 +31,10 @@ const defaultVarValues: { [i: string]: string } = {
     quadTap: JSON.stringify(defaultQuadTap),
     needsPrime: "0",
 };
+
+const DEFAULT_SNOOZE_MINUTES = 9;
+const MIN_SNOOZE_MINUTES = 1;
+const MAX_SNOOZE_MINUTES = 10;
 
 export class FrankenMonitor {
     private variableValues = defaultVarValues;
@@ -62,13 +68,61 @@ export class FrankenMonitor {
 
     // private dismissNotification: ((d: { [i: string]: number }) => Promise<void>) | undefined;
 
-    public async dismissNotification(times: { [i: string]: number}) {
-        logger.info(`[dismissAlarm] times: ${JSON.stringify(times)}`, "dismiss alarm");
-        await executeFunction('ALARM_CLEAR', "empty");
+    public async dismissNotification(times: { [i: string]: number}, snooze: boolean = false) {
+        logger.info(`[dismissAlarm] times: ${JSON.stringify(times)} snooze: ${snooze}`);
+        if (snooze) {
+            try {
+                // Determine which side was most recently active
+                const leftTime = times['l'] || 0;
+                const rightTime = times['r'] || 0;
+                const side = leftTime > rightTime ? 'left' : 'right';
+
+                // Read existing alarm settings using CBOR decoding
+                const alarmBytes = fs.readFileSync('/persistent/alarm.cbr');
+                const alarmData = cbor.decode(alarmBytes);
+                logger.debug(`Decoded alarm data: ${JSON.stringify(alarmData)}`, "alarm data");
+
+                // Access the side data
+                const sideData = alarmData[side];
+                if (!sideData || typeof sideData !== 'object') {
+                    throw new Error(`Invalid alarm data for ${side} side`);
+                }
+
+                // Validate snooze minutes
+                if (DEFAULT_SNOOZE_MINUTES < MIN_SNOOZE_MINUTES || DEFAULT_SNOOZE_MINUTES > MAX_SNOOZE_MINUTES) {
+                    throw new Error("Snooze minutes must be between 1 and 10");
+                }
+
+                // Calculate snooze time
+                const snoozeTime = Math.floor(Date.now() / 1000) + (DEFAULT_SNOOZE_MINUTES * 60);
+
+                // Create alarm payload using existing settings
+                const alarmPayload = {
+                    pl: sideData.pl,
+                    du: sideData.du,
+                    tt: snoozeTime,
+                    pi: sideData.pi
+                };
+
+                const cborPayload = cbor.encode(alarmPayload);
+                const hexPayload = cborPayload.toString('hex');
+                const command = side === 'left' ? 'ALARM_LEFT' : side === 'right' ? 'ALARM_RIGHT' : 'ALARM_SOLO';
+
+                logger.info(`Setting snooze alarm for ${side} side in ${DEFAULT_SNOOZE_MINUTES} minutes with pattern ${alarmPayload.pi} (payload: ${JSON.stringify(alarmPayload)})`);
+                await executeFunction(command, hexPayload);
+            } catch (error) {
+                logger.error(`Failed to snooze alarm: ${error instanceof Error ? error.message : String(error)}`);
+                // On error, just clear the alarm
+                await executeFunction('ALARM_CLEAR', "empty");
+            }
+        } else {
+            await executeFunction('ALARM_CLEAR', "empty");
+        }
     }
+
     private async tryNotifyDismiss(dismiss: { [i: string]: number }) {
         if (this.dismissNotification === undefined) return;
-        await this.dismissNotification(dismiss);
+        await this.dismissNotification(dismiss, true); // TODO: Get user preference for snooze
     }
 
     private async processAlarmDismiss() {
