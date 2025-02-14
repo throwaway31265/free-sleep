@@ -1,6 +1,6 @@
 import logger from '../logger.js';
-import { spawn } from 'child_process';
 import fs from 'fs';
+import { spawn, type ChildProcess } from 'child_process';
 
 export const logOutput = (data: Buffer) => {
   const output = data.toString().trim();
@@ -25,31 +25,43 @@ type ExecutePythonScriptArgs = {
   cwd?: string;
   args?: string[];
 };
-export const executePythonScript = ({ script, cwd = '/home/dac/bio/src/presence_detection/', args=[] }: ExecutePythonScriptArgs) => {
-  const pythonExecutable = '/home/dac/venv/bin/python';
-  if (!fs.existsSync(pythonExecutable)) {
-    logger.debug(`Not executing python script, ${pythonExecutable} does not exist!`);
-    return;
-  }
-  const command = `${pythonExecutable} ${script} ${args.join(' ')}`;
-  logger.info(`Executing: ${command}`);
-
-  const process = spawn(
-    pythonExecutable,
-    [
-      script,
-      ...args,
-    ],
-    {
-      cwd,
+export const executePythonScript = ({ script, cwd = '/home/dac/free-sleep/biometrics/', args=[] }: ExecutePythonScriptArgs): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const pythonExecutable = '/home/dac/venv/bin/python';
+    if (!fs.existsSync(pythonExecutable)) {
+      logger.debug(`Not executing python script, ${pythonExecutable} does not exist!`);
+      return;
     }
-  );
+    const command = `${pythonExecutable} ${script} ${args.join(' ')}`;
+    logger.info(`Executing: ${command}`);
 
-  process.stdout.on('data', logOutput);
-  process.stderr.on('data', logOutput);
+    const process: ChildProcess = spawn(
+      pythonExecutable,
+      [
+        script,
+        ...args,
+      ],
+      {
+        cwd,
+      }
+    );
 
-  process.on('close', (code) => {
-    logger.info(`Python script exited with code ${code}`);
+    process.stdout?.on('data', logOutput);
+    process.stderr?.on('data', logOutput);
+
+    process.on('close', (code: number | null) => {
+      logger.info(`Python script exited with code ${code}`);
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Python script exited with code ${code}`));
+      }
+    });
+
+    process.on('error', (err) => {
+      logger.error('Failed to start Python script:', err);
+      reject(err);
+    });
   });
 };
 
