@@ -35,7 +35,11 @@ export const executePythonScript = ({ script, cwd = '/home/dac/free-sleep/biomet
     const command = `${pythonExecutable} ${script} ${args.join(' ')}`;
     logger.info(`Executing: ${command}`);
 
-    const process: ChildProcess = spawn(
+    // Get current environment and add our directory to PYTHONPATH
+    const env: NodeJS.ProcessEnv = { ...process.env };
+    env.PYTHONPATH = cwd + (env.PYTHONPATH ? `:${env.PYTHONPATH}` : '');
+
+    const pythonProcess: ChildProcess = spawn(
       pythonExecutable,
       [
         script,
@@ -43,13 +47,14 @@ export const executePythonScript = ({ script, cwd = '/home/dac/free-sleep/biomet
       ],
       {
         cwd,
+        env,
       }
     );
 
-    process.stdout?.on('data', logOutput);
-    process.stderr?.on('data', logOutput);
+    pythonProcess.stdout?.on('data', logOutput);
+    pythonProcess.stderr?.on('data', logOutput);
 
-    process.on('close', (code: number | null) => {
+    pythonProcess.on('close', (code: number | null) => {
       logger.info(`Python script exited with code ${code}`);
       if (code === 0) {
         resolve();
@@ -58,7 +63,7 @@ export const executePythonScript = ({ script, cwd = '/home/dac/free-sleep/biomet
       }
     });
 
-    process.on('error', (err) => {
+    pythonProcess.on('error', (err) => {
       logger.error('Failed to start Python script:', err);
       reject(err);
     });
