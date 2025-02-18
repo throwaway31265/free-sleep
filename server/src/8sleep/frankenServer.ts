@@ -106,14 +106,21 @@ class FrankenServer {
 }
 
 let frankenServer: FrankenServer | undefined;
+let frankenServerPromise: Promise<FrankenServer> | undefined;
 
 export async function getFrankenServer(): Promise<FrankenServer> {
   // If we've already started it, reuse:
   if (frankenServer) return frankenServer;
   // Otherwise, start a new instance once:
-  frankenServer = await FrankenServer.start(config.dacSockPath);
-  logger.debug('FrankenServer started');
-  return frankenServer;
+  if (!frankenServerPromise) {
+    frankenServerPromise = (async () => {
+      const server = await FrankenServer.start(config.dacSockPath);
+      logger.debug('FrankenServer started');
+      frankenServer = server;
+      return server;
+    })();
+  }
+  return frankenServerPromise;
 }
 
 let franken: Franken | undefined;
