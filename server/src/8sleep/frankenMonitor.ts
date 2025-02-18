@@ -1,6 +1,7 @@
 import fs from 'fs';
 import cbor from 'cbor';
 import logger from '../logger.js';
+import settingsDB from '../db/settings.js';
 import { executeFunction } from './deviceApi.js';
 import { getFranken } from './frankenServer.js';
 import { wait } from './promises.js';
@@ -45,6 +46,8 @@ export class FrankenMonitor {
     private quadTap = defaultQuadTap;
 
     private isRunning = false;
+    private wasPriming = false;
+
     // private monitorInterval = 1000; // 1 second interval
 
     public async start() {
@@ -226,6 +229,19 @@ export class FrankenMonitor {
         }
     }
 
+    private async processPrimingState() {
+        const isPriming = this.variableValues.priming === 'true';
+
+        if (!isPriming && this.wasPriming) {
+            this.wasPriming = false;
+            settingsDB.data.lastPrime = new Date().toISOString();
+            await settingsDB.write();
+            logger.info('[processPrimingState] Priming completed successfully');
+        } else if (isPriming && !this.wasPriming) {
+            this.wasPriming = true;
+            logger.info('[processPrimingState] Priming started');
+        }
+    }
 
     private async frankenLoop() {
         while (true) {
@@ -241,6 +257,7 @@ export class FrankenMonitor {
 
                     await this.processAlarmDismiss();
                     await this.processTTC();
+                    await this.processPrimingState();
                     // await this.updateWaterState(this.variableValues["waterLevel"] == "true");
                     // await this.updatePrimeNeeded(parseInt(this.variableValues["needsPrime"], 10));
                 }
