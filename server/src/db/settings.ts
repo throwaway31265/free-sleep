@@ -19,6 +19,7 @@ const defaultData: Settings = {
     name: 'Right',
     awayMode: false,
   },
+  lastPrime: undefined,
   primePodDaily: {
     enabled: false,
     time: '14:00',
