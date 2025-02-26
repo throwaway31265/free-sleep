@@ -18,8 +18,8 @@ export const TIME_ZONES = [
   'Asia/Shanghai', // China Standard Time
   'Asia/Tokyo', // Japan Standard Time
   'Australia/Sydney', // Eastern Australia
+  'Australia/Brisbane', // Brisbane Time
   'Pacific/Auckland', // New Zealand
-
 ] as const;
 
 // eslint-disable-next-line @typescript-eslint/no-type-alias
