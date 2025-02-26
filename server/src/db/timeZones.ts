@@ -17,8 +17,8 @@ export const TIME_ZONES = [
   'Asia/Kolkata', // India Standard Time
   'Asia/Shanghai', // China Standard Time
   'Asia/Tokyo', // Japan Standard Time
-  'Australia/Sydney', // Eastern Australia
-  'Australia/Brisbane', // Brisbane Time
+  'Australia/Sydney', // New South Wales
+  'Australia/Brisbane', // Queensland
   'Pacific/Auckland', // New Zealand
 ] as const;
 
