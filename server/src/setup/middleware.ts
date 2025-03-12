@@ -4,6 +4,7 @@ import logger from '../logger.js';
 
 import os from 'os';
 
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
 
 function getLocalIp(): string {
   const interfaces = os.networkInterfaces();
@@ -47,7 +48,8 @@ export default function (app: Express) {
           origin?.startsWith('http://localhost') ||
           origin?.startsWith('http://192.168.') ||
           origin?.startsWith('http://172.16.') ||
-          origin?.startsWith('http://10.0.')
+          origin?.startsWith('http://10.0.') ||
+          (ALLOWED_ORIGIN && origin?.startsWith(ALLOWED_ORIGIN))
         ) {
           callback(null, true);
         } else {
