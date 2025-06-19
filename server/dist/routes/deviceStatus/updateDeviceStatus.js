@@ -25,7 +25,7 @@ const updateSide = async (side, sideStatus) => {
     const controlBothSides = settings.left.awayMode || settings.right.awayMode;
     const updateLeft = side === 'left' || controlBothSides;
     const updateRight = side === 'right' || controlBothSides;
-    const { isOn, targetTemperatureF, secondsRemaining, isAlarmVibrating } = sideStatus;
+    const { isOn, targetTemperatureLevel, targetTemperatureF, secondsRemaining, isAlarmVibrating } = sideStatus;
     if (controlBothSides) {
         logger.debug('One side is in away mode, updating both sides...');
     }
@@ -36,7 +36,13 @@ const updateSide = async (side, sideStatus) => {
         if (updateRight)
             await executeFunction('RIGHT_TEMP_DURATION', onDuration);
     }
-    if (targetTemperatureF) {
+    if (targetTemperatureLevel) {
+        if (updateLeft)
+            await executeFunction('TEMP_LEVEL_LEFT', targetTemperatureLevel.toString());
+        if (updateRight)
+            await executeFunction('TEMP_LEVEL_RIGHT', targetTemperatureLevel.toString());
+    }
+    else if (targetTemperatureF) {
         const level = calculateLevelFromF(targetTemperatureF);
         if (updateLeft)
             await executeFunction('TEMP_LEVEL_LEFT', level);
