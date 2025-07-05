@@ -7,6 +7,7 @@ import type { Settings } from '../db/settingsSchema.js';
 import type { TimeZone } from '../db/timeZones.js';
 import logger from '../logger.js';
 import { executeCalibrateSensors } from './calibrateSensors.js';
+import { updateDeviceStatus } from 'src/routes/deviceStatus/updateDeviceStatus.js';
 
 const scheduleRebootJob = (
   onHour: number,
