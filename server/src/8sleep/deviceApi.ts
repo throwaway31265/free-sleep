@@ -3,7 +3,6 @@ import { getFranken } from './frankenServer.js';
 import logger from '../logger.js';
 import cbor from 'cbor';
 
-
 export const frankenCommands = {
   HELLO: '0',
   SET_TEMP: '1',
@@ -21,48 +20,48 @@ export const frankenCommands = {
   PRIME: '13',
   DEVICE_STATUS: '14',
   ALARM_CLEAR: '16',
-  ALARM_SOLO: "17",
+  ALARM_SOLO: '17',
   // STOP_PRIME: "18",
-  VIBRATE: "-",
+  VIBRATE: '-',
 } as const;
-
 
 export const invertedFrankenCommands = _.invert(frankenCommands);
 // eslint-disable-next-line @typescript-eslint/no-type-alias
 export type FrankenCommand = keyof typeof frankenCommands;
-export type FrankenFunctions = Exclude<FrankenCommand, "PLEASE_SEND_VARIABLES">;
+export type FrankenFunctions = Exclude<FrankenCommand, 'PLEASE_SEND_VARIABLES'>;
 
-type Side = "left" | "right" | "solo";
+type Side = 'left' | 'right' | 'solo';
 function isSide(arg: string): arg is Side {
-    return arg === "left" || arg === "right" || arg === "solo";
+  return arg === 'left' || arg === 'right' || arg === 'solo';
 }
 
 function getVibrationArgument() {
   const testDriveSettings = {
-      pl: 100,
-      du: 60,
-      tt: Math.floor(new Date().getTime() / 1000) - 10,
-      pi: "testdrive",
+    pl: 100,
+    du: 60,
+    tt: Math.floor(new Date().getTime() / 1000) - 10,
+    pi: 'testdrive',
   };
   const cborEncoded = cbor.encode(testDriveSettings);
-  const hexString = cborEncoded.toString("hex");
+  const hexString = cborEncoded.toString('hex');
   return hexString;
 }
 
 function sideToFunction(side: Side): FrankenFunctions {
   switch (side) {
-      case "left":
-          return "ALARM_LEFT";
-      case "right":
-          return "ALARM_RIGHT";
-      case "solo":
-          return "ALARM_SOLO";
+    case 'left':
+      return 'ALARM_LEFT';
+    case 'right':
+      return 'ALARM_RIGHT';
+    case 'solo':
+      return 'ALARM_SOLO';
   }
 }
 
-
-
-export async function executeFunction(command: FrankenCommand, arg = 'empty'): Promise<void> {
+export async function executeFunction(
+  command: FrankenCommand,
+  arg = 'empty',
+): Promise<void> {
   logger.debug(`Executing command | command: ${command} | arg: ${arg}`);
 
   const franken = await getFranken();
@@ -76,19 +75,21 @@ export async function executeFunction(command: FrankenCommand, arg = 'empty'): P
     if (!isSide(arg)) {
       logger.error(`invalid side argument ${arg}`);
       return;
+    }
+
+    // this.disableAlarm(30);
+
+    // make frank vibrate
+    // triggerVibration
+    const vibrationArg = getVibrationArgument();
+    const vibrationFunction = sideToFunction(arg);
+    await franken.callFunction(vibrationFunction, vibrationArg);
+    logger.debug(
+      `Executing VIBRATE | vibrationArg: ${vibrationArg} | vibrationFunction: ${vibrationFunction}`,
+    );
+  } else {
+    const response = await franken.callFunction(command, arg);
+    logger.debug(response);
+    return response;
   }
-
-  // this.disableAlarm(30);
-
-  // make frank vibrate
- // triggerVibration
- const vibrationArg = getVibrationArgument();
- const vibrationFunction = sideToFunction(arg);
- await franken.callFunction(vibrationFunction, vibrationArg);
- logger.debug(`Executing VIBRATE | vibrationArg: ${vibrationArg} | vibrationFunction: ${vibrationFunction}`);
-} else {
-  const response = await franken.callFunction(command, arg);
-  logger.debug(response);
-  return response;
-}
 }

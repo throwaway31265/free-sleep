@@ -15,16 +15,23 @@ router.post('/execute', async (req: Request, res: Response) => {
     }
 
     // Execute the 8sleep command
-    await executeFunction(command as keyof typeof frankenCommands, arg || 'empty');
+    await executeFunction(
+      command as keyof typeof frankenCommands,
+      arg || 'empty',
+    );
 
     // Respond with success
-    res.json({ success: true, message: `Command '${command}' executed successfully.` });
+    res.json({
+      success: true,
+      message: `Command '${command}' executed successfully.`,
+    });
     return;
   } catch (error) {
     logger.error({ error });
-    res
-      .status(500)
-      .json({ error: 'An error occurred while executing the command.', details: error });
+    res.status(500).json({
+      error: 'An error occurred while executing the command.',
+      details: error,
+    });
   }
 });
 

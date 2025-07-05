@@ -23,4 +23,4 @@ export const TIME_ZONES = [
 ] as const;
 
 // eslint-disable-next-line @typescript-eslint/no-type-alias
-export type TimeZone = typeof TIME_ZONES[number];
+export type TimeZone = (typeof TIME_ZONES)[number];

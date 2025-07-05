@@ -12,7 +12,6 @@ router.get('/settings', async (req: Request, res: Response) => {
   res.json(settingsDB.data);
 });
 
-
 router.post('/settings', async (req: Request, res: Response) => {
   const { body } = req;
   const validationResult = SettingsSchema.deepPartial().safeParse(body);
@@ -29,6 +28,5 @@ router.post('/settings', async (req: Request, res: Response) => {
   await settingsDB.write();
   res.status(200).json(settingsDB.data);
 });
-
 
 export default router;

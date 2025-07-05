@@ -10,11 +10,14 @@ import memoryDB from '../../db/memoryDB.js';
 import { INVERTED_SETTINGS_KEY_MAPPING } from '../../8sleep/loadDeviceStatus.js';
 
 const calculateLevelFromF = (temperatureF: number) => {
-  const level = (temperatureF - 82.5) / 27.5 * 100;
+  const level = ((temperatureF - 82.5) / 27.5) * 100;
   return Math.round(level).toString();
 };
 
-const updateSide = async (side: 'left' | 'right', sideStatus: DeepPartial<SideStatus>) => {
+const updateSide = async (
+  side: 'left' | 'right',
+  sideStatus: DeepPartial<SideStatus>,
+) => {
   await settingsDB.read();
   const settings = settingsDB.data;
   if (side === 'left') {
@@ -30,7 +33,8 @@ const updateSide = async (side: 'left' | 'right', sideStatus: DeepPartial<SideSt
   const updateLeft = side === 'left' || controlBothSides;
   const updateRight = side === 'right' || controlBothSides;
 
-  const { isOn, targetTemperatureF, secondsRemaining, isAlarmVibrating } = sideStatus;
+  const { isOn, targetTemperatureF, secondsRemaining, isAlarmVibrating } =
+    sideStatus;
 
   if (controlBothSides) {
     logger.debug('One side is in away mode, updating both sides...');
@@ -63,15 +67,19 @@ const updateSide = async (side: 'left' | 'right', sideStatus: DeepPartial<SideSt
   }
 };
 
-
 const updateSettings = async (settings: Partial<DeviceStatus['settings']>) => {
-  const renamedSettings = _.mapKeys(settings, (value, key) => INVERTED_SETTINGS_KEY_MAPPING[key] || key);
+  const renamedSettings = _.mapKeys(
+    settings,
+    (value, key) => INVERTED_SETTINGS_KEY_MAPPING[key] || key,
+  );
   const encodedBuffer = cbor.encode(renamedSettings);
   const hexString = encodedBuffer.toString('hex');
   await executeFunction('SET_SETTINGS', hexString);
 };
 
-export const updateDeviceStatus = async (deviceStatus: DeepPartial<DeviceStatus>) => {
+export const updateDeviceStatus = async (
+  deviceStatus: DeepPartial<DeviceStatus>,
+) => {
   logger.info(`Updating deviceStatus...`);
 
   try {

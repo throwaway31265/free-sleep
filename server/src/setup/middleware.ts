@@ -4,7 +4,6 @@ import logger from '../logger.js';
 
 import os from 'os';
 
-
 function getLocalIp(): string {
   const interfaces = os.networkInterfaces();
   for (const interfaceName in interfaces) {
@@ -20,7 +19,6 @@ function getLocalIp(): string {
   return 'localhost'; // Default to localhost if LAN IP isn't found
 }
 
-
 export default function (app: Express) {
   app.use((req, res, next) => {
     const startTime = Date.now();
@@ -28,7 +26,9 @@ export default function (app: Express) {
     // Hook into the response `finish` event to log after the response is sent
     res.on('finish', () => {
       const duration = Date.now() - startTime;
-      logger.info(`${req.method} ${req.originalUrl} - ${res.statusCode} - ${duration}ms`);
+      logger.info(
+        `${req.method} ${req.originalUrl} - ${res.statusCode} - ${duration}ms`,
+      );
     });
 
     next();
@@ -53,8 +53,8 @@ export default function (app: Express) {
         } else {
           callback(new Error('Not allowed by CORS'));
         }
-      }
-    })
+      },
+    }),
   );
 
   // Logging

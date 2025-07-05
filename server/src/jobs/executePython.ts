@@ -2,17 +2,21 @@ import logger from '../logger.js';
 import { exec } from 'child_process';
 import fs from 'fs';
 
-
 type ExecutePythonScriptArgs = {
   script: string;
   args?: string[];
 };
 
-export const executePythonScript = ({ script, args = [] }: ExecutePythonScriptArgs): Promise<void> => {
+export const executePythonScript = ({
+  script,
+  args = [],
+}: ExecutePythonScriptArgs): Promise<void> => {
   return new Promise((resolve, reject) => {
     const pythonExecutable = '/home/dac/venv/bin/python';
     if (!fs.existsSync(pythonExecutable)) {
-      logger.debug(`Not executing python script, ${pythonExecutable} does not exist!`);
+      logger.debug(
+        `Not executing python script, ${pythonExecutable} does not exist!`,
+      );
       reject(new Error(`Python executable not found: ${pythonExecutable}`));
       return;
     }

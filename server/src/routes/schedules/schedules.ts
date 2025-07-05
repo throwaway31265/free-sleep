@@ -15,7 +15,6 @@ import {
 
 const router = express.Router();
 
-
 router.get('/schedules', async (req: Request, res: Response) => {
   await schedulesDB.read();
   res.json(schedulesDB.data);
@@ -35,19 +34,22 @@ router.post('/schedules', async (req: Request, res: Response) => {
   const schedules = validationResult.data as DeepPartial<Schedules>;
   await schedulesDB.read();
 
-  (
-    Object.entries(schedules) as [Side, Partial<SideSchedule>][]).forEach(([side, sideSchedule]) => {
-    (Object.entries(sideSchedule) as [DayOfWeek, Partial<DailySchedule>][]).forEach(([day, schedule]) => {
-      if (schedule.power) {
-        _.merge(schedulesDB.data[side][day].power, schedule.power);
-      }
-      if (schedule.temperatures) schedulesDB.data[side][day].temperatures = schedule.temperatures;
-      if (schedule.alarm) schedulesDB.data[side][day].alarm = schedule.alarm;
-    });
-  });
+  (Object.entries(schedules) as [Side, Partial<SideSchedule>][]).forEach(
+    ([side, sideSchedule]) => {
+      (
+        Object.entries(sideSchedule) as [DayOfWeek, Partial<DailySchedule>][]
+      ).forEach(([day, schedule]) => {
+        if (schedule.power) {
+          _.merge(schedulesDB.data[side][day].power, schedule.power);
+        }
+        if (schedule.temperatures)
+          schedulesDB.data[side][day].temperatures = schedule.temperatures;
+        if (schedule.alarm) schedulesDB.data[side][day].alarm = schedule.alarm;
+      });
+    },
+  );
   await schedulesDB.write();
   res.status(200).json(schedulesDB.data);
 });
-
 
 export default router;

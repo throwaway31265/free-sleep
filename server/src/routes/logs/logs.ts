@@ -16,8 +16,9 @@ router.get('/', (req, res) => {
     if (!fs.existsSync(dir)) return;
 
     try {
-      const files = fs.readdirSync(dir)
-        .map(file => {
+      const files = fs
+        .readdirSync(dir)
+        .map((file) => {
           const fullPath = path.join(dir, file);
 
           try {
@@ -39,16 +40,14 @@ router.get('/', (req, res) => {
     }
   });
 
-
   // @ts-ignore
   allLogFiles.sort((a, b) => b.mtime - a.mtime);
 
   res.json({
     // @ts-ignore
-    logs: allLogFiles.map(log => log.name),
+    logs: allLogFiles.map((log) => log.name),
   });
 });
-
 
 // @ts-ignore
 router.get('/:filename', async (req, res) => {
@@ -86,7 +85,9 @@ router.get('/:filename', async (req, res) => {
 
   // @ts-ignore
   const logStream = fs.watch(logFilePath, { interval: 1000 }, async () => {
-    const newFileStream = fs.createReadStream(logFilePath, { encoding: 'utf8' });
+    const newFileStream = fs.createReadStream(logFilePath, {
+      encoding: 'utf8',
+    });
     const newRl = readline.createInterface({ input: newFileStream });
 
     const newLogs = [];
@@ -95,7 +96,9 @@ router.get('/:filename', async (req, res) => {
     if (newLogs.length > logBuffer.length) {
       const newEntries = newLogs.slice(-1000);
       logBuffer = newEntries;
-      res.write(`data: ${JSON.stringify({ message: newEntries.join('\n') })}\n\n`);
+      res.write(
+        `data: ${JSON.stringify({ message: newEntries.join('\n') })}\n\n`,
+      );
     }
   });
 

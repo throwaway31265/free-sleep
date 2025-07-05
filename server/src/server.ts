@@ -4,8 +4,7 @@ import { Server } from 'http';
 import logger from './logger.js';
 import { getFranken, getFrankenServer } from './8sleep/frankenServer.js';
 import { FrankenMonitor } from './8sleep/frankenMonitor.js';
-import './jobs/jobScheduler.js'
-
+import './jobs/jobScheduler.js';
 
 // Setup code
 import setupMiddleware from './setup/middleware.js';
@@ -25,7 +24,9 @@ async function gracefulShutdown(signal: string) {
   // Force shutdown after 10 seconds
   setTimeout(() => {
     if (finishedExiting) return;
-    const error = new Error('Could not close connections in time. Forcing shutdown.');
+    const error = new Error(
+      'Could not close connections in time. Forcing shutdown.',
+    );
     logger.error({ error });
     process.exit(1);
   }, 10_000);
@@ -52,7 +53,6 @@ async function gracefulShutdown(signal: string) {
       await frankenServer.close();
       logger.debug('Successfully closed Franken & FrankenServer.');
     }
-
   } catch (err) {
     logger.error(`Error during shutdown: ${err}`);
   }
@@ -69,12 +69,11 @@ async function initFranken() {
   await getFrankenServer();
   await getFranken();
   logger.info('Franken has been initialized successfully.');
-  
+
   // Initialize and start the FrankenMonitor
   frankenMonitor = new FrankenMonitor();
   await frankenMonitor.start();
 }
-
 
 // Main startup function
 async function startServer() {
@@ -89,10 +88,10 @@ async function startServer() {
   // Initialize Franken once before listening
   if (!config.remoteDevMode) {
     initFranken()
-      .then(resp => {
+      .then((resp) => {
         logger.info(resp);
       })
-      .catch(error => {
+      .catch((error) => {
         logger.error(error);
       });
   }

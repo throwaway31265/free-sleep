@@ -6,7 +6,6 @@ import { JSONFile } from 'lowdb/node';
 import { Settings } from './settingsSchema.js';
 import config from '../config.js';
 
-
 const defaultData: Settings = {
   timeZone: null,
   temperatureFormat: 'fahrenheit',

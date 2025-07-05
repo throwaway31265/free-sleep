@@ -1,7 +1,6 @@
 import { existsSync, readFileSync } from 'fs';
 import logger from './logger.js';
 
-
 function checkIfDacSockPathConfigured(): string | undefined {
   try {
     // Check if the file exists
@@ -20,8 +19,10 @@ function checkIfDacSockPathConfigured(): string | undefined {
   }
 }
 
-
-type FirmwareVersion = 'pod3FirmwareReset' | 'pod4FirmwareReset' | 'remoteDevMode';
+type FirmwareVersion =
+  | 'pod3FirmwareReset'
+  | 'pod4FirmwareReset'
+  | 'remoteDevMode';
 
 interface FirmwareConfig {
   dacLocation: string;
@@ -38,7 +39,6 @@ const FIRMWARE_MAP: Record<FirmwareVersion, FirmwareConfig> = {
     dacLocation: '/persistent/deviceinfo/dac.sock',
   },
 };
-
 
 class Config {
   // eslint-disable-next-line no-use-before-define
@@ -58,17 +58,15 @@ class Config {
     this.lowDbFolder = `${this.dbFolder}lowdb/`;
   }
 
-
   private detectSockPath(): string {
     const dacSockPath = checkIfDacSockPathConfigured();
 
     if (dacSockPath) {
       logger.debug(`'Custom dac.sock path configured, using ${dacSockPath}`);
       return dacSockPath;
-    } else if (!this.remoteDevMode){
+    } else if (!this.remoteDevMode) {
       logger.debug('No dac.sock path configured, defaulting to pod 3 path');
       return FIRMWARE_MAP.pod3FirmwareReset.dacLocation;
-
     } else if (this.remoteDevMode) {
       return FIRMWARE_MAP.remoteDevMode.dacLocation;
     } else {

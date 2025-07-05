@@ -8,13 +8,17 @@ import { executeCalibrateSensors } from './calibrateSensors.js';
 import { Side } from '../db/schedulesSchema.js';
 import settingsDB from '../db/settings.js';
 
-const scheduleRebootJob = (onHour: number, onMinute: number, timeZone: TimeZone) => {
+const scheduleRebootJob = (
+  onHour: number,
+  onMinute: number,
+  timeZone: TimeZone,
+) => {
   const dailyRule = new schedule.RecurrenceRule();
   dailyRule.hour = onHour;
   dailyRule.minute = onMinute;
   dailyRule.tz = timeZone;
 
-  const time = `${String(onHour).padStart(2,'0')}:${String(onMinute).padStart(2,'0')}`;
+  const time = `${String(onHour).padStart(2, '0')}:${String(onMinute).padStart(2, '0')}`;
   logger.debug(`Scheduling daily reboot job at ${time}`);
   schedule.scheduleJob(`daily-reboot-${time}`, dailyRule, async () => {
     await settingsDB.read();
@@ -36,28 +40,34 @@ const scheduleRebootJob = (onHour: number, onMinute: number, timeZone: TimeZone)
       logger.debug(`Stdout: ${stdout}`);
     });
   });
-}
+};
 
-const scheduleCalibrationJob = (onHour: number, onMinute: number, timeZone: TimeZone) => {
+const scheduleCalibrationJob = (
+  onHour: number,
+  onMinute: number,
+  timeZone: TimeZone,
+) => {
   const dailyRule = new schedule.RecurrenceRule();
   dailyRule.hour = onHour;
   dailyRule.minute = onMinute;
   dailyRule.tz = timeZone;
 
-  const time = `${String(onHour).padStart(2,'0')}:${String(onMinute).padStart(2,'0')}`
+  const time = `${String(onHour).padStart(2, '0')}:${String(onMinute).padStart(2, '0')}`;
   logger.debug(`Scheduling daily calibration job at ${time} for both sides`);
   schedule.scheduleJob(`daily-calibration-${time}`, dailyRule, async () => {
     const timeRange = {
       start: moment().subtract(6, 'hours').toISOString(),
-      end: moment().toISOString()
+      end: moment().toISOString(),
     };
-    
-    logger.info(`Executing scheduled calibration job for both sides (timeRange: ${timeRange.start} to ${timeRange.end})`);
-    
+
+    logger.info(
+      `Executing scheduled calibration job for both sides (timeRange: ${timeRange.start} to ${timeRange.end})`,
+    );
+
     await executeCalibrateSensors('left', timeRange.start, timeRange.end);
     await executeCalibrateSensors('right', timeRange.start, timeRange.end);
   });
-}
+};
 
 export const schedulePrimingRebootAndCalibration = (settingsData: Settings) => {
   const { timeZone, primePodDaily } = settingsData;

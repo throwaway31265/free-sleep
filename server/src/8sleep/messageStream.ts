@@ -5,9 +5,8 @@ export class MessageStream {
 
   public constructor(
     private readonly stream: PromiseReadStream<Buffer>,
-    private readonly separator = Buffer.from('\n\n')
-  ) {
-  }
+    private readonly separator = Buffer.from('\n\n'),
+  ) {}
 
   public async readMessage() {
     // eslint-disable-next-line no-constant-condition

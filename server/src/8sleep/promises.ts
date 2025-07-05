@@ -10,8 +10,7 @@ export function toPromise(func) {
     func((err, result) => {
       if (err) {
         reject(err);
-      }
-      else {
+      } else {
         resolve(result);
       }
     });
@@ -21,7 +20,7 @@ export function toPromise(func) {
 export function wait(milliseconds) {
   let timer;
   let resolve;
-  const ret = new Promise(res => {
+  const ret = new Promise((res) => {
     timer = setTimeout(res, milliseconds);
     resolve = res;
   });

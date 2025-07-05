@@ -2,7 +2,11 @@ import { Socket } from 'net';
 
 import { SequentialQueue } from './sequentialQueue.js';
 import { MessageStream } from './messageStream.js';
-import { PromiseStream, PromiseStreams, PromiseWriteStream } from './promiseStream.js';
+import {
+  PromiseStream,
+  PromiseStreams,
+  PromiseWriteStream,
+} from './promiseStream.js';
 import { FrankenCommand, frankenCommands } from './deviceApi.js';
 
 import { UnixSocketServer } from './unixSocketServer.js';
@@ -19,15 +23,17 @@ export class Franken {
     private readonly messageStream: MessageStream,
     private readonly sequentialQueue: SequentialQueue,
     private readonly socket: Socket,
-  ) {
-  }
+  ) {}
 
   static readonly separator = Buffer.from('\n\n');
 
   public async sendMessage(message: string) {
     logger.debug(`Sending message to sock | message: ${message}`);
     const responseBytes = await this.sequentialQueue.exec(async () => {
-      const requestBytes = Buffer.concat([Buffer.from(message), Franken.separator]);
+      const requestBytes = Buffer.concat([
+        Buffer.from(message),
+        Franken.separator,
+      ]);
       await this.writeStream.write(requestBytes);
       const resp = await this.messageStream.readMessage();
 
@@ -56,12 +62,14 @@ export class Franken {
   }
 
   public async getVariables() {
-    const command: FrankenCommand = "DEVICE_STATUS";
+    const command: FrankenCommand = 'DEVICE_STATUS';
     const commandNumber = frankenCommands[command];
     const varResp = await this.sendMessage(commandNumber);
-    const parsedVars = Object.fromEntries(varResp.split("\n").map(l => l.split(" = ")));
+    const parsedVars = Object.fromEntries(
+      varResp.split('\n').map((l) => l.split(' = ')),
+    );
     return parsedVars as { [k: string]: string };
-}
+  }
 
   public async getDeviceStatus(): Promise<DeviceStatus> {
     const command: FrankenCommand = 'DEVICE_STATUS';
@@ -84,8 +92,7 @@ export class Franken {
 }
 
 class FrankenServer {
-  public constructor(private readonly server: UnixSocketServer) {
-  }
+  public constructor(private readonly server: UnixSocketServer) {}
 
   public async close() {
     logger.debug('Closing FrankenServer socket...');

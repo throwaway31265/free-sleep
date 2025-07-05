@@ -13,7 +13,6 @@ router.get('/deviceStatus', async (req: Request, res: Response) => {
   res.json(resp);
 });
 
-
 router.post('/deviceStatus', async (req: Request, res: Response) => {
   const { body } = req;
   const validationResult = DeviceStatusSchema.deepPartial().safeParse(body);
@@ -34,6 +33,5 @@ router.post('/deviceStatus', async (req: Request, res: Response) => {
     res.status(500).json({ error });
   }
 });
-
 
 export default router;
