@@ -22,3 +22,4 @@ app/dist/
 /server/free-sleep-data/*
 
 !.gitkeep
+/decompiled-capybara-source/*
