@@ -1,7 +1,7 @@
 import { Box, Slider, TextField, Typography } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
-import { useScheduleStore } from './scheduleStore.tsx';
 import { formatTemperature } from '../ControlTempPage/TemperatureLabel';
+import { useScheduleStore } from './scheduleStore.tsx';
 
 export default function StartTimeSection({
   displayCelsius,

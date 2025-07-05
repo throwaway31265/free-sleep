@@ -1,9 +1,8 @@
+import type { Settings } from '@api/settingsSchema.ts';
 import { Box, FormControlLabel } from '@mui/material';
 import Switch from '@mui/material/Switch';
-import { DeepPartial } from 'ts-essentials';
-
-import { Settings } from '@api/settingsSchema.ts';
 import { useAppStore } from '@state/appStore.tsx';
+import type { DeepPartial } from 'ts-essentials';
 
 type DailyRebootProps = {
   settings?: Settings;

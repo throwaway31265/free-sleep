@@ -1,5 +1,5 @@
-import express, { Request, Response } from 'express';
-import { frankenCommands, executeFunction } from '../../8sleep/deviceApi.js';
+import express, { type Request, type Response } from 'express';
+import { executeFunction, frankenCommands } from '../../8sleep/deviceApi.js';
 import logger from '../../logger.js';
 
 const router = express.Router();

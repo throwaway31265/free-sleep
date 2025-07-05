@@ -1,14 +1,14 @@
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import PageContainer from '../PageContainer.tsx';
-import Divider from '@mui/material/Divider';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import BedIcon from '@mui/icons-material/Bed';
+import TextSnippetIcon from '@mui/icons-material/TextSnippet';
+import { List, ListItem } from '@mui/material';
+import Divider from '@mui/material/Divider';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 // import FavoriteIcon from '@mui/icons-material/Favorite';
 import Typography from '@mui/material/Typography';
-import { List, ListItem } from '@mui/material';
-import TextSnippetIcon from '@mui/icons-material/TextSnippet';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import PageContainer from '../PageContainer.tsx';
 
 const SettingsList = () => {
   const navigate = useNavigate();

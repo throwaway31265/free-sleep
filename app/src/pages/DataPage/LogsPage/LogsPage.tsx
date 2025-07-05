@@ -1,19 +1,19 @@
-import { useEffect, useState, useRef } from 'react';
 import { baseURL } from '@api/api';
+import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import {
-  Paper,
-  Typography,
   Box,
-  MenuItem,
-  Select,
   FormControl,
   InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  Typography,
 } from '@mui/material';
-import PageContainer from '../../PageContainer.tsx';
 import { useTheme } from '@mui/material/styles';
 import axios from 'axios';
+import { useEffect, useRef, useState } from 'react';
+import PageContainer from '../../PageContainer.tsx';
 import Header from '../Header.tsx';
-import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState<string[]>([]);

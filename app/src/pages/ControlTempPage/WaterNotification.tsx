@@ -1,5 +1,5 @@
+import type { DeviceStatus } from '@api/deviceStatusSchema.ts';
 import Alert from '@mui/material/Alert';
-import { DeviceStatus } from '@api/deviceStatusSchema.ts';
 import Link from '@mui/material/Link';
 
 type WaterNotificationProps = {

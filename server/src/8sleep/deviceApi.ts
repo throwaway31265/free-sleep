@@ -1,7 +1,7 @@
-import _ from 'lodash';
-import { getFranken } from './frankenServer.js';
-import logger from '../logger.js';
 import cbor from 'cbor';
+import _ from 'lodash';
+import logger from '../logger.js';
+import { getFranken } from './frankenServer.js';
 
 export const frankenCommands = {
   HELLO: '0',

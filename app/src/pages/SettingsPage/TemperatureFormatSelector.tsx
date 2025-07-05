@@ -1,11 +1,9 @@
+import { type Settings, TEMPERATURES } from '@api/settingsSchema.ts';
 import Box from '@mui/material/Box';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { DeepPartial } from 'ts-essentials';
-
-import { Settings } from '@api/settingsSchema.ts';
 import { useAppStore } from '@state/appStore.tsx';
-import { TEMPERATURES } from '@api/settingsSchema.ts';
+import type { DeepPartial } from 'ts-essentials';
 
 type TemperatureFormatSelectorProps = {
   settings?: Settings;

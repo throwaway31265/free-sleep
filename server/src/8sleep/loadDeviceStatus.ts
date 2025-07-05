@@ -1,9 +1,9 @@
-import { z } from 'zod';
-import { DeviceStatus } from '../routes/deviceStatus/deviceStatusSchema.js';
-import logger from '../logger.js';
-import memoryDB from '../db/memoryDB.js';
 import cbor from 'cbor';
 import _ from 'lodash';
+import { z } from 'zod';
+import memoryDB from '../db/memoryDB.js';
+import logger from '../logger.js';
+import type { DeviceStatus } from '../routes/deviceStatus/deviceStatusSchema.js';
 
 const RawDeviceData = z.object({
   tgHeatLevelR: z.string().regex(/^-?\d+$/, {

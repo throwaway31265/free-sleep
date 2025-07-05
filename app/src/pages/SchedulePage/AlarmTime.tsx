@@ -1,8 +1,8 @@
+import type { Time } from '@api/schedulesSchema.ts';
 import { TextField } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
-import { useScheduleStore } from './scheduleStore.tsx';
-import { Time } from '@api/schedulesSchema.ts';
 import moment from 'moment-timezone';
+import { useScheduleStore } from './scheduleStore.tsx';
 
 export default function AlarmTime() {
   const { isUpdating } = useAppStore();

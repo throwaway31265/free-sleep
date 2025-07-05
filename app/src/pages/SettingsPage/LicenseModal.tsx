@@ -1,6 +1,8 @@
 /* eslint-disable max-len */
-import React, { useState } from 'react';
-import { Modal, Box, Typography, Button } from '@mui/material';
+
+import { Box, Button, Modal, Typography } from '@mui/material';
+import type React from 'react';
+import { useState } from 'react';
 
 const LicenseModal: React.FC = () => {
   const [open, setOpen] = useState(false);

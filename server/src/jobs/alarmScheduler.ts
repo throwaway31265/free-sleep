@@ -1,9 +1,9 @@
-import { Settings } from '../db/settingsSchema.js';
-import { DailySchedule, DayOfWeek, Side } from '../db/schedulesSchema.js';
-import logger from '../logger.js';
 import cbor from 'cbor';
 import moment from 'moment-timezone';
 import { executeFunction } from '../8sleep/deviceApi.js';
+import type { DailySchedule, DayOfWeek, Side } from '../db/schedulesSchema.js';
+import type { Settings } from '../db/settingsSchema.js';
+import logger from '../logger.js';
 
 export const scheduleAlarm = (
   settingsData: Settings,

@@ -1,5 +1,5 @@
-import Button from '@mui/material/Button';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
+import Button from '@mui/material/Button';
 import { useAppStore } from '@state/appStore.tsx';
 
 type PrimeButtonProps = {

@@ -1,5 +1,5 @@
-import discordIcon from './discord.svg';
 import { Box, Link, Typography } from '@mui/material';
+import discordIcon from './discord.svg';
 
 export default function DiscordLink() {
   const discordInviteLink = 'https://discord.gg/JpArXnBgEj';

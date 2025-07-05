@@ -1,12 +1,12 @@
 import { exec } from 'child_process';
-import schedule from 'node-schedule';
 import moment from 'moment-timezone';
-import logger from '../logger.js';
-import { TimeZone } from '../db/timeZones.js';
-import { Settings } from '../db/settingsSchema.js';
-import { executeCalibrateSensors } from './calibrateSensors.js';
+import schedule from 'node-schedule';
 import { Side } from '../db/schedulesSchema.js';
 import settingsDB from '../db/settings.js';
+import type { Settings } from '../db/settingsSchema.js';
+import type { TimeZone } from '../db/timeZones.js';
+import logger from '../logger.js';
+import { executeCalibrateSensors } from './calibrateSensors.js';
 
 const scheduleRebootJob = (
   onHour: number,

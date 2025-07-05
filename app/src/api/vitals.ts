@@ -1,9 +1,9 @@
-import axios from './api';
 import { useQuery } from '@tanstack/react-query';
-import {
+import type {
   VitalsRecord,
   VitalsSummary,
 } from '../../../server/src/db/vitalsRecordSchema';
+import axios from './api';
 export type { VitalsRecord, VitalsSummary };
 
 interface VitalsRecordQueryParams {

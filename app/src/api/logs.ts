@@ -1,5 +1,5 @@
-import axios from './api';
 import { useQuery } from '@tanstack/react-query';
+import axios from './api';
 
 /** Type for log list response */
 export type LogList = {

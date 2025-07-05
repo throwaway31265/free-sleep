@@ -1,6 +1,6 @@
-import Header from '../Header.tsx';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import PageContainer from '../../PageContainer.tsx';
+import Header from '../Header.tsx';
 
 export default function VitalsPage() {
   return (

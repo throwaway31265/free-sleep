@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
 import { postDeviceStatus, useDeviceStatus } from '@api/deviceStatus.ts';
-import { DeviceStatus } from '@api/deviceStatusSchema.ts';
-import _ from 'lodash';
-import { useAppStore } from '@state/appStore.tsx';
+import type { DeviceStatus } from '@api/deviceStatusSchema.ts';
 import { Box, Slider, Typography } from '@mui/material';
+import { useAppStore } from '@state/appStore.tsx';
+import _ from 'lodash';
+import { useEffect, useState } from 'react';
 
 export default function LedBrightnessSlider() {
   const { isUpdating, setIsUpdating } = useAppStore();

@@ -1,18 +1,18 @@
 import chokidar from 'chokidar';
 import moment from 'moment-timezone';
 import schedule from 'node-schedule';
-import logger from '../logger.js';
+import config from '../config.js';
 import schedulesDB from '../db/schedules.js';
+import type { DayOfWeek, Side } from '../db/schedulesSchema.js';
 import settingsDB from '../db/settings.js';
-import { DayOfWeek, Side } from '../db/schedulesSchema.js';
+import logger from '../logger.js';
+import { scheduleAlarm } from './alarmScheduler.js';
 import {
   schedulePowerOffAndSleepAnalysis,
   schedulePowerOn,
 } from './powerScheduler.js';
-import { scheduleTemperatures } from './temperatureScheduler.js';
 import { schedulePrimingRebootAndCalibration } from './primeScheduler.js';
-import config from '../config.js';
-import { scheduleAlarm } from './alarmScheduler.js';
+import { scheduleTemperatures } from './temperatureScheduler.js';
 
 const isJobSetupRunning = false;
 

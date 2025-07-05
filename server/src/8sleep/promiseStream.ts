@@ -6,8 +6,8 @@
 // So I made a copy of their packages here, so we don't depend on being able to install
 // @eight/promises && @eight/promise-streams
 
+import { Duplex, Readable, Writable } from 'stream';
 import { toPromise } from './promises.js';
-import { Readable, Writable, Duplex } from 'stream';
 
 class StreamReader {
   constructor(stream, errorTransform) {

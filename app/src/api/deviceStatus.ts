@@ -1,7 +1,7 @@
-import axios from './api';
 import { useQuery } from '@tanstack/react-query';
-import { DeepPartial } from 'ts-essentials';
-import { DeviceStatus } from './deviceStatusSchema';
+import type { DeepPartial } from 'ts-essentials';
+import axios from './api';
+import type { DeviceStatus } from './deviceStatusSchema';
 
 export const useDeviceStatus = () =>
   useQuery<DeviceStatus>({

@@ -1,6 +1,6 @@
-import logger from '../logger.js';
 import { exec } from 'child_process';
 import fs from 'fs';
+import logger from '../logger.js';
 
 type ExecutePythonScriptArgs = {
   script: string;

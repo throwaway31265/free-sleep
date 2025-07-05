@@ -1,6 +1,6 @@
-import axios from './api';
 import { useQuery } from '@tanstack/react-query';
-import { SleepRecord } from '../../../server/src/db/sleepRecordsSchema.ts';
+import type { SleepRecord } from '../../../server/src/db/sleepRecordsSchema.ts';
+import axios from './api';
 
 interface SleepRecordQueryParams {
   startTime?: string; // ISO 8601 format (e.g., 2025-01-01T00:00:00Z)

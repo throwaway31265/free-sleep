@@ -1,4 +1,4 @@
-import { Side } from '../db/schedulesSchema.js';
+import type { Side } from '../db/schedulesSchema.js';
 import { executePythonScript } from './executePython.js';
 
 export const executeCalibrateSensors = (

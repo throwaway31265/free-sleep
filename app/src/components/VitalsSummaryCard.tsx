@@ -1,8 +1,8 @@
-import CircularProgress from '@mui/material/CircularProgress';
-import { useAppStore } from '@state/appStore.tsx';
 import { useVitalsSummary } from '@api/vitals.ts';
 import { Box, Card, Typography } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useTheme } from '@mui/material/styles';
+import { useAppStore } from '@state/appStore.tsx';
 
 type BiometricsSummaryCardProps = {
   startTime: string;

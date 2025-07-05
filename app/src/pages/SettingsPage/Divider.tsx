@@ -1,5 +1,5 @@
-import { useTheme } from '@mui/material/styles';
 import { Divider as MuiDivider } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 export default function Divider() {
   const theme = useTheme();

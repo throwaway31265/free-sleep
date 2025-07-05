@@ -1,20 +1,19 @@
-import { DeepPartial } from 'ts-essentials';
-
-import SideSettings from './SideSettings.tsx';
-import PageContainer from '../PageContainer.tsx';
-import TimeZoneSelector from './TimeZoneSelector.tsx';
-import TemperatureFormatSelector from './TemperatureFormatSelector.tsx';
-import { Settings } from '@api/settingsSchema.ts';
 import { postSettings, useSettings } from '@api/settings.ts';
+import type { Settings } from '@api/settingsSchema.ts';
 import { useAppStore } from '@state/appStore.tsx';
+import type { DeepPartial } from 'ts-essentials';
+import PageContainer from '../PageContainer.tsx';
 import DailyPriming from './DailyPriming.tsx';
 import DailyReboot from './DailyReboot.tsx';
-import LicenseModal from './LicenseModal.tsx';
-import PrimeControl from './PrimeControl.tsx';
-import LedBrightnessSlider from './LedBrightnessSlider.tsx';
-import Donate from './Donate.tsx';
 import DiscordLink from './DiscordLink.tsx';
 import Divider from './Divider.tsx';
+import Donate from './Donate.tsx';
+import LedBrightnessSlider from './LedBrightnessSlider.tsx';
+import LicenseModal from './LicenseModal.tsx';
+import PrimeControl from './PrimeControl.tsx';
+import SideSettings from './SideSettings.tsx';
+import TemperatureFormatSelector from './TemperatureFormatSelector.tsx';
+import TimeZoneSelector from './TimeZoneSelector.tsx';
 
 export default function SettingsPage() {
   const { data: settings, refetch } = useSettings();

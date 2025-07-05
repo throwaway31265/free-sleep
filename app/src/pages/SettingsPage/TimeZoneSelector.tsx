@@ -1,13 +1,12 @@
+import type { Settings } from '@api/settingsSchema.ts';
+import { TIME_ZONES } from '@api/timeZones.ts';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
-import { DeepPartial } from 'ts-essentials';
-
-import { TIME_ZONES } from '@api/timeZones.ts';
-import { Settings } from '@api/settingsSchema.ts';
+import Select, { type SelectChangeEvent } from '@mui/material/Select';
 import { useAppStore } from '@state/appStore.tsx';
+import type { DeepPartial } from 'ts-essentials';
 
 type TimeZoneSelectorProps = {
   settings?: Settings;

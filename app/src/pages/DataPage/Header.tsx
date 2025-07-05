@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
-import { Grid, Typography } from '@mui/material';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import { Grid, Typography } from '@mui/material';
+import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 type HeaderProps = {
