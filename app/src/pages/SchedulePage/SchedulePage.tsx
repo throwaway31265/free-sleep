@@ -22,7 +22,6 @@ import { useScheduleStore } from './scheduleStore.tsx';
 import { useSettings } from '@api/settings';
 import { LOWERCASE_DAYS } from './days.ts';
 
-
 const getAdjustedDayOfWeek = (): DayOfWeek => {
   // Get the current moment in the specified timezone
   const now = moment();
@@ -31,12 +30,14 @@ const getAdjustedDayOfWeek = (): DayOfWeek => {
 
   // Determine if it's before noon (12:00 PM)
   if (currentHour < 12) {
-    return now.subtract(1, 'day').format('dddd').toLocaleLowerCase() as DayOfWeek;
+    return now
+      .subtract(1, 'day')
+      .format('dddd')
+      .toLocaleLowerCase() as DayOfWeek;
   } else {
     return now.format('dddd').toLocaleLowerCase() as DayOfWeek;
   }
 };
-
 
 export default function SchedulePage() {
   const { setIsUpdating, side } = useAppStore();
@@ -47,7 +48,7 @@ export default function SchedulePage() {
     selectedDays,
     selectedDay,
     reloadScheduleData,
-    selectDay
+    selectDay,
   } = useScheduleStore();
   const { data: settings } = useSettings();
   const displayCelsius = settings?.temperatureFormat === 'celsius';
@@ -74,10 +75,12 @@ export default function SchedulePage() {
     setIsUpdating(true);
 
     // @ts-ignore
-    const daysList: DayOfWeek[] = _.uniq(_.keys(_.pickBy(selectedDays, value => value)));
+    const daysList: DayOfWeek[] = _.uniq(
+      _.keys(_.pickBy(selectedDays, (value) => value)),
+    );
     daysList.push(selectedDay);
-    const payload: DeepPartial<Schedules> = { [side]: {}, };
-    daysList.forEach(day => {
+    const payload: DeepPartial<Schedules> = { [side]: {} };
+    daysList.forEach((day) => {
       // @ts-ignore
       payload[side][day] = selectedSchedule;
     });
@@ -88,7 +91,7 @@ export default function SchedulePage() {
         return new Promise((resolve) => setTimeout(resolve, 1_000));
       })
       .then(() => refetch())
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
       })
       .finally(() => {
@@ -98,30 +101,36 @@ export default function SchedulePage() {
 
   return (
     <PageContainer
-      sx={ {
+      sx={{
         width: '100%',
         maxWidth: { xs: '100%', sm: '800px' },
         mx: 'auto',
         mb: 15,
-      } }
+      }}
     >
-      <SideControl title={ 'Schedules' }/>
-      <DayTabs/>
-      <StartTimeSection displayCelsius={ displayCelsius }/>
-      <PowerOffTime/>
-      <Box sx={ { mt: 2, display: 'flex', justifyContent: 'space-between', width: '100%', mb: 2 } }>
-        <EnabledSwitch/>
-        <SaveButton onSave={ handleSave }/>
+      <SideControl title={'Schedules'} />
+      <DayTabs />
+      <StartTimeSection displayCelsius={displayCelsius} />
+      <PowerOffTime />
+      <Box
+        sx={{
+          mt: 2,
+          display: 'flex',
+          justifyContent: 'space-between',
+          width: '100%',
+          mb: 2,
+        }}
+      >
+        <EnabledSwitch />
+        <SaveButton onSave={handleSave} />
       </Box>
-      {
-        selectedSchedule?.power.enabled && (
-          <>
-            <TemperatureAdjustmentsAccordion displayCelsius={ displayCelsius }/>
-            <AlarmAccordion/>
-            <ApplyToOtherDaysAccordion/>
-          </>
-        )
-      }
+      {selectedSchedule?.power.enabled && (
+        <>
+          <TemperatureAdjustmentsAccordion displayCelsius={displayCelsius} />
+          <AlarmAccordion />
+          <ApplyToOtherDaysAccordion />
+        </>
+      )}
     </PageContainer>
   );
 }

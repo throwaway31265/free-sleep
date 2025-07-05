@@ -8,7 +8,6 @@ interface SleepRecordQueryParams {
   side?: 'left' | 'right';
 }
 
-
 export const useSleepRecords = (params?: SleepRecordQueryParams) => {
   return useQuery<SleepRecord[]>({
     queryKey: ['useSleepRecords', params],
@@ -19,18 +18,21 @@ export const useSleepRecords = (params?: SleepRecordQueryParams) => {
       if (params?.endTime) queryParams.append('endTime', params.endTime);
       if (params?.side) queryParams.append('side', params.side);
 
-      const response = await axios.get<SleepRecord[]>(`/metrics/sleep?${queryParams.toString()}`);
+      const response = await axios.get<SleepRecord[]>(
+        `/metrics/sleep?${queryParams.toString()}`,
+      );
       return response.data;
     },
   });
 };
 
-
 export const deleteSleepRecord = async (id: number): Promise<void> => {
   await axios.delete(`/metrics/sleep/${id}`);
 };
 
-
-export const updateSleepRecord = async (id: number, updates: Partial<SleepRecord>) => {
+export const updateSleepRecord = async (
+  id: number,
+  updates: Partial<SleepRecord>,
+) => {
   return axios.put<SleepRecord>(`/metrics/sleep/${id}`, updates);
 };

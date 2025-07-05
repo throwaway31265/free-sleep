@@ -16,7 +16,6 @@ import Donate from './Donate.tsx';
 import DiscordLink from './DiscordLink.tsx';
 import Divider from './Divider.tsx';
 
-
 export default function SettingsPage() {
   const { data: settings, refetch } = useSettings();
   const { setIsUpdating } = useAppStore();
@@ -32,34 +31,45 @@ export default function SettingsPage() {
         return new Promise((resolve) => setTimeout(resolve, 1_000));
       })
       .then(() => refetch())
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
       })
       .finally(() => setIsUpdating(false));
   };
 
   return (
-    <PageContainer sx={ { mb: 15, mt: 2 } }>
-      <TimeZoneSelector settings={ settings } updateSettings={ updateSettings }/>
-      <TemperatureFormatSelector settings={ settings } updateSettings={ updateSettings } />
-      <DailyReboot settings={ settings } updateSettings={ updateSettings } />
+    <PageContainer sx={{ mb: 15, mt: 2 }}>
+      <TimeZoneSelector settings={settings} updateSettings={updateSettings} />
+      <TemperatureFormatSelector
+        settings={settings}
+        updateSettings={updateSettings}
+      />
+      <DailyReboot settings={settings} updateSettings={updateSettings} />
       <Divider />
-      <DailyPriming settings={ settings } updateSettings={ updateSettings }/>
-      <PrimeControl/>
+      <DailyPriming settings={settings} updateSettings={updateSettings} />
+      <PrimeControl />
 
       <Divider />
-      <SideSettings side="left" settings={ settings } updateSettings={ updateSettings }/>
+      <SideSettings
+        side="left"
+        settings={settings}
+        updateSettings={updateSettings}
+      />
       <br />
-      <SideSettings side="right" settings={ settings } updateSettings={ updateSettings }/>
+      <SideSettings
+        side="right"
+        settings={settings}
+        updateSettings={updateSettings}
+      />
       <Divider />
-      <LedBrightnessSlider/>
+      <LedBrightnessSlider />
 
       <Divider />
       <DiscordLink />
       <Divider />
       <Donate />
       <Divider />
-      <LicenseModal/>
+      <LicenseModal />
     </PageContainer>
   );
 }

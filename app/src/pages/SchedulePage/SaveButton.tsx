@@ -4,7 +4,7 @@ import { useScheduleStore } from './scheduleStore.tsx';
 
 type SaveButtonProps = {
   onSave: () => void;
-}
+};
 
 export default function SaveButton({ onSave }: SaveButtonProps) {
   const { isUpdating } = useAppStore();
@@ -14,7 +14,11 @@ export default function SaveButton({ onSave }: SaveButtonProps) {
   const valid = isValid();
 
   return (
-    <Button variant="contained" onClick={ onSave } disabled={ isUpdating || !valid }>
+    <Button
+      variant="contained"
+      onClick={onSave}
+      disabled={isUpdating || !valid}
+    >
       Save
     </Button>
   );

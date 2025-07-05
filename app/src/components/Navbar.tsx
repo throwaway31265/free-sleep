@@ -18,7 +18,7 @@ export default function Navbar() {
   const theme = useTheme(); // Access the Material-UI theme
   const currentTitle = PAGES.find((page) => page.route === pathname)?.title;
   const [mobileNavValue, setMobileNavValue] = React.useState(
-    PAGES.findIndex((page) => page.route === pathname)
+    PAGES.findIndex((page) => page.route === pathname),
   );
 
   // Handle navigation for both desktop and mobile
@@ -28,7 +28,7 @@ export default function Navbar() {
 
   const handleMobileNavChange = (
     _event: React.SyntheticEvent,
-    newValue: number
+    newValue: number,
   ) => {
     setMobileNavValue(newValue);
     handleNavigation(PAGES[newValue].route);
@@ -44,9 +44,9 @@ export default function Navbar() {
 )`;
   return (
     <>
-      { /* Loading Bar */ }
+      {/* Loading Bar */}
       <Box
-        sx={ {
+        sx={{
           position: 'fixed',
           top: 0,
           left: 0,
@@ -58,13 +58,13 @@ export default function Navbar() {
             ? 'slide-gradient 10s linear infinite reverse'
             : 'none',
           zIndex: 1201,
-        } }
+        }}
       />
-      { /* Desktop Navigation */ }
+      {/* Desktop Navigation */}
       <AppBar
         position="fixed"
         color="transparent"
-        sx={ {
+        sx={{
           display: { xs: 'none', md: 'flex' },
           borderTop: `1px solid ${theme.palette.grey[700]}`,
           backgroundColor: theme.palette.background.default,
@@ -73,31 +73,31 @@ export default function Navbar() {
           bottom: 0, // Stick it to the bottom
           left: 0,
           right: 0,
-        } }
+        }}
       >
         <Toolbar>
-          <Typography variant="h6" component="div" sx={ { flexGrow: 1 } }>
-            { currentTitle || 'Free sleep' }
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            {currentTitle || 'Free sleep'}
           </Typography>
-          <Box sx={ { display: 'flex', gap: 2 } }>
-            { PAGES.map(({ title, route }) => (
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            {PAGES.map(({ title, route }) => (
               <Button
-                key={ route }
-                onClick={ () => handleNavigation(route) }
-                sx={ { color: 'white' } }
-                variant={ pathname === route ? 'outlined' : 'text' }
-                disabled={ isUpdating }
+                key={route}
+                onClick={() => handleNavigation(route)}
+                sx={{ color: 'white' }}
+                variant={pathname === route ? 'outlined' : 'text'}
+                disabled={isUpdating}
               >
-                { title }
+                {title}
               </Button>
-            )) }
+            ))}
           </Box>
         </Toolbar>
       </AppBar>
 
-      { /* Mobile Bottom Navigation */ }
+      {/* Mobile Bottom Navigation */}
       <Box
-        sx={ {
+        sx={{
           display: { xs: 'flex', md: 'none' },
           width: '100%',
           position: 'fixed',
@@ -107,12 +107,12 @@ export default function Navbar() {
           borderTop: `1px solid ${theme.palette.grey[700]}`,
           backgroundColor: theme.palette.background.default,
           zIndex: 10,
-        } }
+        }}
       >
         <BottomNavigation
-          value={ mobileNavValue }
-          onChange={ handleMobileNavChange }
-          sx={ {
+          value={mobileNavValue}
+          onChange={handleMobileNavChange}
+          sx={{
             width: '100%',
             backgroundColor: theme.palette.background.default,
             '& .Mui-selected': {
@@ -121,25 +121,25 @@ export default function Navbar() {
             '& .MuiBottomNavigationAction-root': {
               color: theme.palette.grey[500],
             },
-          } }
+          }}
         >
-          { PAGES.map(({ title, icon }, index) => (
+          {PAGES.map(({ title, icon }, index) => (
             <BottomNavigationAction
-              key={ index }
-              icon={ icon }
-              disabled={ isUpdating }
-              aria-label={ title }
-              sx={ {
+              key={index}
+              icon={icon}
+              disabled={isUpdating}
+              aria-label={title}
+              sx={{
                 '&.Mui-selected': {
                   color: theme.palette.grey[100],
                 },
-              } }
+              }}
             />
-          )) }
+          ))}
         </BottomNavigation>
       </Box>
       <style>
-        { `
+        {`
 @keyframes slide-gradient {
   0% {
     background-position: 0% 50%;
@@ -148,7 +148,7 @@ export default function Navbar() {
     background-position: 200% 50%;
   }
 }
-        ` }
+        `}
       </style>
     </>
   );

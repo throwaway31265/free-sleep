@@ -9,4 +9,3 @@ export const LOWERCASE_DAYS: DayOfWeek[] = [
   'friday',
   'saturday',
 ];
-

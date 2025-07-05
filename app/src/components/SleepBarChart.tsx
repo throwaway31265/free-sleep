@@ -5,13 +5,14 @@ import { useTheme, Theme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import { SleepRecord } from '../../../server/src/db/sleepRecordsSchema.ts';
 
-
 interface SleepBarChartProps {
   width?: number;
   height?: number;
   sleepRecords?: SleepRecord[];
   selectedSleepRecord?: SleepRecord;
-  setSelectedSleepRecord: React.Dispatch<React.SetStateAction<SleepRecord | undefined>>;
+  setSelectedSleepRecord: React.Dispatch<
+    React.SetStateAction<SleepRecord | undefined>
+  >;
 }
 
 interface AxisProps {
@@ -81,7 +82,7 @@ function formatDayLabel(dateString: string): string {
 function createScales({
   data,
   width,
-  height
+  height,
 }: {
   data: SleepRecord[];
   width: number;
@@ -110,7 +111,7 @@ function createScales({
     // Fallback: show 6 PM -> 6 PM
     return {
       xScale,
-      yScale: d3.scaleLinear().domain([18, 42]).range([0, height])
+      yScale: d3.scaleLinear().domain([18, 42]).range([0, height]),
     };
   }
 
@@ -131,7 +132,14 @@ function createScales({
 // ----------------------------------------------------------------------
 // Draw axes with grid lines
 // ----------------------------------------------------------------------
-function drawAxes({ chartG, xScale, yScale, height, theme, selectedSleepRecord }: AxisProps) {
+function drawAxes({
+  chartG,
+  xScale,
+  yScale,
+  height,
+  theme,
+  selectedSleepRecord,
+}: AxisProps) {
   // X-axis
   const xAxis = d3.axisBottom<string>(xScale).tickFormat(formatDayLabel);
   const xAxisGroup = chartG
@@ -143,10 +151,12 @@ function drawAxes({ chartG, xScale, yScale, height, theme, selectedSleepRecord }
   // .attr('fill', theme.palette.grey[500])
   xAxisGroup
     .selectAll('text')
-    .attr('fill', (d) =>
-      selectedSleepRecord && d === selectedSleepRecord.entered_bed_at
-        ? theme.palette.grey[100] // Highlight selected bar's tick
-        : theme.palette.grey[500] // Default white for others
+    .attr(
+      'fill',
+      (d) =>
+        selectedSleepRecord && d === selectedSleepRecord.entered_bed_at
+          ? theme.palette.grey[100] // Highlight selected bar's tick
+          : theme.palette.grey[500], // Default white for others
     )
     // @ts-ignore
     .style('font-family', theme.typography.body1.fontFamily);
@@ -193,7 +203,7 @@ function plotSleepRecords({
   yScale,
   theme,
   selectedSleepRecord,
-  setSelectedSleepRecord
+  setSelectedSleepRecord,
 }: {
   chartG: d3.Selection<SVGGElement, unknown, null, undefined>;
   data: SleepRecord[];
@@ -250,9 +260,7 @@ function plotSleepRecords({
           .attr('height', Math.abs(y2 - y1)) // in case reversed
           .attr(
             'fill',
-            isSelected
-              ? theme.palette.grey[100]
-              : theme.palette.grey[900]
+            isSelected ? theme.palette.grey[100] : theme.palette.grey[900],
           )
           .attr('rx', 2)
           .attr('class', 'bar')
@@ -270,7 +278,6 @@ function plotSleepRecords({
         }
       });
     });
-
 }
 
 // ----------------------------------------------------------------------
@@ -285,7 +292,6 @@ export default function SleepBarChart({
 }: SleepBarChartProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const theme = useTheme();
-
 
   useEffect(() => {
     if (!sleepRecords?.length) return;
@@ -315,7 +321,7 @@ export default function SleepBarChart({
     const { xScale, yScale } = createScales({
       data: sleepRecords,
       width: innerWidth,
-      height: innerHeight
+      height: innerHeight,
     });
     if (selectedSleepRecord === undefined) return;
     // Draw axes
@@ -325,7 +331,7 @@ export default function SleepBarChart({
       yScale,
       height: innerHeight,
       theme,
-      selectedSleepRecord
+      selectedSleepRecord,
     });
 
     // Plot the sleep intervals
@@ -336,13 +342,20 @@ export default function SleepBarChart({
       yScale,
       theme,
       selectedSleepRecord,
-      setSelectedSleepRecord
+      setSelectedSleepRecord,
     });
-  }, [sleepRecords, width, height, theme, selectedSleepRecord, setSelectedSleepRecord]);
+  }, [
+    sleepRecords,
+    width,
+    height,
+    theme,
+    selectedSleepRecord,
+    setSelectedSleepRecord,
+  ]);
   if (sleepRecords?.length === 0) return null;
   return (
-    <Box sx={ { 'width': width } }>
-      <svg ref={ svgRef }/>
+    <Box sx={{ width: width }}>
+      <svg ref={svgRef} />
     </Box>
   );
 }

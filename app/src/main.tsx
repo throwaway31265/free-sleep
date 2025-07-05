@@ -24,7 +24,7 @@ const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     background: {
-      default: '#010101'
+      default: '#010101',
     },
     grey: {
       100: '#e8eaed',
@@ -34,7 +34,7 @@ const darkTheme = createTheme({
       700: '#272727',
       800: '#262626',
       900: '#242424',
-    }
+    },
   },
 });
 
@@ -46,46 +46,42 @@ const queryClient = new QueryClient({
   },
 });
 
-
 const App = () => {
   return (
-
-    <QueryClientProvider client={ queryClient }>
-      <ThemeProvider theme={ darkTheme }>
-        <LocalizationProvider dateAdapter={ AdapterMoment }>
-
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={darkTheme}>
+        <LocalizationProvider dateAdapter={AdapterMoment}>
           <AppStoreProvider>
-            <CssBaseline/>
+            <CssBaseline />
             <GlobalStyles
-              styles={ {
+              styles={{
                 'html, body': {
                   overscrollBehavior: 'none', // Prevent rubber-banding
                 },
-              } }
+              }}
             />
             <BrowserRouter basename="/">
               <Routes>
-                <Route path="/" element={ <Layout/> }>
-                  <Route index element={ <SettingsPage/> }/>
-                  <Route path="temperature" element={ <ControlTempPage/> }/>
-                  <Route path="left" element={ <ControlTempPage/> }/>
-                  <Route path="right" element={ <ControlTempPage/> }/>
-                  <Route path="base-control" element={ <BaseControlPage/> }/>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<SettingsPage />} />
+                  <Route path="temperature" element={<ControlTempPage />} />
+                  <Route path="left" element={<ControlTempPage />} />
+                  <Route path="right" element={<ControlTempPage />} />
+                  <Route path="base-control" element={<BaseControlPage />} />
 
-                  <Route path="data" element={ <DataPage /> }>
-                    <Route path="sleep" element={ <SleepPage/> }/>
-                    <Route path="logs" element={ <LogsPage/> }/>
-                    <Route path="vitals" element={ <VitalsPage/> }/>
+                  <Route path="data" element={<DataPage />}>
+                    <Route path="sleep" element={<SleepPage />} />
+                    <Route path="logs" element={<LogsPage />} />
+                    <Route path="vitals" element={<VitalsPage />} />
                   </Route>
 
-                  <Route path="settings" element={ <SettingsPage/> }/>
-                  <Route path="schedules" element={ <SchedulePage/> }/>
+                  <Route path="settings" element={<SettingsPage />} />
+                  <Route path="schedules" element={<SchedulePage />} />
                 </Route>
               </Routes>
             </BrowserRouter>
           </AppStoreProvider>
         </LocalizationProvider>
-
       </ThemeProvider>
     </QueryClientProvider>
   );
@@ -96,5 +92,5 @@ createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <App />
     </ErrorBoundary>
-  </StrictMode>
+  </StrictMode>,
 );

@@ -3,7 +3,6 @@ import { create } from 'zustand';
 import { DeepPartial } from 'ts-essentials';
 import { DeviceStatus } from '@api/deviceStatusSchema.ts';
 
-
 type ControlTempStore = {
   originalDeviceStatus: DeviceStatus | undefined;
   deviceStatus: DeviceStatus | undefined;

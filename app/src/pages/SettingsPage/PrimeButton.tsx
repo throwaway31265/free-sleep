@@ -4,7 +4,7 @@ import { useAppStore } from '@state/appStore.tsx';
 
 type PrimeButtonProps = {
   refetch: any;
-}
+};
 
 export default function PrimeButton({ refetch }: PrimeButtonProps) {
   const { setIsUpdating, isUpdating } = useAppStore();
@@ -19,13 +19,13 @@ export default function PrimeButton({ refetch }: PrimeButtonProps) {
         return new Promise((resolve) => setTimeout(resolve, 1_000));
       })
       .then(() => refetch())
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
       });
   };
 
   return (
-    <Button variant="contained" onClick={ handleClick } disabled={ isUpdating }>
+    <Button variant="contained" onClick={handleClick} disabled={isUpdating}>
       Prime now
     </Button>
   );

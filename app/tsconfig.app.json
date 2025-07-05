@@ -8,15 +8,9 @@
     "skipLibCheck": true,
     "baseUrl": "./",
     "paths": {
-      "@api/*": [
-        "src/api/*"
-      ],
-      "@state/*": [
-        "src/state/*"
-      ],
-      "@components/*": [
-        "src/components/*"
-      ]
+      "@api/*": ["src/api/*"],
+      "@state/*": ["src/state/*"],
+      "@components/*": ["src/components/*"]
     },
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

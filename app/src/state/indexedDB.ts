@@ -21,7 +21,6 @@ export type UserSettings = {
   };
 };
 
-
 // Define the database schema according to the idb documentation
 interface FreeSleepDB extends DBSchema {
   user_store: {
@@ -29,7 +28,6 @@ interface FreeSleepDB extends DBSchema {
     value: UserSettings; // The type of data stored in the object store
   };
 }
-
 
 // Singleton instance of IndexedDB with proper typing
 let dbInstance: IDBPDatabase<FreeSleepDB> | null = null;
@@ -62,20 +60,21 @@ export const setDataInIndexedDB = async (data: UserSettings): Promise<void> => {
 };
 
 // Function to get entire JSON object
-export const getAllDataFromIndexedDB = async (): Promise<UserSettings | null> => {
-  try {
-    const db = await initDB();
-    const result = await db.get(STORE_NAME, USER_SETTINGS);
-    return result || null; // Return null if not found
-  } catch (error) {
-    console.error('Error retrieving data from IndexedDB:', error);
-    return null;
-  }
-};
+export const getAllDataFromIndexedDB =
+  async (): Promise<UserSettings | null> => {
+    try {
+      const db = await initDB();
+      const result = await db.get(STORE_NAME, USER_SETTINGS);
+      return result || null; // Return null if not found
+    } catch (error) {
+      console.error('Error retrieving data from IndexedDB:', error);
+      return null;
+    }
+  };
 
 // Function to get a specific field dynamically
 export const getFieldFromIndexedDB = async <T extends keyof UserSettings>(
-  field: T
+  field: T,
 ): Promise<UserSettings[T] | null> => {
   try {
     const data = await getAllDataFromIndexedDB();
@@ -94,11 +93,15 @@ export const getFieldFromIndexedDB = async <T extends keyof UserSettings>(
 // Function to update a specific field dynamically
 export const updateFieldInIndexedDB = async <T extends keyof UserSettings>(
   field: T,
-  value: UserSettings[T]
+  value: UserSettings[T],
 ): Promise<void> => {
   try {
     const existingData = await getAllDataFromIndexedDB();
-    const updatedData = { ...existingData, [field]: value, [KEY_PATH]: USER_SETTINGS };
+    const updatedData = {
+      ...existingData,
+      [field]: value,
+      [KEY_PATH]: USER_SETTINGS,
+    };
     await setDataInIndexedDB(updatedData as UserSettings);
   } catch (error) {
     console.error(`Error updating field '${field}' in IndexedDB:`, error);
