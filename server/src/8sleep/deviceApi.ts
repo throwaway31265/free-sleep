@@ -23,6 +23,8 @@ export const frankenCommands = {
   ALARM_SOLO: '17',
   // STOP_PRIME: "18",
   VIBRATE: '-',
+  // Base control commands (via BLE to adjustable base)
+  SET_BASE_POSITION: 'BASE_POSITION',
 } as const;
 
 export const invertedFrankenCommands = _.invert(frankenCommands);
@@ -49,12 +51,12 @@ function getVibrationArgument() {
 
 function sideToFunction(side: Side): FrankenFunctions {
   switch (side) {
-    case 'left':
-      return 'ALARM_LEFT';
-    case 'right':
-      return 'ALARM_RIGHT';
-    case 'solo':
-      return 'ALARM_SOLO';
+  case 'left':
+    return 'ALARM_LEFT';
+  case 'right':
+    return 'ALARM_RIGHT';
+  case 'solo':
+    return 'ALARM_SOLO';
   }
 }
 
@@ -87,6 +89,12 @@ export async function executeFunction(
     logger.debug(
       `Executing VIBRATE | vibrationArg: ${vibrationArg} | vibrationFunction: ${vibrationFunction}`,
     );
+  } else if (command === 'SET_BASE_POSITION') {
+    // Base control is handled via BLE, not through franken
+    // This command is a placeholder for the API layer
+    logger.info(`Base position control requested: ${arg}`);
+    // Actual implementation will be in a separate base control module
+    return;
   } else {
     const response = await franken.callFunction(command, arg);
     logger.debug(response);

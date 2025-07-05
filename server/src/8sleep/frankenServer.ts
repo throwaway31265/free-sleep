@@ -25,7 +25,9 @@ export class Franken {
   static readonly separator = Buffer.from('\n\n');
 
   public async sendMessage(message: string) {
-    logger.debug(`Sending message to sock | message: ${message}`);
+    if (message !== `14`) {
+      logger.debug(`Sending message to sock | message: ${message}`);
+    }
     const responseBytes = await this.sequentialQueue.exec(async () => {
       const requestBytes = Buffer.concat([
         Buffer.from(message),
@@ -38,7 +40,9 @@ export class Franken {
       return resp;
     });
     const response = responseBytes.toString();
-    logger.debug(`Message sent successfully to sock | message: ${message}`);
+    if (message !== `14`) {
+      logger.debug(`Message sent successfully to sock | message: ${message}`);
+    }
 
     return response;
   }
