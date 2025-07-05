@@ -5,7 +5,6 @@ import { JSONFile } from 'lowdb/node';
 import { DailySchedule, Schedules, SideSchedule } from './schedulesSchema.js';
 import config from '../config.js';
 
-
 const defaultDailySchedule: DailySchedule = {
   temperatures: {},
   power: {
@@ -21,7 +20,7 @@ const defaultDailySchedule: DailySchedule = {
     duration: 1,
     enabled: false,
     alarmTemperature: 82,
-  }
+  },
 };
 
 const defaultSideSchedule: SideSchedule = {

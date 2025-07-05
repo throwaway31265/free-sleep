@@ -9,7 +9,6 @@ export interface VitalRecord {
   breathing_rate: number;
 }
 
-
 export interface SleepRecord {
   id: number;
   side: 'left' | 'right';
@@ -20,5 +19,3 @@ export interface SleepRecord {
   present_intervals: [string, string][];
   not_present_intervals: [string, string][];
 }
-
-

@@ -15,8 +15,7 @@ class StreamReader {
     this.errorTransform = errorTransform;
     this.eos = false;
     this.reader = true;
-    if (!stream.readable)
-      throw new Error('stream is not readable');
+    if (!stream.readable) throw new Error('stream is not readable');
     stream.on('error', this.onError.bind(this));
     stream.on('end', this.onEnd.bind(this));
     stream.on('readable', this.onReadable.bind(this));
@@ -67,12 +66,10 @@ class StreamReader {
       this.error = undefined;
       return ret;
     }
-    if (this.eos)
-      return Promise.resolve(undefined);
+    if (this.eos) return Promise.resolve(undefined);
     const read = this.stream.read();
     // tslint:disable-next-line:no-null-keyword
-    if (read !== null)
-      return Promise.resolve(read);
+    if (read !== null) return Promise.resolve(read);
     return new Promise((resolve, reject) => {
       this.promised = [resolve, reject];
     });
@@ -91,19 +88,17 @@ function isWritable(stream) {
   return !!(stream && stream.writable);
 }
 
-
 class StreamWriter {
   constructor(stream, errorTransform) {
     this.stream = stream;
     this.errorTransform = errorTransform;
     this.reader = true;
-    if (!stream.writable)
-      throw new Error('stream is not writable');
+    if (!stream.writable) throw new Error('stream is not writable');
   }
 
   async write(data) {
     try {
-      await toPromise(cb => this.stream.write(data, cb));
+      await toPromise((cb) => this.stream.write(data, cb));
     } catch (err) {
       const error = this.errorTransform ? this.errorTransform(err) : err;
       this.stream.emit('error', error);
@@ -140,8 +135,7 @@ class ReadableWrapper extends Readable {
   async _read() {
     try {
       let read;
-      while ((read = (await this.stream.read()) && this.push(read)))
-        ;
+      while ((read = (await this.stream.read()) && this.push(read)));
       if (!read) {
         // tslint:disable-next-line:no-null-keyword
         this.push(null);
@@ -191,29 +185,28 @@ export interface PromiseReadStream<T = any> {
   read(): Promise<T | undefined>;
 }
 
-export declare type PromiseStream<T = any> = PromiseReadStream<T> & PromiseWriteStream<T>;
+export declare type PromiseStream<T = any> = PromiseReadStream<T> &
+  PromiseWriteStream<T>;
 
 export class PromiseStreams {
   static toPromise(stream, errorTransform) {
-    const reader = isReadable(stream) ? new StreamReader(stream, errorTransform) : undefined;
-    const writer = isWritable(stream) ? new StreamWriter(stream, errorTransform) : undefined;
-    if (!reader && !writer)
-      throw new Error('not a stream');
-    if (reader && writer)
-      return new CombinedStream(reader, writer);
+    const reader = isReadable(stream)
+      ? new StreamReader(stream, errorTransform)
+      : undefined;
+    const writer = isWritable(stream)
+      ? new StreamWriter(stream, errorTransform)
+      : undefined;
+    if (!reader && !writer) throw new Error('not a stream');
+    if (reader && writer) return new CombinedStream(reader, writer);
     return reader ? reader : writer;
   }
 
   static toStream(promiseStream) {
     const readable = !!promiseStream.read;
     const writable = !!promiseStream.write;
-    if (readable && writable)
-      return new DuplexWrapper(promiseStream);
-    if (readable)
-      return new ReadableWrapper(promiseStream);
-    if (writable)
-      return new WritableWrapper(promiseStream);
+    if (readable && writable) return new DuplexWrapper(promiseStream);
+    if (readable) return new ReadableWrapper(promiseStream);
+    if (writable) return new WritableWrapper(promiseStream);
     throw new Error('not a promise-stream');
   }
 }
-

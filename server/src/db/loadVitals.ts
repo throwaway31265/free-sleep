@@ -5,7 +5,9 @@ import moment from 'moment-timezone';
 
 import { VitalRecord } from './prismaDbTypes.js';
 
-export const loadVitals = async (vitalRecords: PrismaVitalRecord[]): Promise<VitalRecord[]> => {
+export const loadVitals = async (
+  vitalRecords: PrismaVitalRecord[],
+): Promise<VitalRecord[]> => {
   await settingsDB.read();
   const userTimeZone: string = settingsDB.data.timeZone || 'UTC';
 
