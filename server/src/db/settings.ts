@@ -2,9 +2,8 @@
 import _ from 'lodash';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
-
-import { Settings } from './settingsSchema.js';
 import config from '../config.js';
+import type { Settings } from './settingsSchema.js';
 
 const defaultData: Settings = {
   timeZone: null,

@@ -1,5 +1,5 @@
-import winston from 'winston';
 import moment from 'moment-timezone';
+import winston from 'winston';
 
 const logger = winston.createLogger({
   level: 'debug',

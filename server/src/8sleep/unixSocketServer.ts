@@ -1,5 +1,5 @@
-import { createServer, Server, Socket } from 'net';
 import { unlink as unlinkCb } from 'fs';
+import { createServer, type Server, type Socket } from 'net';
 import logger from '../logger.js';
 import { toPromise } from './promises.js';
 

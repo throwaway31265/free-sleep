@@ -1,6 +1,6 @@
-import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
-import { Side, useAppStore } from '@state/appStore.tsx';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import { type Side, useAppStore } from '@state/appStore.tsx';
 import { useScheduleStore } from './scheduleStore.tsx';
 
 export default function SideControl() {

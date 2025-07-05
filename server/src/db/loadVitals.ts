@@ -1,9 +1,8 @@
 // Helper file to load raw vitals records from SQLite and convert the epoch timestamps -> ISO8601
-import { vitals as PrismaVitalRecord } from '.prisma/client';
-import settingsDB from './settings.js';
+import type { vitals as PrismaVitalRecord } from '.prisma/client';
 import moment from 'moment-timezone';
-
-import { VitalRecord } from './prismaDbTypes.js';
+import type { VitalRecord } from './prismaDbTypes.js';
+import settingsDB from './settings.js';
 
 export const loadVitals = async (
   vitalRecords: PrismaVitalRecord[],

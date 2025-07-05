@@ -1,7 +1,7 @@
-import fs from 'fs';
 import cbor from 'cbor';
-import logger from '../logger.js';
+import fs from 'fs';
 import settingsDB from '../db/settings.js';
+import logger from '../logger.js';
 import { executeFunction } from './deviceApi.js';
 import { getFranken } from './frankenServer.js';
 import { wait } from './promises.js';

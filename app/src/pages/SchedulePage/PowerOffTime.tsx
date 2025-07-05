@@ -1,8 +1,8 @@
+import type { Time } from '@api/schedulesSchema.ts';
 import { TextField } from '@mui/material';
+import { useAppStore } from '@state/appStore';
 import moment from 'moment-timezone';
 import { useScheduleStore } from './scheduleStore';
-import { useAppStore } from '@state/appStore';
-import { Time } from '@api/schedulesSchema.ts';
 
 export default function PowerOffTime() {
   const {

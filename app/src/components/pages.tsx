@@ -1,10 +1,10 @@
-import React from 'react';
+import AdjustIcon from '@mui/icons-material/Adjust';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import BedIcon from '@mui/icons-material/Bed';
-import ThermostatIcon from '@mui/icons-material/Thermostat';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import SettingsIcon from '@mui/icons-material/Settings';
-import AdjustIcon from '@mui/icons-material/Adjust';
+import ThermostatIcon from '@mui/icons-material/Thermostat';
+import type React from 'react';
 
 type Page = {
   title: string;

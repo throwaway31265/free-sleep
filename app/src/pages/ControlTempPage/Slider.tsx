@@ -1,13 +1,13 @@
-import CircularSlider from 'react-circular-slider-svg';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
-import { useAppStore } from '@state/appStore';
-import styles from './Slider.module.scss';
-import TemperatureLabel from './TemperatureLabel.tsx';
-import TemperatureButtons from './TemperatureButtons.tsx';
-import { useControlTempStore } from './controlTempStore.tsx';
-import { useTheme } from '@mui/material/styles';
-import { useResizeDetector } from 'react-resize-detector';
 import { useSettings } from '@api/settings.ts';
+import { useTheme } from '@mui/material/styles';
+import { useAppStore } from '@state/appStore';
+import CircularSlider from 'react-circular-slider-svg';
+import { useResizeDetector } from 'react-resize-detector';
+import { useControlTempStore } from './controlTempStore.tsx';
+import styles from './Slider.module.scss';
+import TemperatureButtons from './TemperatureButtons.tsx';
+import TemperatureLabel from './TemperatureLabel.tsx';
 
 type SliderProps = {
   isOn: boolean;

@@ -1,15 +1,15 @@
 import express from 'express';
+import type { Server } from 'http';
 import schedule from 'node-schedule';
-import { Server } from 'http';
-import logger from './logger.js';
-import { getFranken, getFrankenServer } from './8sleep/frankenServer.js';
 import { FrankenMonitor } from './8sleep/frankenMonitor.js';
+import { getFranken, getFrankenServer } from './8sleep/frankenServer.js';
+import logger from './logger.js';
 import './jobs/jobScheduler.js';
 
+import config from './config.js';
 // Setup code
 import setupMiddleware from './setup/middleware.js';
 import setupRoutes from './setup/routes.js';
-import config from './config.js';
 
 const port = 3000;
 const app = express();

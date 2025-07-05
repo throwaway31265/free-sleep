@@ -1,4 +1,4 @@
-import { Side } from './schedulesSchema.js';
+import type { Side } from './schedulesSchema.js';
 
 export interface VitalRecord {
   id: number;

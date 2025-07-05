@@ -1,7 +1,7 @@
-import axios from './api';
 import { useQuery } from '@tanstack/react-query';
-import { DeepPartial } from 'ts-essentials';
-import { Settings } from './settingsSchema';
+import type { DeepPartial } from 'ts-essentials';
+import axios from './api';
+import type { Settings } from './settingsSchema';
 
 export const useSettings = () =>
   useQuery<Settings>({

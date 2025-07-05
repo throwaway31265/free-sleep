@@ -1,13 +1,12 @@
-import _ from 'lodash';
-import { DeepPartial } from 'ts-essentials';
 import cbor from 'cbor';
-
-import { DeviceStatus, SideStatus } from './deviceStatusSchema.js';
+import _ from 'lodash';
+import type { DeepPartial } from 'ts-essentials';
 import { executeFunction } from '../../8sleep/deviceApi.js';
-import logger from '../../logger.js';
-import settingsDB from '../../db/settings.js';
-import memoryDB from '../../db/memoryDB.js';
 import { INVERTED_SETTINGS_KEY_MAPPING } from '../../8sleep/loadDeviceStatus.js';
+import memoryDB from '../../db/memoryDB.js';
+import settingsDB from '../../db/settings.js';
+import logger from '../../logger.js';
+import type { DeviceStatus, SideStatus } from './deviceStatusSchema.js';
 
 const calculateLevelFromF = (temperatureF: number) => {
   const level = ((temperatureF - 82.5) / 27.5) * 100;

@@ -1,5 +1,5 @@
+import type { Settings } from '@api/settingsSchema.ts';
 import Alert from '@mui/material/Alert';
-import { Settings } from '@api/settingsSchema.ts';
 import { useAppStore } from '@state/appStore.tsx';
 
 type AwayNotificationProps = {

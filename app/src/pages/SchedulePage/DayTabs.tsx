@@ -1,7 +1,7 @@
 import { Tab, Tabs } from '@mui/material';
-import { useScheduleStore } from './scheduleStore.tsx';
 import { useAppStore } from '@state/appStore.tsx';
 import { LOWERCASE_DAYS } from './days.ts';
+import { useScheduleStore } from './scheduleStore.tsx';
 
 export default function DayTabs() {
   const { selectDay, selectedDayIndex } = useScheduleStore();

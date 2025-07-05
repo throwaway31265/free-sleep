@@ -1,19 +1,18 @@
-import { useEffect } from 'react';
-import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
-
-import AlarmDismissal from './AlarmDismissal.tsx';
-import AwayNotification from './AwayNotification.tsx';
-import PageContainer from '../PageContainer.tsx';
-import PowerButton from './PowerButton.tsx';
-import SideControl from '../../components/SideControl.tsx';
-import Slider from './Slider.tsx';
-import WaterNotification from './WaterNotification.tsx';
-import { useAppStore } from '@state/appStore.tsx';
-import { useControlTempStore } from './controlTempStore.tsx';
 import { useDeviceStatus } from '@api/deviceStatus';
 import { useSettings } from '@api/settings.ts';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useTheme } from '@mui/material/styles';
+import { useAppStore } from '@state/appStore.tsx';
+import { useEffect } from 'react';
+import SideControl from '../../components/SideControl.tsx';
+import PageContainer from '../PageContainer.tsx';
+import AlarmDismissal from './AlarmDismissal.tsx';
+import AwayNotification from './AwayNotification.tsx';
+import { useControlTempStore } from './controlTempStore.tsx';
+import PowerButton from './PowerButton.tsx';
+import Slider from './Slider.tsx';
+import WaterNotification from './WaterNotification.tsx';
 
 export default function ControlTempPage() {
   const { data: deviceStatusOriginal, isError, refetch } = useDeviceStatus();

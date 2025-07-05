@@ -1,20 +1,20 @@
-import {
-  Box,
-  Typography,
-  SwipeableDrawer,
-  ListItemIcon,
-  ListItemText,
-  List,
-  ListItemButton,
-} from '@mui/material';
-import { Side, useAppStore } from '@state/appStore.tsx';
-import { styled, useTheme } from '@mui/material/styles';
 import { useSettings } from '@api/settings.ts';
-import { useState } from 'react';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SwitchLeftIcon from '@mui/icons-material/SwitchLeft';
 import SwitchRightIcon from '@mui/icons-material/SwitchRight';
+import {
+  Box,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  SwipeableDrawer,
+  Typography,
+} from '@mui/material';
 import { grey } from '@mui/material/colors';
+import { styled, useTheme } from '@mui/material/styles';
+import { type Side, useAppStore } from '@state/appStore.tsx';
+import { useState } from 'react';
 
 type SideControlProps = {
   title?: string;

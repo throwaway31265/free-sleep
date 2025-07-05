@@ -1,20 +1,20 @@
+import AlarmIcon from '@mui/icons-material/Alarm';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Accordion,
   AccordionSummary,
   Box,
+  type SxProps,
   Typography,
-  SxProps,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { AccordionExpanded } from './SchedulePage.types.ts';
-import { useScheduleStore } from './scheduleStore';
+import type React from 'react';
+import AlarmDuration from './AlarmDuration.tsx';
 import AlarmEnabledSwitch from './AlarmEnabledSwitch.tsx';
+import AlarmPattern from './AlarmPattern.tsx';
 import AlarmTime from './AlarmTime.tsx';
 import AlarmVibrationSlider from './AlarmVibrationSlider.tsx';
-import AlarmDuration from './AlarmDuration.tsx';
-import AlarmPattern from './AlarmPattern.tsx';
-import React from 'react';
-import AlarmIcon from '@mui/icons-material/Alarm';
+import type { AccordionExpanded } from './SchedulePage.types.ts';
+import { useScheduleStore } from './scheduleStore';
 
 const ACCORDION_NAME: AccordionExpanded = 'alarm';
 

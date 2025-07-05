@@ -1,8 +1,8 @@
-import { LineChart } from '@mui/x-charts/LineChart';
+import type { VitalsRecord } from '@api/vitals.ts';
 import { Card, Typography } from '@mui/material';
-import moment from 'moment-timezone';
 import { useTheme } from '@mui/material/styles';
-import { VitalsRecord } from '@api/vitals.ts';
+import { LineChart } from '@mui/x-charts/LineChart';
+import moment from 'moment-timezone';
 import { useResizeDetector } from 'react-resize-detector';
 
 type VitalsLineChartProps = {

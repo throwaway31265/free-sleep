@@ -1,26 +1,25 @@
-import { useEffect, useState } from 'react';
+import { deleteSleepRecord, updateSleepRecord } from '@api/sleep.ts'; // Assuming you have this function
+import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
+import BedtimeIcon from '@mui/icons-material/Bedtime';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
+import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
 import {
   Box,
-  Card,
-  Typography,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
+  Card,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { SleepRecord } from '../../../server/src/db/sleepRecordsSchema.ts';
 import moment from 'moment-timezone';
-import { deleteSleepRecord } from '@api/sleep.ts';
-import { updateSleepRecord } from '@api/sleep.ts'; // Assuming you have this function
-import BedtimeIcon from '@mui/icons-material/Bedtime';
-import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
-import EditIcon from '@mui/icons-material/Edit';
-import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
-import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { useEffect, useState } from 'react';
+import type { SleepRecord } from '../../../server/src/db/sleepRecordsSchema.ts';
 
 // Helper to format time
 const formatTime = (date: string) => moment(date).local().format('h:mm A');

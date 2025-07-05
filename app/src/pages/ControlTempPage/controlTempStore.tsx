@@ -1,7 +1,7 @@
+import type { DeviceStatus } from '@api/deviceStatusSchema.ts';
 import _ from 'lodash';
+import type { DeepPartial } from 'ts-essentials';
 import { create } from 'zustand';
-import { DeepPartial } from 'ts-essentials';
-import { DeviceStatus } from '@api/deviceStatusSchema.ts';
 
 type ControlTempStore = {
   originalDeviceStatus: DeviceStatus | undefined;

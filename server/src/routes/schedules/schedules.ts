@@ -1,17 +1,16 @@
+import express, { type Request, type Response } from 'express';
 import _ from 'lodash';
-import express, { Request, Response } from 'express';
 import type { DeepPartial } from 'ts-essentials';
-import { Schedules } from '../../db/schedulesSchema.js';
-import logger from '../../logger.js';
 import schedulesDB from '../../db/schedules.js';
-
 import {
-  DailySchedule,
-  DayOfWeek,
+  type DailySchedule,
+  type DayOfWeek,
+  type Schedules,
   SchedulesSchema,
-  Side,
-  SideSchedule,
+  type Side,
+  type SideSchedule,
 } from '../../db/schedulesSchema.js';
+import logger from '../../logger.js';
 
 const router = express.Router();
 

@@ -1,10 +1,10 @@
-import Typography from '@mui/material/Typography';
-import styles from './TemperatureLabel.module.scss';
-import { useTheme } from '@mui/material/styles';
 import { useSchedules } from '@api/schedules.ts';
-import moment from 'moment-timezone';
 import { useSettings } from '@api/settings.ts';
+import { useTheme } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 import { useAppStore } from '@state/appStore.tsx';
+import moment from 'moment-timezone';
+import styles from './TemperatureLabel.module.scss';
 
 type TemperatureLabelProps = {
   isOn: boolean;

@@ -1,11 +1,11 @@
-import { format } from 'date-fns';
-import moment from 'moment-timezone';
-import Typography from '@mui/material/Typography';
-import PrimeButton from './PrimeButton.tsx';
-import PrimingNotification from './PrimingNotification.tsx';
 import { useDeviceStatus } from '@api/deviceStatus.ts';
 import { useSettings } from '@api/settings.ts';
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import { format } from 'date-fns';
+import moment from 'moment-timezone';
+import PrimeButton from './PrimeButton.tsx';
+import PrimingNotification from './PrimingNotification.tsx';
 
 export default function PrimeControl() {
   const { data: deviceStatus, refetch } = useDeviceStatus();

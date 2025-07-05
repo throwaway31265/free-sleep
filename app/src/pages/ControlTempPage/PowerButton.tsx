@@ -1,9 +1,9 @@
-import Button from '@mui/material/Button';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
-import { DeviceStatus, SideStatus } from '@api/deviceStatusSchema.ts';
-import { DeepPartial } from 'ts-essentials';
-import { useAppStore } from '@state/appStore.tsx';
+import type { DeviceStatus, SideStatus } from '@api/deviceStatusSchema.ts';
 import { useSettings } from '@api/settings.ts';
+import Button from '@mui/material/Button';
+import { useAppStore } from '@state/appStore.tsx';
+import type { DeepPartial } from 'ts-essentials';
 
 type PowerButtonProps = {
   isOn: boolean;

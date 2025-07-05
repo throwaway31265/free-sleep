@@ -1,10 +1,15 @@
 import schedule from 'node-schedule';
 
-import { DailySchedule, DayOfWeek, Side, Time } from '../db/schedulesSchema.js';
-import { getDayIndexForSchedule, logJob } from './utils.js';
-import { Settings } from '../db/settingsSchema.js';
-import { TimeZone } from '../db/timeZones.js';
+import type {
+  DailySchedule,
+  DayOfWeek,
+  Side,
+  Time,
+} from '../db/schedulesSchema.js';
+import type { Settings } from '../db/settingsSchema.js';
+import type { TimeZone } from '../db/timeZones.js';
 import { updateDeviceStatus } from '../routes/deviceStatus/updateDeviceStatus.js';
+import { getDayIndexForSchedule, logJob } from './utils.js';
 
 const scheduleAdjustment = (
   timeZone: TimeZone,

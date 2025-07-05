@@ -1,21 +1,18 @@
-import { Socket } from 'net';
-
-import { SequentialQueue } from './sequentialQueue.js';
+import type { Socket } from 'net';
+import config from '../config.js';
+import logger from '../logger.js';
+import type { DeviceStatus } from '../routes/deviceStatus/deviceStatusSchema.js';
+import { type FrankenCommand, frankenCommands } from './deviceApi.js';
+import { loadDeviceStatus } from './loadDeviceStatus.js';
 import { MessageStream } from './messageStream.js';
 import {
-  PromiseStream,
+  type PromiseStream,
   PromiseStreams,
-  PromiseWriteStream,
+  type PromiseWriteStream,
 } from './promiseStream.js';
-import { FrankenCommand, frankenCommands } from './deviceApi.js';
-
-import { UnixSocketServer } from './unixSocketServer.js';
-import logger from '../logger.js';
-import { DeviceStatus } from '../routes/deviceStatus/deviceStatusSchema.js';
-import { loadDeviceStatus } from './loadDeviceStatus.js';
 import { wait } from './promises.js';
-
-import config from '../config.js';
+import { SequentialQueue } from './sequentialQueue.js';
+import { UnixSocketServer } from './unixSocketServer.js';
 
 export class Franken {
   public constructor(

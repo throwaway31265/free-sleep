@@ -1,11 +1,14 @@
-import _ from 'lodash';
-import { create } from 'zustand';
-import { DailySchedule, DayOfWeek, Schedules } from '@api/schedulesSchema.ts';
-import { DeepPartial } from 'ts-essentials';
-import { AccordionExpanded } from './SchedulePage.types.ts';
-import { DaysSelected } from './SchedulePage.types.ts';
+import type {
+  DailySchedule,
+  DayOfWeek,
+  Schedules,
+} from '@api/schedulesSchema.ts';
 import { useAppStore } from '@state/appStore.tsx';
+import _ from 'lodash';
+import type { DeepPartial } from 'ts-essentials';
+import { create } from 'zustand';
 import { LOWERCASE_DAYS } from './days';
+import type { AccordionExpanded, DaysSelected } from './SchedulePage.types.ts';
 
 type Validations = {
   powerOffTimeIsValid: boolean;

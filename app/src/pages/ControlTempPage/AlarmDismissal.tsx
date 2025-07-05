@@ -1,16 +1,16 @@
-import { useState } from 'react';
+import { postDeviceStatus } from '@api/deviceStatus.ts';
+import type { DeviceStatus } from '@api/deviceStatusSchema.ts';
+import AlarmIcon from '@mui/icons-material/Alarm';
 import {
+  Button,
   Dialog,
   DialogActions,
-  Button,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { useAppStore } from '@state/appStore.tsx';
-import { DeviceStatus } from '@api/deviceStatusSchema.ts';
-import AlarmIcon from '@mui/icons-material/Alarm';
 import { keyframes } from '@mui/system';
-import { postDeviceStatus } from '@api/deviceStatus.ts';
+import { useAppStore } from '@state/appStore.tsx';
+import { useState } from 'react';
 
 type AlarmDismissalProps = {
   deviceStatus?: DeviceStatus;

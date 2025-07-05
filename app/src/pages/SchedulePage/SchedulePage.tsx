@@ -1,26 +1,24 @@
-import _ from 'lodash';
-import { useEffect } from 'react';
+import { postSchedules, useSchedules } from '@api/schedules';
+import type { DayOfWeek, Schedules } from '@api/schedulesSchema.ts';
+import { useSettings } from '@api/settings';
 import { Box } from '@mui/material';
-import { DeepPartial } from 'ts-essentials';
+import { useAppStore } from '@state/appStore.tsx';
+import _ from 'lodash';
 import moment from 'moment-timezone';
-
+import { useEffect } from 'react';
+import type { DeepPartial } from 'ts-essentials';
+import SideControl from '../../components/SideControl.tsx';
+import PageContainer from '../PageContainer.tsx';
 import AlarmAccordion from './AlarmAccordion.tsx';
 import ApplyToOtherDaysAccordion from './ApplyToOtherDaysAccordion.tsx';
 import DayTabs from './DayTabs.tsx';
+import { LOWERCASE_DAYS } from './days.ts';
 import EnabledSwitch from './EnabledSwitch.tsx';
 import PowerOffTime from './PowerOffTime.tsx';
-import PageContainer from '../PageContainer.tsx';
 import SaveButton from './SaveButton.tsx';
-import SideControl from '../../components/SideControl.tsx';
 import StartTimeSection from './StartTimeSection.tsx';
-import TemperatureAdjustmentsAccordion from './TemperatureAdjustmentsAccordion.tsx';
-import { DayOfWeek, Schedules } from '@api/schedulesSchema.ts';
-import { postSchedules } from '@api/schedules';
-import { useAppStore } from '@state/appStore.tsx';
-import { useSchedules } from '@api/schedules';
 import { useScheduleStore } from './scheduleStore.tsx';
-import { useSettings } from '@api/settings';
-import { LOWERCASE_DAYS } from './days.ts';
+import TemperatureAdjustmentsAccordion from './TemperatureAdjustmentsAccordion.tsx';
 
 const getAdjustedDayOfWeek = (): DayOfWeek => {
   // Get the current moment in the specified timezone

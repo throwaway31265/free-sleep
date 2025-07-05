@@ -1,6 +1,6 @@
 import { FormControlLabel, Switch } from '@mui/material';
-import { useScheduleStore } from './scheduleStore.tsx';
 import { useAppStore } from '@state/appStore.tsx';
+import { useScheduleStore } from './scheduleStore.tsx';
 
 export default function EnabledSwitch() {
   const { isUpdating } = useAppStore();

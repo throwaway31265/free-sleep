@@ -1,4 +1,4 @@
-import { PromiseReadStream } from './promiseStream.js';
+import type { PromiseReadStream } from './promiseStream.js';
 
 export class MessageStream {
   private buffer = Buffer.alloc(0);

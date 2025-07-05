@@ -1,5 +1,5 @@
+import express, { type Request, type Response } from 'express';
 import _ from 'lodash';
-import express, { Request, Response } from 'express';
 import logger from '../../logger.js';
 
 const router = express.Router();

@@ -1,23 +1,21 @@
-import { useEffect, useState } from 'react';
-import moment from 'moment-timezone';
+import { useSleepRecords } from '@api/sleep.ts';
+import { useVitalsRecords } from '@api/vitals.ts';
+import SleepBarChart from '@components/SleepBarChart.tsx';
+import SleepRecordCard from '@components/SleepRecordCard.tsx';
+import VitalsLineChart from '@components/VitalsLineChart.tsx';
+import VitalsSummaryCard from '@components/VitalsSummaryCard.tsx';
 import BedIcon from '@mui/icons-material/Bed';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { Alert } from '@mui/material';
-import { Box, Typography } from '@mui/material';
-import { useResizeDetector } from 'react-resize-detector';
-
-import Header from '../Header';
-import VitalsLineChart from '@components/VitalsLineChart.tsx';
-import PageContainer from '../../PageContainer.tsx';
-import SleepBarChart from '@components/SleepBarChart.tsx';
-import SleepRecordCard from '@components/SleepRecordCard.tsx';
-import VitalsSummaryCard from '@components/VitalsSummaryCard.tsx';
-import { SleepRecord } from '../../../../../server/src/db/sleepRecordsSchema.ts';
-import { useAppStore } from '@state/appStore.tsx';
-import { useSleepRecords } from '@api/sleep.ts';
+import { Alert, Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { useVitalsRecords } from '@api/vitals.ts';
+import { useAppStore } from '@state/appStore.tsx';
+import moment from 'moment-timezone';
+import { useEffect, useState } from 'react';
+import { useResizeDetector } from 'react-resize-detector';
+import type { SleepRecord } from '../../../../../server/src/db/sleepRecordsSchema.ts';
+import PageContainer from '../../PageContainer.tsx';
+import Header from '../Header';
 
 const NoData = () => {
   return (

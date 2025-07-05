@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
-import { create } from 'zustand';
+import { useSettings } from '@api/settings.ts';
 import { useIsFetching } from '@tanstack/react-query';
 import moment from 'moment-timezone';
-import { useSettings } from '@api/settings.ts';
+import type React from 'react';
+import { useEffect } from 'react';
+import { create } from 'zustand';
 import { getFieldFromIndexedDB, updateFieldInIndexedDB } from './indexedDB.ts';
 
 export type Side = 'left' | 'right';

@@ -1,25 +1,25 @@
+import type { DailySchedule } from '@api/schedulesSchema.ts';
+import { Add, ExpandMore, Remove } from '@mui/icons-material';
+import ThermostatIcon from '@mui/icons-material/Thermostat';
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
   Box,
   Button,
+  IconButton,
+  MenuItem,
+  Select,
   TextField,
   Typography,
-  IconButton,
-  Select,
-  MenuItem,
 } from '@mui/material';
-import { Add, ExpandMore, Remove } from '@mui/icons-material';
+import { useAppStore } from '@state/appStore.tsx';
 import _ from 'lodash';
 import moment from 'moment-timezone';
-import { useScheduleStore } from './scheduleStore';
-import { useAppStore } from '@state/appStore.tsx';
-import { DailySchedule } from '@api/schedulesSchema.ts';
-import ThermostatIcon from '@mui/icons-material/Thermostat';
-
 // There's probably a better way to share this function - I just don't know what it is
 import { formatTemperature } from '../ControlTempPage/TemperatureLabel';
+import { useScheduleStore } from './scheduleStore';
+
 const ACCORDION_NAME = 'temperatureAdjustments';
 const TEMPERATURES_LIST = _.range(55, 111); // Generates a range from 55 to 110 inclusive
 

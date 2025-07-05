@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { TIME_ZONES } from './timeZones.js';
 import { TimeSchema } from './schedulesSchema.js';
+import { TIME_ZONES } from './timeZones.js';
 
 export const TEMPERATURES = ['celsius', 'fahrenheit'] as const;
 const Temperatures = z.enum(TEMPERATURES);

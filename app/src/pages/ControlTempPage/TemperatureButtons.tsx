@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
-import { useTheme } from '@mui/material/styles';
-import { Button, Box } from '@mui/material';
-import { Add, Remove } from '@mui/icons-material';
-import { useControlTempStore } from './controlTempStore.tsx';
-import { useAppStore } from '@state/appStore.tsx';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
 import { useSettings } from '@api/settings.ts';
+import { Add, Remove } from '@mui/icons-material';
+import { Box, Button } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { useAppStore } from '@state/appStore.tsx';
+import { useEffect } from 'react';
+import { useControlTempStore } from './controlTempStore.tsx';
 
 type TemperatureButtonsProps = {
   refetch: any;

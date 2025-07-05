@@ -1,11 +1,10 @@
+import type { Settings } from '@api/settingsSchema.ts';
+import { Box, TextField, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import Switch from '@mui/material/Switch';
-import { Box, TextField, Typography } from '@mui/material';
-import { DeepPartial } from 'ts-essentials';
+import { type Side, useAppStore } from '@state/appStore.tsx';
 import { useEffect, useState } from 'react';
-
-import { Settings } from '@api/settingsSchema.ts';
-import { Side, useAppStore } from '@state/appStore.tsx';
+import type { DeepPartial } from 'ts-essentials';
 
 type AwayModeSwitchProps = {
   side: Side;

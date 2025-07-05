@@ -1,15 +1,15 @@
-import { useState, useRef } from 'react';
-import { useTheme } from '@mui/material/styles';
-import {
-  TextField,
-  IconButton,
-  InputAdornment,
-  Typography,
-  Box,
-  Tooltip,
-} from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CurrencyBitcoinIcon from '@mui/icons-material/CurrencyBitcoin';
+import {
+  Box,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { useRef, useState } from 'react';
 
 export default function Donate() {
   const bitcoinAddress = 'bc1qjapkufh65gs68v2mkvrzq2ney3vnvv87jdxxg6';

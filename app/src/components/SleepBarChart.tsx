@@ -1,9 +1,10 @@
-import React, { useRef, useEffect } from 'react';
+import Box from '@mui/material/Box';
+import { type Theme, useTheme } from '@mui/material/styles';
 import * as d3 from 'd3';
 import moment from 'moment-timezone';
-import { useTheme, Theme } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import { SleepRecord } from '../../../server/src/db/sleepRecordsSchema.ts';
+import type React from 'react';
+import { useEffect, useRef } from 'react';
+import type { SleepRecord } from '../../../server/src/db/sleepRecordsSchema.ts';
 
 interface SleepBarChartProps {
   width?: number;

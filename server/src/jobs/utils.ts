@@ -1,4 +1,4 @@
-import { DayOfWeek, Side, Time } from '../db/schedulesSchema.js';
+import type { DayOfWeek, Side, Time } from '../db/schedulesSchema.js';
 import logger from '../logger.js';
 
 export const DAYS_OF_WEEK = [

@@ -1,12 +1,12 @@
-import schedule from 'node-schedule';
 import moment from 'moment-timezone';
-import { Settings } from '../db/settingsSchema.js';
-import { DailySchedule, DayOfWeek, Side } from '../db/schedulesSchema.js';
+import schedule from 'node-schedule';
+import type { DailySchedule, DayOfWeek, Side } from '../db/schedulesSchema.js';
+import type { Settings } from '../db/settingsSchema.js';
+import type { TimeZone } from '../db/timeZones.js';
 import logger from '../logger.js';
 import { updateDeviceStatus } from '../routes/deviceStatus/updateDeviceStatus.js';
-import { getDayIndexForSchedule, getDayOfWeekIndex, logJob } from './utils.js';
 import { executeAnalyzeSleep } from './analyzeSleep.js';
-import { TimeZone } from '../db/timeZones.js';
+import { getDayIndexForSchedule, getDayOfWeekIndex, logJob } from './utils.js';
 
 export const schedulePowerOn = (
   settingsData: Settings,

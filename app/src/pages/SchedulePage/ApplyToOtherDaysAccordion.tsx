@@ -1,3 +1,6 @@
+import type { DayOfWeek } from '@api/schedulesSchema.ts';
+import EventRepeatIcon from '@mui/icons-material/EventRepeat';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Accordion,
   AccordionSummary,
@@ -7,12 +10,9 @@ import {
   FormGroup,
   Typography,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { AccordionExpanded } from './SchedulePage.types.ts';
-import { DayOfWeek } from '@api/schedulesSchema.ts';
 import { useAppStore } from '@state/appStore.tsx';
+import type { AccordionExpanded } from './SchedulePage.types.ts';
 import { useScheduleStore } from './scheduleStore';
-import EventRepeatIcon from '@mui/icons-material/EventRepeat';
 
 export const daysOfWeek = [
   'Sunday',

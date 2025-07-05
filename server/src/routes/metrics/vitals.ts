@@ -1,9 +1,9 @@
-import express, { Request, Response } from 'express';
-import { Prisma, vitals as VitalRecord } from '@prisma/client'; // Import the type
+import type { Prisma, vitals as VitalRecord } from '@prisma/client'; // Import the type
+import express, { type Request, type Response } from 'express';
 import moment from 'moment-timezone';
-import settingsDB from '../../db/settings.js';
 import { loadVitals } from '../../db/loadVitals.js';
 import prisma from '../../db/prisma.js';
+import settingsDB from '../../db/settings.js';
 
 const router = express.Router();
 

@@ -1,24 +1,22 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { createRoot } from 'react-dom/client';
-import { CssBaseline } from '@mui/material';
+import { CssBaseline, GlobalStyles } from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AppStoreProvider } from '@state/appStore.tsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-
-import ControlTempPage from './pages/ControlTempPage/ControlTempPage';
-import SettingsPage from './pages/SettingsPage/SettingsPage';
-import Layout from './components/Layout';
-import { AppStoreProvider } from '@state/appStore.tsx';
-import SchedulePage from './pages/SchedulePage/SchedulePage.tsx';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
-import { GlobalStyles } from '@mui/material';
-import SleepPage from './pages/DataPage/SleepPage/SleepPage.tsx';
-import DataPage from './pages/DataPage/DataPage.tsx';
-import VitalsPage from './pages/DataPage/VitalsPage/VitalsPage.tsx';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
-import LogsPage from './pages/DataPage/LogsPage/LogsPage.tsx';
+import Layout from './components/Layout';
 import BaseControlPage from './pages/BaseControlPage/BaseControlPage.tsx';
+import ControlTempPage from './pages/ControlTempPage/ControlTempPage';
+import DataPage from './pages/DataPage/DataPage.tsx';
+import LogsPage from './pages/DataPage/LogsPage/LogsPage.tsx';
+import SleepPage from './pages/DataPage/SleepPage/SleepPage.tsx';
+import VitalsPage from './pages/DataPage/VitalsPage/VitalsPage.tsx';
+import SchedulePage from './pages/SchedulePage/SchedulePage.tsx';
+import SettingsPage from './pages/SettingsPage/SettingsPage';
 
 const darkTheme = createTheme({
   palette: {

@@ -1,4 +1,4 @@
-import { openDB, IDBPDatabase, DBSchema } from 'idb';
+import { type DBSchema, type IDBPDatabase, openDB } from 'idb';
 
 const DB_NAME = 'free_sleep';
 const STORE_NAME = 'user_store';
