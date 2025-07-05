@@ -18,6 +18,7 @@ import VitalsPage from './pages/DataPage/VitalsPage/VitalsPage.tsx';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import LogsPage from './pages/DataPage/LogsPage/LogsPage.tsx';
+import BaseControlPage from './pages/BaseControlPage/BaseControlPage.tsx';
 
 const darkTheme = createTheme({
   palette: {
@@ -69,7 +70,7 @@ const App = () => {
                   <Route path="temperature" element={ <ControlTempPage/> }/>
                   <Route path="left" element={ <ControlTempPage/> }/>
                   <Route path="right" element={ <ControlTempPage/> }/>
-
+                  <Route path="base-control" element={ <BaseControlPage/> }/>
 
                   <Route path="data" element={ <DataPage /> }>
                     <Route path="sleep" element={ <SleepPage/> }/>
