@@ -34,6 +34,7 @@
     "zod": "^3.0.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.0.6",
     "@types/bun": "latest",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
