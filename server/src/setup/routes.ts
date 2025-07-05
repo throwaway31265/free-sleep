@@ -1,6 +1,7 @@
 import express, { type Express } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import baseControl from '../routes/baseControl/baseControl.js';
 import deviceStatus from '../routes/deviceStatus/deviceStatus.js';
 import execute from '../routes/execute/execute.js';
 import logs from '../routes/logs/logs.js';
@@ -13,6 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default function (app: Express) {
+  app.use('/api/', baseControl);
   app.use('/api/', deviceStatus);
   app.use('/api/', execute);
   app.use('/api/', schedules);

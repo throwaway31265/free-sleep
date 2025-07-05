@@ -6,14 +6,20 @@ import {
   Button,
   Card,
   CardContent,
+  CircularProgress,
   Slider,
   Stack,
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useAppStore } from '@state/appStore';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PageContainer from '../PageContainer';
+import {
+  useBaseStatus,
+  useSetBasePosition,
+  useSetBasePreset,
+} from '@api/baseControl';
 
 interface BasePosition {
   head: number;
@@ -31,6 +37,17 @@ export default function BaseControlPage() {
   const { isUpdating } = useAppStore();
   const [position, setPosition] = useState<BasePosition>({ head: 0, feet: 0 });
 
+  const { data: baseStatus, isLoading } = useBaseStatus();
+  const setBasePositionMutation = useSetBasePosition();
+  const setBasePresetMutation = useSetBasePreset();
+
+  // Update local state when base status changes
+  useEffect(() => {
+    if (baseStatus && !baseStatus.isMoving) {
+      setPosition({ head: baseStatus.head, feet: baseStatus.feet });
+    }
+  }, [baseStatus]);
+
   const handleHeadChange = (_: Event, newValue: number | number[]) => {
     setPosition((prev) => ({ ...prev, head: newValue as number }));
   };
@@ -39,14 +56,22 @@ export default function BaseControlPage() {
     setPosition((prev) => ({ ...prev, feet: newValue as number }));
   };
 
-  const handlePresetClick = (preset: keyof typeof presets) => {
+  const handlePresetClick = async (preset: keyof typeof presets) => {
     setPosition(presets[preset]);
+    await setBasePresetMutation.mutateAsync(preset);
   };
 
   const applyPosition = async () => {
-    // TODO: Implement API call to adjust base position
-    console.log('Applying position:', position);
+    await setBasePositionMutation.mutateAsync({
+      head: position.head,
+      feet: position.feet,
+      feedRate: 50, // Default feed rate
+    });
   };
+
+  const isMoving = baseStatus?.isMoving || false;
+  const isMutating =
+    setBasePositionMutation.isPending || setBasePresetMutation.isPending;
 
   return (
     <PageContainer
@@ -61,6 +86,22 @@ export default function BaseControlPage() {
         Base Control
       </Typography>
 
+      {/* Loading indicator */}
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <CircularProgress size={24} />
+        </Box>
+      )}
+
+      {/* Movement status */}
+      {isMoving && (
+        <Box sx={{ textAlign: 'center', mb: 2 }}>
+          <Typography variant="body2" color="primary">
+            Base is moving...
+          </Typography>
+        </Box>
+      )}
+
       {/* Preset Buttons */}
       <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
         <Button
@@ -71,7 +112,7 @@ export default function BaseControlPage() {
               : 'outlined'
           }
           onClick={() => handlePresetClick('flat')}
-          disabled={isUpdating}
+          disabled={isUpdating || isMoving || isMutating}
           startIcon={<BedIcon />}
           fullWidth
         >
@@ -85,7 +126,7 @@ export default function BaseControlPage() {
               : 'outlined'
           }
           onClick={() => handlePresetClick('sleep')}
-          disabled={isUpdating}
+          disabled={isUpdating || isMoving || isMutating}
           startIcon={<HotelIcon />}
           fullWidth
         >
@@ -99,7 +140,7 @@ export default function BaseControlPage() {
               : 'outlined'
           }
           onClick={() => handlePresetClick('relax')}
-          disabled={isUpdating}
+          disabled={isUpdating || isMoving || isMutating}
           startIcon={<WeekendIcon />}
           fullWidth
         >
@@ -128,7 +169,7 @@ export default function BaseControlPage() {
               ]}
               valueLabelDisplay="on"
               valueLabelFormat={(value) => `${value}°`}
-              disabled={isUpdating}
+              disabled={isUpdating || isMoving || isMutating}
             />
           </Box>
         </CardContent>
@@ -155,7 +196,7 @@ export default function BaseControlPage() {
               ]}
               valueLabelDisplay="on"
               valueLabelFormat={(value) => `${value}°`}
-              disabled={isUpdating}
+              disabled={isUpdating || isMoving || isMutating}
             />
           </Box>
         </CardContent>
@@ -165,12 +206,12 @@ export default function BaseControlPage() {
       <Button
         variant="contained"
         onClick={applyPosition}
-        disabled={isUpdating}
+        disabled={isUpdating || isMoving || isMutating}
         size="large"
         fullWidth
         sx={{ mt: 2 }}
       >
-        Apply Position
+        {isMoving ? 'Moving...' : 'Apply Position'}
       </Button>
     </PageContainer>
   );
