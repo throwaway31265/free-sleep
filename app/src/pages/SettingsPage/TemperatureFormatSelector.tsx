@@ -8,9 +8,9 @@ import { useAppStore } from '@state/appStore.tsx';
 import { TEMPERATURES } from '@api/settingsSchema.ts';
 
 type TemperatureFormatSelectorProps = {
-  settings?: Settings
-  updateSettings: (settings: DeepPartial<Settings>) => void
-}
+  settings?: Settings;
+  updateSettings: (settings: DeepPartial<Settings>) => void;
+};
 
 export default function TemperatureFormatSelector({
   settings,
@@ -20,7 +20,7 @@ export default function TemperatureFormatSelector({
 
   const handleChange = (
     _: React.MouseEvent<HTMLElement>,
-    newFormat: string
+    newFormat: string,
   ) => {
     if (newFormat !== null) {
       updateSettings({
@@ -30,19 +30,19 @@ export default function TemperatureFormatSelector({
   };
 
   return (
-    <Box sx={ { minWidth: 120 } }>
+    <Box sx={{ minWidth: 120 }}>
       <ToggleButtonGroup
-        disabled={ isUpdating }
-        color='primary'
-        value={ settings?.temperatureFormat || 'farenheit' }
+        disabled={isUpdating}
+        color="primary"
+        value={settings?.temperatureFormat || 'farenheit'}
         exclusive
-        onChange={ handleChange }
+        onChange={handleChange}
       >
-        { TEMPERATURES.map((format) => (
-          <ToggleButton value={ format } key={ format }>
-            { format }
+        {TEMPERATURES.map((format) => (
+          <ToggleButton value={format} key={format}>
+            {format}
           </ToggleButton>
-        )) }
+        ))}
       </ToggleButtonGroup>
     </Box>
   );

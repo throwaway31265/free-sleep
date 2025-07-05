@@ -1,6 +1,9 @@
 import axios from './api';
 import { useQuery } from '@tanstack/react-query';
-import { VitalsRecord, VitalsSummary } from '../../../server/src/db/vitalsRecordSchema';
+import {
+  VitalsRecord,
+  VitalsSummary,
+} from '../../../server/src/db/vitalsRecordSchema';
 export type { VitalsRecord, VitalsSummary };
 
 interface VitalsRecordQueryParams {
@@ -8,7 +11,6 @@ interface VitalsRecordQueryParams {
   endTime?: string; // ISO 8601 format (e.g., 2025-01-31T23:59:59Z)
   side?: 'left' | 'right';
 }
-
 
 export const useVitalsRecords = (params?: VitalsRecordQueryParams) => {
   return useQuery<VitalsRecord[]>({
@@ -20,12 +22,13 @@ export const useVitalsRecords = (params?: VitalsRecordQueryParams) => {
       if (params?.endTime) queryParams.append('endTime', params.endTime);
       if (params?.side) queryParams.append('side', params.side);
 
-      const response = await axios.get<VitalsRecord[]>(`/metrics/vitals?${queryParams.toString()}`);
+      const response = await axios.get<VitalsRecord[]>(
+        `/metrics/vitals?${queryParams.toString()}`,
+      );
       return response.data;
     },
   });
 };
-
 
 export const useVitalsSummary = (params?: VitalsRecordQueryParams) => {
   return useQuery<VitalsSummary>({
@@ -37,9 +40,10 @@ export const useVitalsSummary = (params?: VitalsRecordQueryParams) => {
       if (params?.endTime) queryParams.append('endTime', params.endTime);
       if (params?.side) queryParams.append('side', params.side);
 
-      const response = await axios.get<VitalsSummary>(`/metrics/vitals/summary?${queryParams.toString()}`);
+      const response = await axios.get<VitalsSummary>(
+        `/metrics/vitals/summary?${queryParams.toString()}`,
+      );
       return response.data;
     },
   });
 };
-

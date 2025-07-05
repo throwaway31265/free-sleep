@@ -1,7 +1,6 @@
 import { useTheme } from '@mui/material/styles';
 import { Divider as MuiDivider } from '@mui/material';
 
-
 export default function Divider() {
   const theme = useTheme();
 
@@ -9,10 +8,10 @@ export default function Divider() {
     <>
       <br />
       <MuiDivider
-        sx={ {
+        sx={{
           border: `1px solid ${theme.palette.grey[800]}`,
-          width: '100%'
-        } }
+          width: '100%',
+        }}
       />
       <br />
     </>

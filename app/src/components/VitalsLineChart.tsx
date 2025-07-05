@@ -5,8 +5,6 @@ import { useTheme } from '@mui/material/styles';
 import { VitalsRecord } from '@api/vitals.ts';
 import { useResizeDetector } from 'react-resize-detector';
 
-
-
 type VitalsLineChartProps = {
   vitalsRecords?: VitalsRecord[];
   metric: 'heart_rate' | 'hrv' | 'breathing_rate';
@@ -17,7 +15,10 @@ const downsampleData = (data: VitalsRecord[], factor: number) => {
   return data.filter((_, index) => index % factor === 0);
 };
 
-export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineChartProps) {
+export default function VitalsLineChart({
+  vitalsRecords,
+  metric,
+}: VitalsLineChartProps) {
   const { width = 300, ref } = useResizeDetector();
   const theme = useTheme();
   if (!vitalsRecords) return;
@@ -33,7 +34,7 @@ export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineCha
     hrv: {
       label: 'HRV',
       color: theme.palette.error.main,
-    }
+    },
   };
   const { label, color } = vitalsMap[metric];
 
@@ -46,7 +47,7 @@ export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineCha
       (record) =>
         record.timestamp &&
         !isNaN(new Date(record.timestamp).getTime()) &&
-        !isNaN(record[metric])
+        !isNaN(record[metric]),
     )
     .map((record) => ({
       ...record,
@@ -55,16 +56,16 @@ export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineCha
     }));
 
   return (
-    <Card sx={ { pt: 1, mt: 2, pl: 2 } }>
+    <Card sx={{ pt: 1, mt: 2, pl: 2 }}>
       <Typography variant="h6" gutterBottom>
-        { label }
+        {label}
       </Typography>
       <LineChart
-        ref={ ref }
-        height={ 300 }
-        colors={ [color] }
-        dataset={ cleanedVitalsRecords }
-        xAxis={ [
+        ref={ref}
+        height={300}
+        colors={[color]}
+        dataset={cleanedVitalsRecords}
+        xAxis={[
           {
             id: 'Years',
             dataKey: 'timestamp',
@@ -72,17 +73,18 @@ export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineCha
             valueFormatter: (periodStart) =>
               moment(periodStart).format('HH:mm'),
           },
-        ] }
-        legend={ { hidden: true } }
-        series={ [
+        ]}
+        legend={{ hidden: true }}
+        series={[
           {
             id: label,
             label: label,
             dataKey: metric,
-            valueFormatter: (metric) => (metric !== null && !isNaN(metric) ? metric.toFixed(0) : 'Invalid'),
+            valueFormatter: (metric) =>
+              metric !== null && !isNaN(metric) ? metric.toFixed(0) : 'Invalid',
             showMark: false,
           },
-        ] }
+        ]}
       />
     </Card>
   );

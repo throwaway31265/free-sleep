@@ -3,20 +3,23 @@ import { Container, ContainerProps } from '@mui/material';
 import { SxProps } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
-
 type PageContainerProps = {
   containerProps?: ContainerProps;
-  sx?: SxProps
-}
+  sx?: SxProps;
+};
 
-export default function PageContainer({ children, sx, containerProps }: React.PropsWithChildren<PageContainerProps>) {
+export default function PageContainer({
+  children,
+  sx,
+  containerProps,
+}: React.PropsWithChildren<PageContainerProps>) {
   const theme = useTheme();
 
   return (
     <Container
-      { ...containerProps }
-      id='PageContainer'
-      sx={ {
+      {...containerProps}
+      id="PageContainer"
+      sx={{
         display: 'flex',
         flexDirection: 'column',
         flexGrow: 1,
@@ -36,9 +39,9 @@ export default function PageContainer({ children, sx, containerProps }: React.Pr
           padding: 1,
         },
         ...sx,
-      } }
+      }}
     >
-      { children }
+      {children}
     </Container>
   );
 }

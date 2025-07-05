@@ -6,7 +6,6 @@ import moment from 'moment-timezone';
 import { useSettings } from '@api/settings.ts';
 import { useAppStore } from '@state/appStore.tsx';
 
-
 type TemperatureLabelProps = {
   isOn: boolean;
   sliderTemp: number;
@@ -14,10 +13,10 @@ type TemperatureLabelProps = {
   currentTargetTemp: number;
   currentTemperatureF: number;
   displayCelsius: boolean;
-}
+};
 
 function farenheitToCelcius(farenheit: number) {
-  return (farenheit - 32) * 5 / 9;
+  return ((farenheit - 32) * 5) / 9;
 }
 
 function roundToNearestHalf(number: number) {
@@ -25,7 +24,9 @@ function roundToNearestHalf(number: number) {
 }
 
 export function formatTemperature(temperature: number, celcius: boolean) {
-  return celcius ? `${roundToNearestHalf(farenheitToCelcius(temperature))}°C` : `${temperature}°F`;
+  return celcius
+    ? `${roundToNearestHalf(farenheitToCelcius(temperature))}°C`
+    : `${temperature}°F`;
 }
 
 export default function TemperatureLabel({
@@ -34,17 +35,17 @@ export default function TemperatureLabel({
   sliderColor,
   currentTargetTemp,
   currentTemperatureF,
-  displayCelsius
+  displayCelsius,
 }: TemperatureLabelProps) {
-
-
   const theme = useTheme();
   const { side } = useAppStore();
   const { data: schedules } = useSchedules();
   const { data: settings } = useSettings();
   const isInAwayMode = settings?.[side].awayMode;
 
-  const currentDay = settings?.timeZone && moment.tz(settings?.timeZone).format('dddd').toLowerCase();
+  const currentDay =
+    settings?.timeZone &&
+    moment.tz(settings?.timeZone).format('dddd').toLowerCase();
   // @ts-ignore
   const power = currentDay ? schedules?.[side]?.[currentDay]?.power : undefined;
   const formattedTime = moment(power?.on, 'HH:mm').format('h:mm A');
@@ -71,7 +72,7 @@ export default function TemperatureLabel({
 
   return (
     <div
-      style={ {
+      style={{
         position: 'absolute',
         top: '10%',
         left: '50%',
@@ -80,64 +81,62 @@ export default function TemperatureLabel({
         textAlign: 'center',
         height: '300px',
         width: '100%',
-      } }
+      }}
     >
-      {
-        isOn ? (
-          <>
-            <Typography
-              style={ { top: '70%', } }
-              className={ styles.label }
-              color={ theme.palette.grey[400] }
-            >
-              { topTitle }
-            </Typography>
+      {isOn ? (
+        <>
+          <Typography
+            style={{ top: '70%' }}
+            className={styles.label}
+            color={theme.palette.grey[400]}
+          >
+            {topTitle}
+          </Typography>
 
-            { /* Temperature */ }
-            <Typography
-              style={ { top: '80%' } }
-              variant="h2"
-              color={ sliderColor }
-              className={ styles.label }
-            >
-              { formatTemperature(currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp, displayCelsius) }
-            </Typography>
+          {/* Temperature */}
+          <Typography
+            style={{ top: '80%' }}
+            variant="h2"
+            color={sliderColor}
+            className={styles.label}
+          >
+            {formatTemperature(
+              currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp,
+              displayCelsius,
+            )}
+          </Typography>
 
-            { /* Currently at label */ }
+          {/* Currently at label */}
+          <Typography
+            style={{ top: '105%' }}
+            className={styles.label}
+            color={theme.palette.grey[400]}
+          >
+            {`Currently at ${formatTemperature(currentTemperatureF, displayCelsius)}`}
+          </Typography>
+        </>
+      ) : (
+        <>
+          <Typography
+            style={{ top: '80%' }}
+            variant="h3"
+            color={theme.palette.grey[800]}
+            className={styles.label}
+          >
+            Off
+          </Typography>
+          {power?.enabled && !isInAwayMode && (
             <Typography
-              style={ { top: '105%' } }
-              className={ styles.label }
-              color={ theme.palette.grey[400] }
+              style={{ top: '105%' }}
+              // variant="h3"
+              color={theme.palette.grey[800]}
+              className={styles.label}
             >
-              { `Currently at ${formatTemperature(currentTemperatureF, displayCelsius)}` }
+              Turns on at {formattedTime}
             </Typography>
-          </>
-        ) : (
-          <>
-            <Typography
-              style={ { top: '80%' } }
-              variant="h3"
-              color={ theme.palette.grey[800] }
-              className={ styles.label }
-            >
-              Off
-            </Typography>
-            {
-              power?.enabled && !isInAwayMode && (
-                <Typography
-                  style={ { top: '105%' } }
-                  // variant="h3"
-                  color={ theme.palette.grey[800] }
-                  className={ styles.label }
-                >
-
-                  Turns on at { formattedTime }
-                </Typography>
-              )
-            }
-          </>
-        )
-      }
+          )}
+        </>
+      )}
     </div>
   );
 }

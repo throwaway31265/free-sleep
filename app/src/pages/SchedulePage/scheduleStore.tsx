@@ -7,8 +7,6 @@ import { DaysSelected } from './SchedulePage.types.ts';
 import { useAppStore } from '@state/appStore.tsx';
 import { LOWERCASE_DAYS } from './days';
 
-
-
 type Validations = {
   powerOffTimeIsValid: boolean;
   alarmTimeIsValid: boolean;
@@ -38,7 +36,7 @@ type ScheduleStore = {
   selectDay: (selectedDayIndex: number) => void;
   reloadScheduleData: () => void;
 
-  changesPresent: boolean,
+  changesPresent: boolean;
   checkForChanges: () => void;
   setAccordionExpanded: (accordion: AccordionExpanded) => void;
   accordionExpanded: AccordionExpanded;
@@ -49,7 +47,9 @@ type ScheduleStore = {
 
   selectedSchedule: DailySchedule | undefined;
   updateSelectedSchedule: (dailySchedule: DeepPartial<DailySchedule>) => void;
-  updateSelectedTemperatures: (temperatures: DailySchedule['temperatures']) => void;
+  updateSelectedTemperatures: (
+    temperatures: DailySchedule['temperatures'],
+  ) => void;
 
   // Keep a copy of the original schedules
   originalSchedules: Schedules | undefined;
@@ -90,7 +90,9 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
   accordionExpanded: undefined,
   setAccordionExpanded: (accordionExpanded) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    get().accordionExpanded === accordionExpanded ? set({ accordionExpanded: undefined }) : set({ accordionExpanded });
+    get().accordionExpanded === accordionExpanded
+      ? set({ accordionExpanded: undefined })
+      : set({ accordionExpanded });
   },
 
   validations: {
@@ -107,10 +109,13 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
   },
   changesPresent: false,
   checkForChanges: () => {
-    const { selectedDay, selectedSchedule, originalSchedules, selectedDays } = get();
+    const { selectedDay, selectedSchedule, originalSchedules, selectedDays } =
+      get();
     if (!originalSchedules) return;
     const { side } = useAppStore.getState();
-    const changesPresent = !_.isEqual(originalSchedules[side][selectedDay], selectedSchedule) || _.some(selectedDays, value => value === true);
+    const changesPresent =
+      !_.isEqual(originalSchedules[side][selectedDay], selectedSchedule) ||
+      _.some(selectedDays, (value) => value === true);
 
     set({ changesPresent });
   },
@@ -146,7 +151,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
       selectedDays: {
         ...selectedDays,
         [day]: !selectedDays[day],
-      }
+      },
     });
     checkForChanges();
   },

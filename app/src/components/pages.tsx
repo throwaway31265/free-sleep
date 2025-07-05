@@ -15,16 +15,16 @@ type Page = {
 function TemperatureIcon() {
   return (
     <span>
-      <BedIcon sx={ { marginRight: '-6px' } }/>
+      <BedIcon sx={{ marginRight: '-6px' }} />
       <ThermostatIcon />
     </span>
   );
 }
 
 export const PAGES: Page[] = [
-  { title: 'Temperature', route: '/temperature', icon: <TemperatureIcon/> },
-  { title: 'Base Control', route: '/base-control', icon: <AdjustIcon/> },
-  { title: 'Schedules', route: '/schedules', icon: <ScheduleIcon/> },
-  { title: 'Data', route: '/data', icon: <BarChartIcon/> },
-  { title: 'Settings', route: '/settings', icon: <SettingsIcon/> },
+  { title: 'Temperature', route: '/temperature', icon: <TemperatureIcon /> },
+  { title: 'Base Control', route: '/base-control', icon: <AdjustIcon /> },
+  { title: 'Schedules', route: '/schedules', icon: <ScheduleIcon /> },
+  { title: 'Data', route: '/data', icon: <BarChartIcon /> },
+  { title: 'Settings', route: '/settings', icon: <SettingsIcon /> },
 ];

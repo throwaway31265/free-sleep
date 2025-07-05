@@ -14,7 +14,6 @@ type AppState = {
   setSide: (side: Side) => void;
 };
 
-
 // Create Zustand store
 export const useAppStore = create<AppState>((set) => ({
   isUpdating: false,
@@ -24,7 +23,7 @@ export const useAppStore = create<AppState>((set) => ({
     set({ side });
     updateFieldInIndexedDB('side', side)
       .then(() => {})
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
       });
   },
@@ -47,7 +46,6 @@ export function AppStoreProvider({ children }: React.PropsWithChildren) {
     useAppStore.setState({ isUpdating: isFetching });
   }, [isFetching]);
 
-
   useEffect(() => {
     getFieldFromIndexedDB('side')
       .then((resp) => {
@@ -63,6 +61,5 @@ export function AppStoreProvider({ children }: React.PropsWithChildren) {
       });
   }, []);
 
-
-  return <>{ children }</>;
+  return <>{children}</>;
 }

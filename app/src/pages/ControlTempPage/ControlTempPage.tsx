@@ -15,7 +15,6 @@ import { useDeviceStatus } from '@api/deviceStatus';
 import { useSettings } from '@api/settings.ts';
 import { useTheme } from '@mui/material/styles';
 
-
 export default function ControlTempPage() {
   const { data: deviceStatusOriginal, isError, refetch } = useDeviceStatus();
   const { setOriginalDeviceStatus, deviceStatus } = useControlTempStore();
@@ -37,37 +36,37 @@ export default function ControlTempPage() {
 
   return (
     <PageContainer
-      sx={ {
+      sx={{
         maxWidth: '500px',
         [theme.breakpoints.up('md')]: {
           maxWidth: '400px',
         },
-      } }
+      }}
     >
-      <SideControl title={ 'Temperature' } />
+      <SideControl title={'Temperature'} />
       <Slider
-        isOn={ isOn }
-        currentTargetTemp={ sideStatus?.targetTemperatureF || 55 }
-        refetch={ refetch }
-        currentTemperatureF={ sideStatus?.currentTemperatureF || 55 }
-        displayCelsius={ settings?.temperatureFormat === 'celsius' || false }
+        isOn={isOn}
+        currentTargetTemp={sideStatus?.targetTemperatureF || 55}
+        refetch={refetch}
+        currentTemperatureF={sideStatus?.currentTemperatureF || 55}
+        displayCelsius={settings?.temperatureFormat === 'celsius' || false}
       />
-      { isError ? (
+      {isError ? (
         <Button
           variant="contained"
-          onClick={ () => refetch() }
-          disabled={ isUpdating }
+          onClick={() => refetch()}
+          disabled={isUpdating}
         >
           Try again
         </Button>
       ) : (
-        <PowerButton isOn={ sideStatus?.isOn || false } refetch={ refetch } />
-      ) }
+        <PowerButton isOn={sideStatus?.isOn || false} refetch={refetch} />
+      )}
 
-      <AwayNotification settings={ settings } />
-      <WaterNotification deviceStatus={ deviceStatus } />
-      <AlarmDismissal deviceStatus={ deviceStatus } refetch={ refetch } />
-      { isUpdating && <CircularProgress /> }
+      <AwayNotification settings={settings} />
+      <WaterNotification deviceStatus={deviceStatus} />
+      <AlarmDismissal deviceStatus={deviceStatus} refetch={refetch} />
+      {isUpdating && <CircularProgress />}
     </PageContainer>
   );
 }

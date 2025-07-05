@@ -44,41 +44,48 @@ export default function SideControl({ title }: SideControlProps) {
   };
 
   return (
-    <Box sx={ { marginRight: 'auto' } }>
-      <Box sx={ { cursor: 'pointer' } } onClick={ () => setOpen(true) }>
-        <Typography variant="h6">{ title } <ExpandMoreIcon style={ { display: 'inline-block', verticalAlign: 'middle' } } /></Typography>
-        <Typography variant="body2" color="text.secondary">{ settings?.[side]?.name }</Typography>
+    <Box sx={{ marginRight: 'auto' }}>
+      <Box sx={{ cursor: 'pointer' }} onClick={() => setOpen(true)}>
+        <Typography variant="h6">
+          {title}{' '}
+          <ExpandMoreIcon
+            style={{ display: 'inline-block', verticalAlign: 'middle' }}
+          />
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {settings?.[side]?.name}
+        </Typography>
       </Box>
 
       <SwipeableDrawer
-        onClose={ () => setOpen(false) }
-        onOpen={ () => setOpen(true) }
-        anchor={ 'bottom' }
+        onClose={() => setOpen(false)}
+        onOpen={() => setOpen(true)}
+        anchor={'bottom'}
         variant="temporary"
-        open={ open }
-        elevation={ 2 }
-        sx={ {
+        open={open}
+        elevation={2}
+        sx={{
           '.MuiDrawer-paper': {
             backgroundColor: theme.palette.background.default,
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
             paddingTop: 2,
           },
-        } }
+        }}
       >
         <Puller />
         <List aria-label="Select side">
-          <ListItemButton onClick={ () => onSelect('left') }>
+          <ListItemButton onClick={() => onSelect('left')}>
             <ListItemIcon>
               <SwitchRightIcon />
             </ListItemIcon>
-            <ListItemText secondary={ `Left` } primary={ settings?.left?.name } />
+            <ListItemText secondary={`Left`} primary={settings?.left?.name} />
           </ListItemButton>
-          <ListItemButton onClick={ () => onSelect('right') }>
+          <ListItemButton onClick={() => onSelect('right')}>
             <ListItemIcon>
               <SwitchLeftIcon />
             </ListItemIcon>
-            <ListItemText secondary={ `Right` } primary={ settings?.right?.name } />
+            <ListItemText secondary={`Right`} primary={settings?.right?.name} />
           </ListItemButton>
         </List>
       </SwipeableDrawer>

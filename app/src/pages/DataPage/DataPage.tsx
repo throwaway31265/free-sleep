@@ -1,8 +1,4 @@
-import {
-  Outlet,
-  useLocation,
-  useNavigate
-} from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import PageContainer from '../PageContainer.tsx';
 import Divider from '@mui/material/Divider';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -18,40 +14,47 @@ const SettingsList = () => {
   const navigate = useNavigate();
 
   return (
-    <List sx={ { width: '100%', maxWidth: 360, bgcolor: 'background.paper', borderRadius: 2, boxShadow: 2 } }>
-      { /* Header */ }
-      <Typography variant="h6" sx={ { p: 2, fontWeight: 'bold' } }>
+    <List
+      sx={{
+        width: '100%',
+        maxWidth: 360,
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        boxShadow: 2,
+      }}
+    >
+      {/* Header */}
+      <Typography variant="h6" sx={{ p: 2, fontWeight: 'bold' }}>
         Data
       </Typography>
 
-      <Divider/>
+      <Divider />
 
-      { /* Sleep */ }
-      <ListItem onClick={ () => navigate('/data/sleep') }>
+      {/* Sleep */}
+      <ListItem onClick={() => navigate('/data/sleep')}>
         <ListItemIcon>
-          <BedIcon/>
+          <BedIcon />
         </ListItemIcon>
-        <ListItemText primary="Sleep"/>
-        <ArrowForwardIosIcon fontSize="small" sx={ { color: 'gray' } }/>
+        <ListItemText primary="Sleep" />
+        <ArrowForwardIosIcon fontSize="small" sx={{ color: 'gray' }} />
       </ListItem>
-      <ListItem onClick={ () => navigate('/data/logs') }>
+      <ListItem onClick={() => navigate('/data/logs')}>
         <ListItemIcon>
-          <TextSnippetIcon/>
+          <TextSnippetIcon />
         </ListItemIcon>
-        <ListItemText primary="Logs"/>
-        <ArrowForwardIosIcon fontSize="small" sx={ { color: 'gray' } }/>
+        <ListItemText primary="Logs" />
+        <ArrowForwardIosIcon fontSize="small" sx={{ color: 'gray' }} />
       </ListItem>
-      { /*<ListItem onClick={ () => navigate('/data/vitals') }>*/ }
-      { /*  <ListItemIcon>*/ }
-      { /*    <FavoriteIcon/>*/ }
-      { /*  </ListItemIcon>*/ }
-      { /*  <ListItemText primary="Vitals"/>*/ }
-      { /*  <ArrowForwardIosIcon fontSize="small" sx={ { color: 'gray' } }/>*/ }
-      { /*</ListItem>*/ }
+      {/*<ListItem onClick={ () => navigate('/data/vitals') }>*/}
+      {/*  <ListItemIcon>*/}
+      {/*    <FavoriteIcon/>*/}
+      {/*  </ListItemIcon>*/}
+      {/*  <ListItemText primary="Vitals"/>*/}
+      {/*  <ArrowForwardIosIcon fontSize="small" sx={ { color: 'gray' } }/>*/}
+      {/*</ListItem>*/}
     </List>
   );
 };
-
 
 // eslint-disable-next-line react/no-multi-comp
 export default function DataPage() {
@@ -60,10 +63,10 @@ export default function DataPage() {
   const hideContent = location.pathname.startsWith('/data/');
   if (!hideContent) {
     return (
-      <PageContainer sx={ { mt: 2 } }>
-        <SettingsList/>
+      <PageContainer sx={{ mt: 2 }}>
+        <SettingsList />
       </PageContainer>
     );
   }
-  return <Outlet/>;
+  return <Outlet />;
 }
