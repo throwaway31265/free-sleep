@@ -89,7 +89,7 @@ async function startServer() {
   if (!config.remoteDevMode) {
     initFranken()
       .then((resp) => {
-        logger.info(resp);
+        logger.info('initFranken', resp);
       })
       .catch((error) => {
         logger.error(error);

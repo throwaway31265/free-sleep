@@ -235,6 +235,16 @@ export class FrankenMonitor {
   public async quadTapNotification(times: { [i: string]: number }) {
     logger.debug(`[quadTap] times: ${JSON.stringify(times)}`, 'quad tap');
 
+    // Trigger vibration feedback for quad tap
+    try {
+      await executeFunction('VIBRATE', 'l');
+      logger.debug('[quadTap] Vibration feedback triggered');
+    } catch (error) {
+      logger.error(
+        `[quadTap] Failed to trigger vibration: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+
     // Cycle between relax and flat presets
     this.currentBasePreset =
       this.currentBasePreset === 'relax' ? 'flat' : 'relax';
