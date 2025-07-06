@@ -5,10 +5,6 @@ import logger from '../logger.js';
 
 const execAsync = promisify(exec);
 
-// TriMix protocol constants
-const TRIMIX_SERVICE_UUID = '0000ffe0-0000-1000-8000-00805f9b34fb';
-const TRIMIX_CHAR_UUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
-
 // Configuration file path
 const BASE_CONFIG_PATH = '/persistent/AdjustableBaseConfiguration.json';
 
@@ -17,45 +13,189 @@ interface BaseConfiguration {
   SplitBase: boolean;
 }
 
-// Angle to ticks conversion maps (from decompiled source)
-const TORSO_ANGLE_MAP: Record<number, number> = {
-  0: 0,
-  5: 128,
-  10: 256,
-  15: 384,
-  20: 533,
-  25: 733,
-  30: 933,
-  35: 1133,
-  40: 1333,
-  45: 1533,
-  50: 1733,
-  55: 1933,
-  60: 2253,
-};
+// --- Angle-to-Ticks conversion maps from C# source ---
+const torsoAngleMap = new Map<number, number>([
+  [0, 0],
+  [1, 24],
+  [2, 48],
+  [3, 72],
+  [4, 96],
+  [5, 120],
+  [6, 144],
+  [7, 168],
+  [8, 192],
+  [9, 216],
+  [10, 240],
+  [11, 264],
+  [12, 288],
+  [13, 312],
+  [14, 336],
+  [15, 360],
+  [16, 384],
+  [17, 408],
+  [18, 432],
+  [19, 456],
+  [20, 533],
+  [21, 556],
+  [22, 579],
+  [23, 602],
+  [24, 625],
+  [25, 648],
+  [26, 671],
+  [27, 694],
+  [28, 717],
+  [29, 740],
+  [30, 763],
+  [31, 786],
+  [32, 809],
+  [33, 832],
+  [34, 855],
+  [35, 878],
+  [36, 901],
+  [37, 924],
+  [38, 947],
+  [39, 970],
+  [40, 993],
+  [41, 1016],
+  [42, 1039],
+  [43, 1062],
+  [44, 1085],
+  [45, 1108],
+  [46, 1131],
+  [47, 1154],
+  [48, 1177],
+  [49, 1200],
+  [50, 1223],
+  [51, 1246],
+  [52, 1269],
+  [53, 1292],
+  [54, 1315],
+  [55, 1338],
+  [56, 1361],
+  [57, 1384],
+  [58, 1407],
+  [59, 1430],
+  [60, 2253],
+]);
 
-const LEG_ANGLE_MAP: Record<number, number> = {
-  0: 0,
-  5: 190,
-  10: 350,
-  15: 540,
-  20: 740,
-  25: 940,
-  30: 1140,
-  35: 1340,
-  40: 1540,
-  45: 1806,
-};
+const legAngleMap = new Map<number, number>([
+  [0, 0],
+  [1, 38],
+  [2, 76],
+  [3, 114],
+  [4, 152],
+  [5, 190],
+  [6, 222],
+  [7, 254],
+  [8, 286],
+  [9, 318],
+  [10, 350],
+  [11, 404],
+  [12, 458],
+  [13, 512],
+  [14, 566],
+  [15, 540],
+  [16, 594],
+  [17, 648],
+  [18, 702],
+  [19, 756],
+  [20, 740],
+  [21, 784],
+  [22, 828],
+  [23, 872],
+  [24, 916],
+  [25, 960],
+  [26, 1004],
+  [27, 1048],
+  [28, 1092],
+  [29, 1136],
+  [30, 1180],
+  [31, 1224],
+  [32, 1268],
+  [33, 1312],
+  [34, 1356],
+  [35, 1400],
+  [36, 1444],
+  [37, 1488],
+  [38, 1532],
+  [39, 1576],
+  [40, 1620],
+  [41, 1664],
+  [42, 1708],
+  [43, 1752],
+  [44, 1796],
+  [45, 1806],
+]);
 
-// Motor control constants
-const MOTOR_CONTROL = {
-  RIGHT_LEG: 1,
-  RIGHT_TORSO: 2,
-  LEFT_LEG: 3,
-  LEFT_TORSO: 4,
-  BOTH_LEGS: 5,
-  BOTH_TORSO: 6,
-};
+// --- Command Generation ---
+
+/**
+ * Calculates the 2-byte little-endian checksum for a given payload.
+ */
+function calculateChecksum(payload: Uint8Array): Uint8Array {
+  const sum = payload.reduce((acc, byte) => acc + byte, 0);
+  const checksum = new Uint8Array(2);
+  const view = new DataView(checksum.buffer);
+  view.setUint16(0, sum, true); // true for little-endian
+  return checksum;
+}
+
+/**
+ * Appends a checksum to a payload to create the final packet.
+ */
+function buildPacketWithChecksum(payload: Uint8Array): Uint8Array {
+  const checksum = calculateChecksum(payload);
+  const packet = new Uint8Array(payload.length + checksum.length);
+  packet.set(payload, 0);
+  packet.set(checksum, payload.length);
+  return packet;
+}
+
+/**
+ * Creates a command to set a motor to a specific angle.
+ */
+function createSetAngleCommand(
+  motor: 'torso' | 'leg',
+  angle: number,
+  feedRate: number,
+): Uint8Array {
+  const payload = new Uint8Array(18).fill(0);
+  const view = new DataView(payload.buffer);
+
+  // Magic Header for standard commands
+  view.setUint32(0, 0xffffffff, false);
+  view.setUint8(4, 0x01);
+  view.setUint8(5, 0x00);
+
+  // Command section
+  view.setUint8(6, 0x21); // Set Angle/Ticks command
+  view.setUint8(7, 0x14);
+  view.setUint8(8, feedRate);
+
+  if (motor === 'torso') {
+    view.setUint8(9, 0x06); // Torso motor ID
+    const ticks = torsoAngleMap.get(angle);
+    if (ticks === undefined)
+      throw new Error(`Invalid angle ${angle} for torso.`);
+    view.setUint16(10, ticks, true); // Ticks (little-endian)
+  } else if (motor === 'leg') {
+    view.setUint8(9, 0x05); // Leg motor ID
+    const ticks = legAngleMap.get(angle);
+    if (ticks === undefined) throw new Error(`Invalid angle ${angle} for leg.`);
+    view.setUint16(10, ticks, true); // Ticks (little-endian)
+  }
+
+  return buildPacketWithChecksum(payload);
+}
+
+/**
+ * Creates the special command to stop all motor movement.
+ */
+function createStopCommand(): Uint8Array {
+  // This is a special, hardcoded payload from the source code.
+  const payload = new Uint8Array([255, 255, 255, 255, 5, 0, 0, 0, 0, 215, 0]);
+  return buildPacketWithChecksum(payload);
+}
 
 interface BasePosition {
   head: number;
@@ -65,7 +205,8 @@ interface BasePosition {
 
 export class TriMixBaseControl {
   private isConnected = false;
-  private characteristicPath: string | null = null;
+  private notifyCharacteristicPath: string | null = null;
+  private writeCharacteristicPath: string | null = null;
   private baseAddress: string | null = null;
   private baseConfig: BaseConfiguration | null = null;
 
@@ -82,14 +223,16 @@ export class TriMixBaseControl {
       this.baseConfig = JSON.parse(configData) as BaseConfiguration;
       this.baseAddress = this.baseConfig.Address;
 
-      // Build characteristic path
+      // Build characteristic paths
       const macForPath = this.baseAddress.replace(/:/g, '_');
-      this.characteristicPath = `/org/bluez/hci0/dev_${macForPath}/service0008/char0009`;
+      this.notifyCharacteristicPath = `/org/bluez/hci0/dev_${macForPath}/service0008/char0009`;
+      this.writeCharacteristicPath = `/org/bluez/hci0/dev_${macForPath}/service0008/char000f`;
 
       logger.info('Loaded base configuration:', {
         address: this.baseAddress,
         splitBase: this.baseConfig.SplitBase,
-        characteristicPath: this.characteristicPath,
+        notifyPath: this.notifyCharacteristicPath,
+        writePath: this.writeCharacteristicPath,
       });
 
       return true;
@@ -123,10 +266,7 @@ export class TriMixBaseControl {
       if (infoOutput.includes('Connected: yes')) {
         logger.info('Base already connected');
         this.isConnected = true;
-
-        // Enable notifications on the characteristic
         await this.enableNotifications();
-
         return true;
       }
 
@@ -141,10 +281,6 @@ export class TriMixBaseControl {
 
       this.isConnected = true;
       logger.info('Successfully connected to TriMix base');
-      
-      // Initialize the base after connection
-      await this.initializeBase();
-      
       return true;
     } catch (error) {
       logger.error('Failed to connect to base:', error);
@@ -157,11 +293,15 @@ export class TriMixBaseControl {
    * Enable notifications on the characteristic
    */
   private async enableNotifications(): Promise<void> {
+    if (!this.notifyCharacteristicPath) {
+      logger.error('Notify characteristic path is not set.');
+      return;
+    }
     try {
       logger.info('Enabling notifications on characteristic...');
       const command = `bluetoothctl << EOF
 menu gatt
-select-attribute ${this.characteristicPath}
+select-attribute ${this.notifyCharacteristicPath}
 notify on
 back
 quit
@@ -175,103 +315,48 @@ EOF`;
   }
 
   /**
-   * Convert angle to ticks for torso/head
+   * Finds the closest valid angle in the map.
    */
-  private angleToTorsoTicks(angle: number): number {
-    // Find closest angle in map
-    const angles = Object.keys(TORSO_ANGLE_MAP)
-      .map(Number)
-      .sort((a, b) => a - b);
-    const closestAngle = angles.reduce((prev, curr) =>
+  private getClosestTorsoAngle(angle: number): number {
+    const angles = Array.from(torsoAngleMap.keys()).sort((a, b) => a - b);
+    return angles.reduce((prev, curr) =>
       Math.abs(curr - angle) < Math.abs(prev - angle) ? curr : prev,
     );
-    return TORSO_ANGLE_MAP[closestAngle];
   }
 
   /**
-   * Convert angle to ticks for legs/feet
+   * Finds the closest valid angle in the map.
    */
-  private angleToLegTicks(angle: number): number {
-    const angles = Object.keys(LEG_ANGLE_MAP)
-      .map(Number)
-      .sort((a, b) => a - b);
-    const closestAngle = angles.reduce((prev, curr) =>
+  private getClosestLegAngle(angle: number): number {
+    const angles = Array.from(legAngleMap.keys()).sort((a, b) => a - b);
+    return angles.reduce((prev, curr) =>
       Math.abs(curr - angle) < Math.abs(prev - angle) ? curr : prev,
     );
-    return LEG_ANGLE_MAP[closestAngle];
-  }
-
-  /**
-   * Initialize the base with required commands
-   */
-  private async initializeBase(): Promise<void> {
-    logger.info('Initializing TriMix base...');
-    
-    try {
-      // Step 1: Reset system flags (command 25, 20, 176)
-      logger.info('Resetting system flags...');
-      const resetPayload = this.buildTriMixPayload([25, 20, 176]);
-      await this.sendCommand(resetPayload);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Step 2: Query system info (command 32, 20, 160)
-      logger.info('Querying system info...');
-      const queryPayload = this.buildTriMixPayload([32, 20, 160]);
-      await this.sendCommand(queryPayload);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Step 3: Query current state to verify initialization
-      logger.info('Querying current base state...');
-      const statePayload = this.buildTriMixPayload([34, 20]); // Command 0x22
-      await this.sendCommand(statePayload);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      logger.info('Base initialization complete');
-    } catch (error) {
-      logger.error('Base initialization error:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Build TriMix command payload
-   */
-  private buildTriMixPayload(specificValues: number[]): number[] {
-    const header = [255, 255, 255, 255, 1, 0];
-    const totalLength = 18;
-    const padding = totalLength - header.length - specificValues.length;
-    const payload = [...header, ...specificValues, ...Array(padding).fill(0)];
-    
-    // Calculate checksum on the 18-byte payload
-    const checksum = payload.reduce((sum, byte) => sum + byte, 0);
-    
-    // Return 20-byte packet (18 bytes + 2 byte checksum)
-    return [...payload, checksum & 0xFF, (checksum >> 8) & 0xFF];
   }
 
   /**
    * Send command to base via bluetoothctl
    */
-  private async sendCommand(payload: number[]): Promise<void> {
+  private async sendCommand(payload: Uint8Array): Promise<void> {
     if (!this.isConnected) {
       throw new Error('Not connected to base');
     }
+    if (!this.writeCharacteristicPath) {
+      throw new Error('Write characteristic path is not set.');
+    }
 
-    // Convert payload to individual hex bytes with 0x prefix for bluetoothctl
-    const hexBytes = payload
+    const hexBytes = Array.from(payload)
       .map((b) => `0x${b.toString(16).padStart(2, '0')}`)
       .join(' ');
 
     logger.info('Sending BLE command to base:');
-    logger.info(`  Payload bytes: [${payload.join(', ')}]`);
+    logger.info(`  Payload bytes: [${Array.from(payload).join(', ')}]`);
     logger.info(`  Hex string: ${hexBytes}`);
 
-    // Use bluetoothctl to write to characteristic
-    // bluetoothctl expects individual hex bytes with 0x prefix
     const command = `bluetoothctl << 'EOF'
 menu gatt
-select-attribute ${this.characteristicPath}
-write ${hexBytes}
+select-attribute ${this.writeCharacteristicPath}
+write "${hexBytes}"
 back
 quit
 EOF`;
@@ -283,7 +368,6 @@ EOF`;
         logger.warn('Bluetoothctl stderr:', stderr);
       }
 
-      // Check if write was successful
       if (
         stdout.includes('WriteValue') ||
         stdout.includes('Attempting to write')
@@ -320,66 +404,37 @@ EOF`;
 
     logger.info('Setting base position:', position);
 
-    // Convert angles to ticks
-    const torsoTicks = this.angleToTorsoTicks(position.head);
-    const legTicks = this.angleToLegTicks(position.feet);
+    try {
+      // Set torso angle
+      const torsoAngle = this.getClosestTorsoAngle(position.head);
+      const torsoCommand = createSetAngleCommand(
+        'torso',
+        torsoAngle,
+        position.feedRate,
+      );
+      logger.info(
+        `Setting torso to angle ${torsoAngle} (requested ${position.head})`,
+      );
+      await this.sendCommand(torsoCommand);
 
-    // Set torso angle (both sides)
-    await this.setTorsoTicks(position.feedRate, torsoTicks);
+      // Wait a bit between commands
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Wait a bit between commands
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Set leg angle (both sides)
-    await this.setLegTicks(position.feedRate, legTicks);
-  }
-
-  /**
-   * Set torso/head position
-   */
-  private async setTorsoTicks(feedRate: number, ticks: number): Promise<void> {
-    // Command 33 (0x21), motor 6 (both torso)
-    // Ticks are little-endian (low byte first)
-    const ticksLow = ticks & 0xff;
-    const ticksHigh = (ticks >> 8) & 0xff;
-
-    const payload = this.buildTriMixPayload([
-      33, // Command (0x21)
-      20, // Sub-command (0x14)
-      feedRate, // Speed
-      MOTOR_CONTROL.BOTH_TORSO, // Motor (6)
-      ticksLow, // Ticks low byte
-      ticksHigh, // Ticks high byte
-    ]);
-
-    logger.info(
-      `Setting torso: ticks=${ticks} (0x${ticksLow.toString(16).padStart(2, '0')} 0x${ticksHigh.toString(16).padStart(2, '0')}), feedRate=${feedRate}`,
-    );
-    await this.sendCommand(payload);
-  }
-
-  /**
-   * Set leg/feet position
-   */
-  private async setLegTicks(feedRate: number, ticks: number): Promise<void> {
-    // Command 33 (0x21), motor 5 (both legs)
-    // Ticks are little-endian (low byte first)
-    const ticksLow = ticks & 0xff;
-    const ticksHigh = (ticks >> 8) & 0xff;
-
-    const payload = this.buildTriMixPayload([
-      33, // Command (0x21)
-      20, // Sub-command (0x14)
-      feedRate, // Speed
-      MOTOR_CONTROL.BOTH_LEGS, // Motor (5)
-      ticksLow, // Ticks low byte
-      ticksHigh, // Ticks high byte
-    ]);
-
-    logger.info(
-      `Setting legs: ticks=${ticks} (0x${ticksLow.toString(16).padStart(2, '0')} 0x${ticksHigh.toString(16).padStart(2, '0')}), feedRate=${feedRate}`,
-    );
-    await this.sendCommand(payload);
+      // Set leg angle
+      const legAngle = this.getClosestLegAngle(position.feet);
+      const legCommand = createSetAngleCommand(
+        'leg',
+        legAngle,
+        position.feedRate,
+      );
+      logger.info(
+        `Setting leg to angle ${legAngle} (requested ${position.feet})`,
+      );
+      await this.sendCommand(legCommand);
+    } catch (error) {
+      logger.error(`Failed to set position: ${error}`);
+      throw error;
+    }
   }
 
   /**
@@ -390,12 +445,9 @@ EOF`;
       logger.warn('Cannot stop - not connected to base');
       return;
     }
-
-    const payload = [
-      255, 255, 255, 255, 5, 0, 0, 0, 0, 215, 0, 0, 0, 0, 0, 0, 0, 0,
-    ];
-    await this.sendCommand(payload);
-    logger.info('Stopped all base movement');
+    logger.info('Stopping all base movement');
+    const command = createStopCommand();
+    await this.sendCommand(command);
   }
 
   /**

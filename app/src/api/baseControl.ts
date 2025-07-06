@@ -43,7 +43,7 @@ export const useBaseStatus = () => {
   return useQuery({
     queryKey: ['baseStatus'],
     queryFn: getBaseStatus,
-    refetchInterval: 10000, // Refetch every 10 seconds to track movement
+    refetchInterval: 2000, // Refetch every 10 seconds to track movement
   });
 };
 

@@ -2,8 +2,8 @@ import express from 'express';
 import type { Server } from 'http';
 import schedule from 'node-schedule';
 import { FrankenMonitor } from './8sleep/frankenMonitor.js';
-import { getFranken, getFrankenServer } from './8sleep/frankenServer.js';
 import logger from './logger.js';
+import type { getFranken, getFrankenServer } from './8sleep/frankenServer.js';
 import './jobs/jobScheduler.js';
 
 import config from './config.js';
