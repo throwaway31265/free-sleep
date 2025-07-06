@@ -118,9 +118,15 @@ let frankenServerPromise: Promise<FrankenServer> | undefined;
 
 export async function getFrankenServer(): Promise<FrankenServer> {
   // If we've already started it, reuse:
-  if (frankenServer) return frankenServer;
+  if (frankenServer) {
+    logger.debug('FrankenServer already started in getFrankenServer');
+    return frankenServer;
+  } else {
+    logger.debug('FrankenServer not started in getFrankenServer');
+  }
   // Otherwise, start a new instance once:
   if (!frankenServerPromise) {
+    logger.debug('FrankenServer not started in getFrankenServer');
     frankenServerPromise = (async () => {
       const server = await FrankenServer.start(config.dacSockPath);
       logger.debug('FrankenServer started');
@@ -134,7 +140,12 @@ export async function getFrankenServer(): Promise<FrankenServer> {
 let franken: Franken | undefined;
 
 export async function getFranken(): Promise<Franken> {
-  if (franken) return franken;
+  if (franken) {
+    logger.debug('Franken already started in getFranken');
+    return franken;
+  } else {
+    logger.debug('Franken not started in getFranken');
+  }
   const frankenServer = await getFrankenServer();
   franken = await frankenServer.waitForFranken();
   return franken;
