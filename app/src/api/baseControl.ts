@@ -38,12 +38,17 @@ const setBasePreset = async (preset: 'flat' | 'sleep' | 'relax') => {
   return response.data;
 };
 
+const stopBase = async () => {
+  const response = await axiosInstance.post('/base-control/stop');
+  return response.data;
+};
+
 // React Query hooks
 export const useBaseStatus = () => {
   return useQuery({
     queryKey: ['baseStatus'],
     queryFn: getBaseStatus,
-    refetchInterval: 2000, // Refetch every 10 seconds to track movement
+    refetchInterval: 2000, // Refetch every 2 seconds to track movement
   });
 };
 
@@ -63,6 +68,17 @@ export const useSetBasePreset = () => {
 
   return useMutation({
     mutationFn: setBasePreset,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['baseStatus'] });
+    },
+  });
+};
+
+export const useStopBase = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: stopBase,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['baseStatus'] });
     },

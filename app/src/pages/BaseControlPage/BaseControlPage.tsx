@@ -19,6 +19,7 @@ import {
   useBaseStatus,
   useSetBasePosition,
   useSetBasePreset,
+  useStopBase,
 } from '@api/baseControl';
 
 interface BasePosition {
@@ -40,6 +41,7 @@ export default function BaseControlPage() {
   const { data: baseStatus, isLoading } = useBaseStatus();
   const setBasePositionMutation = useSetBasePosition();
   const setBasePresetMutation = useSetBasePreset();
+  const stopBaseMutation = useStopBase();
 
   // Update local state when base status changes
   useEffect(() => {
@@ -69,9 +71,15 @@ export default function BaseControlPage() {
     });
   };
 
+  const handleStop = async () => {
+    await stopBaseMutation.mutateAsync();
+  };
+
   const isMoving = baseStatus?.isMoving || false;
   const isMutating =
-    setBasePositionMutation.isPending || setBasePresetMutation.isPending;
+    setBasePositionMutation.isPending ||
+    setBasePresetMutation.isPending ||
+    stopBaseMutation.isPending;
 
   return (
     <PageContainer
@@ -94,7 +102,7 @@ export default function BaseControlPage() {
       )}
 
       {/* Movement status */}
-      {isMoving && (
+      {isMoving && !isMutating && (
         <Box sx={{ textAlign: 'center', mb: 2 }}>
           <Typography variant="body2" color="primary">
             Base is moving...
@@ -202,17 +210,34 @@ export default function BaseControlPage() {
         </CardContent>
       </Card>
 
-      {/* Apply Button */}
-      <Button
-        variant="contained"
-        onClick={applyPosition}
-        disabled={isUpdating || isMoving || isMutating}
-        size="large"
-        fullWidth
-        sx={{ mt: 2 }}
-      >
-        {isMoving ? 'Moving...' : 'Apply Position'}
-      </Button>
+      {/* Action Buttons */}
+      {isMoving ? (
+        <Button
+          variant="contained"
+          color="error"
+          onClick={handleStop}
+          disabled={stopBaseMutation.isPending}
+          size="large"
+          fullWidth
+          sx={{ mt: 2 }}
+        >
+          {stopBaseMutation.isPending ? 'Stopping...' : 'Emergency Stop'}
+        </Button>
+      ) : (
+        <Button
+          variant="contained"
+          onClick={applyPosition}
+          disabled={isUpdating || isMutating}
+          size="large"
+          fullWidth
+          sx={{ mt: 2 }}
+        >
+          {setBasePositionMutation.isPending ||
+          setBasePresetMutation.isPending
+            ? 'Sending...'
+            : 'Apply Position'}
+        </Button>
+      )}
     </PageContainer>
   );
 }
