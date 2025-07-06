@@ -12,6 +12,7 @@ type BaseStatus = {
   feet: number;
   isMoving: boolean;
   lastUpdate: string;
+  isConfigured: boolean;
 };
 
 type MemoryDB = {

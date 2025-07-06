@@ -213,6 +213,7 @@ export class TriMixBaseControl {
   private baseConfig: BaseConfiguration | null = null;
   private bleProcess: ChildProcess | null = null;
   private inGattMenu = false;
+  private notificationBuffer: number[] = [];
 
   constructor() {
     this.initialize();
@@ -284,10 +285,9 @@ export class TriMixBaseControl {
   }
 
   /**
-   * Handles stdout from the bluetoothctl process.
+   * Handles raw output from bluetoothctl, extracts hex, and adds to buffer.
    */
   private handleBleOutput(output: string): void {
-    logger.debug(`[bluetoothctl] ${output.trim()}`);
     if (!this.isConnected && output.includes('Connection successful')) {
       this.isConnected = true;
       logger.info('Base connected. Enabling notifications...');
@@ -298,15 +298,78 @@ export class TriMixBaseControl {
       this.inGattMenu = true;
     }
 
-    if (
-      output.includes(this.notifyCharacteristicPath!) &&
-      output.includes('Value:')
-    ) {
-      const hexString = output
-        .substring(output.indexOf('Value:') + 6)
-        .trim()
-        .replace(/\s+/g, ' ');
-      this.parseNotification(hexString);
+    // Process each line separately to extract hex data
+    const lines = output.split('\n');
+    for (const line of lines) {
+      // Strip ANSI escape codes and other control characters from the line
+      const cleanLine = line
+        .replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '') // Remove ANSI escape sequences
+        .replace(/\u0001\u001b\[.*?\u0001\u001b\[.*?\u0002/g, '') // Remove specific color codes
+        .replace(/\u0001.*?\u0002/g, '') // Remove other control sequences
+        .replace(/\r/g, '') // Remove carriage returns
+        .replace(/\[[^\]]*\]/g, ''); // Remove any remaining bracket sequences
+
+      // Extract hex pairs only from notification data lines that contain hex data
+      // Allow for various prefixes (# + spaces, just spaces, etc.)
+      if (cleanLine.match(/^[#\s]*[0-9a-fA-F]{2}( [0-9a-fA-F]{2})*\s+.*$/)) {
+        const hexPairs = cleanLine.match(/[0-9a-fA-F]{2}/g);
+        if (hexPairs) {
+          const newBytes = hexPairs.map((s) => parseInt(s, 16));
+          this.notificationBuffer.push(...newBytes);
+          this.processNotificationBuffer();
+        }
+      }
+    }
+  }
+
+  /**
+   * Processes the byte buffer to find and parse complete packets.
+   */
+  private processNotificationBuffer(): void {
+    // A complete packet is 20 bytes long.
+    while (this.notificationBuffer.length >= 20) {
+      // Find the start of a packet (0xff ff ff ff)
+      const startIndex = this.notificationBuffer.findIndex(
+        (byte, i) =>
+          this.notificationBuffer[i] === 0xff &&
+          this.notificationBuffer[i + 1] === 0xff &&
+          this.notificationBuffer[i + 2] === 0xff &&
+          this.notificationBuffer[i + 3] === 0xff,
+      );
+
+      if (startIndex === -1) {
+        // No header found, clear buffer to avoid infinite loop on bad data
+        this.notificationBuffer = [];
+        return;
+      }
+
+      // Discard any data before the packet header
+      if (startIndex > 0) {
+        this.notificationBuffer.splice(0, startIndex);
+      }
+
+      // Check if we have a full packet after finding the header
+      if (this.notificationBuffer.length < 20) {
+        return;
+      }
+
+      const packet = new Uint8Array(this.notificationBuffer.slice(0, 20));
+      const payload = packet.slice(0, 18);
+      const view = new DataView(packet.buffer);
+      const receivedChecksum = view.getUint16(18, true); // little-endian
+
+      const calculatedSum = payload.reduce((acc, byte) => acc + byte, 0);
+      const calculatedChecksum = calculatedSum & 0xffff; // Keep only lower 16 bits
+
+      if (calculatedChecksum === receivedChecksum) {
+        // We have a valid packet
+        this.parseNotification(packet);
+        // Remove the processed packet from the buffer
+        this.notificationBuffer.splice(0, 20);
+      } else {
+        // Checksum is invalid. Clear the entire buffer and start fresh
+        this.notificationBuffer = [];
+      }
     }
   }
 
@@ -322,13 +385,15 @@ export class TriMixBaseControl {
   }
 
   /**
-   * Decodes notification packets and updates the database.
+   * Decodes a validated notification packet and updates the database.
    */
-  private parseNotification(hexString: string): void {
-    const bytes = hexString.split(' ').map((s) => parseInt(s, 16));
-    if (bytes.length < 18) return;
+  private parseNotification(packet: Uint8Array): void {
+    const hexString = Array.from(packet)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join(' ');
+    // logger.info(`Parsing valid packet: "${hexString}"`);
 
-    const view = new DataView(new Uint8Array(bytes).buffer);
+    const view = new DataView(packet.buffer);
     const packetType = view.getUint8(6);
 
     if (!memoryDB.data) return;
@@ -346,13 +411,21 @@ export class TriMixBaseControl {
       const headAngle = ticksToTorsoAngle(avgTorsoTicks);
       const feetAngle = ticksToLegAngle(avgLegTicks);
 
-      if (memoryDB.data.baseStatus) {
+      if (!memoryDB.data.baseStatus) {
+        memoryDB.data.baseStatus = {
+          head: headAngle,
+          feet: feetAngle,
+          isMoving: false,
+          lastUpdate: new Date().toISOString(),
+          isConfigured: true,
+        };
+      } else {
         memoryDB.data.baseStatus.head = headAngle;
         memoryDB.data.baseStatus.feet = feetAngle;
         memoryDB.data.baseStatus.lastUpdate = new Date().toISOString();
-        memoryDB.write();
       }
-      logger.debug(`Parsed position: Head=${headAngle}°, Feet=${feetAngle}°`);
+      memoryDB.write();
+      // logger.info(`Parsed position: Head=${headAngle}°, Feet=${feetAngle}°`);
     } else if (packetType === 0x19) {
       // System Flags Packet
       const rightTorsoStatus = view.getUint8(9);
@@ -360,19 +433,29 @@ export class TriMixBaseControl {
       const leftTorsoStatus = view.getUint8(11);
       const leftLegStatus = view.getUint8(12);
 
+      // Based on observed packet data, movement is detected when any motor status is NOT 0
+      // When all motors are stopped, all status values should be 0
       const isMoving = [
         rightTorsoStatus,
         rightLegStatus,
         leftTorsoStatus,
         leftLegStatus,
-      ].some((status) => status === 0);
+      ].some((status) => status !== 0);
 
-      if (memoryDB.data.baseStatus) {
+      if (!memoryDB.data.baseStatus) {
+        memoryDB.data.baseStatus = {
+          head: 0,
+          feet: 0,
+          isMoving: isMoving,
+          lastUpdate: new Date().toISOString(),
+          isConfigured: true,
+        };
+      } else {
         memoryDB.data.baseStatus.isMoving = isMoving;
         memoryDB.data.baseStatus.lastUpdate = new Date().toISOString();
-        memoryDB.write();
       }
-      logger.debug(`Parsed moving status: ${isMoving}`);
+      memoryDB.write();
+      // logger.info(`Parsed moving status: ${isMoving}`);
     }
   }
 
