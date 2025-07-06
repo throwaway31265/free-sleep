@@ -18,6 +18,10 @@ const BasePositionSchema = z.object({
 });
 
 export type BaseStatus = z.infer<typeof BaseStatusSchema>;
+export type BaseStatusUI = Pick<
+  BaseStatus,
+  'head' | 'feet' | 'isMoving' | 'isConfigured'
+>;
 export type BasePosition = z.infer<typeof BasePositionSchema>;
 
 // API functions
@@ -49,6 +53,13 @@ export const useBaseStatus = () => {
     queryKey: ['baseStatus'],
     queryFn: getBaseStatus,
     refetchInterval: 2000, // Refetch every 2 seconds to track movement
+    select: (data) => ({
+      // Only include fields that matter for UI state, exclude lastUpdate to prevent unnecessary re-renders
+      head: data.head,
+      feet: data.feet,
+      isMoving: data.isMoving,
+      isConfigured: data.isConfigured,
+    }),
   });
 };
 

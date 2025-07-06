@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useAppStore } from '@state/appStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import PageContainer from '../PageContainer';
 import {
   useBaseStatus,
@@ -43,12 +43,18 @@ export default function BaseControlPage() {
   const setBasePresetMutation = useSetBasePreset();
   const stopBaseMutation = useStopBase();
 
-  // Update local state when base status changes
+  // Update local state when base status changes, but only when meaningful changes occur
   useEffect(() => {
     if (baseStatus && !baseStatus.isMoving) {
-      setPosition({ head: baseStatus.head, feet: baseStatus.feet });
+      setPosition((prev) => {
+        // Only update if the position has actually changed
+        if (prev.head !== baseStatus.head || prev.feet !== baseStatus.feet) {
+          return { head: baseStatus.head, feet: baseStatus.feet };
+        }
+        return prev;
+      });
     }
-  }, [baseStatus]);
+  }, [baseStatus?.head, baseStatus?.feet, baseStatus?.isMoving]);
 
   const handleHeadChange = (_: Event, newValue: number | number[]) => {
     setPosition((prev) => ({ ...prev, head: newValue as number }));
@@ -80,6 +86,22 @@ export default function BaseControlPage() {
     setBasePositionMutation.isPending ||
     setBasePresetMutation.isPending ||
     stopBaseMutation.isPending;
+
+  // Memoize preset button states to avoid unnecessary re-renders
+  const presetButtonStates = useMemo(
+    () => ({
+      flat:
+        position.head === presets.flat.head &&
+        position.feet === presets.flat.feet,
+      sleep:
+        position.head === presets.sleep.head &&
+        position.feet === presets.sleep.feet,
+      relax:
+        position.head === presets.relax.head &&
+        position.feet === presets.relax.feet,
+    }),
+    [position.head, position.feet],
+  );
 
   return (
     <PageContainer
@@ -113,12 +135,7 @@ export default function BaseControlPage() {
       {/* Preset Buttons */}
       <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
         <Button
-          variant={
-            position.head === presets.flat.head &&
-            position.feet === presets.flat.feet
-              ? 'contained'
-              : 'outlined'
-          }
+          variant={presetButtonStates.flat ? 'contained' : 'outlined'}
           onClick={() => handlePresetClick('flat')}
           disabled={isUpdating || isMoving || isMutating}
           startIcon={<BedIcon />}
@@ -127,12 +144,7 @@ export default function BaseControlPage() {
           Flat
         </Button>
         <Button
-          variant={
-            position.head === presets.sleep.head &&
-            position.feet === presets.sleep.feet
-              ? 'contained'
-              : 'outlined'
-          }
+          variant={presetButtonStates.sleep ? 'contained' : 'outlined'}
           onClick={() => handlePresetClick('sleep')}
           disabled={isUpdating || isMoving || isMutating}
           startIcon={<HotelIcon />}
@@ -141,12 +153,7 @@ export default function BaseControlPage() {
           Sleep
         </Button>
         <Button
-          variant={
-            position.head === presets.relax.head &&
-            position.feet === presets.relax.feet
-              ? 'contained'
-              : 'outlined'
-          }
+          variant={presetButtonStates.relax ? 'contained' : 'outlined'}
           onClick={() => handlePresetClick('relax')}
           disabled={isUpdating || isMoving || isMutating}
           startIcon={<WeekendIcon />}
@@ -211,33 +218,30 @@ export default function BaseControlPage() {
       </Card>
 
       {/* Action Buttons */}
-      {isMoving ? (
+      <Stack spacing={2} sx={{ mt: 2 }}>
+        <Button
+          variant="contained"
+          onClick={applyPosition}
+          disabled={isUpdating || isMutating || isMoving}
+          size="large"
+          fullWidth
+        >
+          {setBasePositionMutation.isPending || setBasePresetMutation.isPending
+            ? 'Sending...'
+            : 'Apply Position'}
+        </Button>
+
         <Button
           variant="contained"
           color="error"
           onClick={handleStop}
-          disabled={stopBaseMutation.isPending}
+          disabled={!isMoving || stopBaseMutation.isPending}
           size="large"
           fullWidth
-          sx={{ mt: 2 }}
         >
           {stopBaseMutation.isPending ? 'Stopping...' : 'Emergency Stop'}
         </Button>
-      ) : (
-        <Button
-          variant="contained"
-          onClick={applyPosition}
-          disabled={isUpdating || isMutating}
-          size="large"
-          fullWidth
-          sx={{ mt: 2 }}
-        >
-          {setBasePositionMutation.isPending ||
-          setBasePresetMutation.isPending
-            ? 'Sending...'
-            : 'Apply Position'}
-        </Button>
-      )}
+      </Stack>
     </PageContainer>
   );
 }

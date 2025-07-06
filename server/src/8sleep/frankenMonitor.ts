@@ -5,6 +5,9 @@ import logger from '../logger.js';
 import { executeFunction } from './deviceApi.js';
 import { getFranken } from './frankenServer.js';
 import { wait } from './promises.js';
+import { trimixBase } from './trimixBaseControl.js';
+import memoryDB from '../db/memoryDB.js';
+import { BASE_PRESETS } from './basePresets.js';
 
 const defaultAlarmDismiss: { [i: string]: number } = {};
 const defaultDoubleTap: { [i: string]: number } = {};
@@ -47,6 +50,7 @@ export class FrankenMonitor {
 
   private isRunning = false;
   private wasPriming = false;
+  private currentBasePreset: keyof typeof BASE_PRESETS = 'relax';
 
   // private monitorInterval = 1000; // 1 second interval
 
@@ -230,6 +234,74 @@ export class FrankenMonitor {
   // private quadTapNotification: ((d: { [i: string]: number }) => Promise<void>) | undefined;
   public async quadTapNotification(times: { [i: string]: number }) {
     logger.debug(`[quadTap] times: ${JSON.stringify(times)}`, 'quad tap');
+
+    // Cycle between relax and flat presets
+    this.currentBasePreset =
+      this.currentBasePreset === 'relax' ? 'flat' : 'relax';
+
+    const targetPreset = BASE_PRESETS[this.currentBasePreset];
+
+    logger.info(
+      `[quadTap] Cycling base to ${this.currentBasePreset} preset:`,
+      targetPreset,
+    );
+
+    try {
+      // Update memory DB to reflect movement
+      if (memoryDB.data) {
+        memoryDB.data.baseStatus = {
+          head: targetPreset.head,
+          feet: targetPreset.feet,
+          isMoving: true,
+          lastUpdate: new Date().toISOString(),
+          isConfigured: true,
+        };
+        await memoryDB.write();
+      }
+
+      // Control the base via BLE
+      if (this.currentBasePreset === 'flat') {
+        await trimixBase.goToFlat();
+      } else {
+        await trimixBase.setPosition({
+          head: targetPreset.head,
+          feet: targetPreset.feet,
+          feedRate: targetPreset.feedRate,
+        });
+      }
+
+      // Estimate movement completion time
+      const currentStatus = memoryDB.data?.baseStatus;
+      const estimatedTime = Math.max(
+        Math.abs((currentStatus?.head || 0) - targetPreset.head) * 200,
+        Math.abs((currentStatus?.feet || 0) - targetPreset.feet) * 200,
+        3000, // Minimum 3 seconds
+      );
+
+      setTimeout(async () => {
+        logger.info(
+          `[quadTap] Base ${this.currentBasePreset} preset movement completed`,
+        );
+        if (memoryDB.data?.baseStatus) {
+          memoryDB.data.baseStatus.isMoving = false;
+          await memoryDB.write();
+        }
+      }, estimatedTime);
+    } catch (error) {
+      logger.error(
+        `[quadTap] Failed to set base preset: ${error instanceof Error ? error.message : String(error)}`,
+      );
+
+      // Reset movement status on error
+      if (memoryDB.data?.baseStatus) {
+        memoryDB.data.baseStatus.isMoving = false;
+        await memoryDB.write();
+      }
+
+      // Revert preset state on error
+      this.currentBasePreset =
+        this.currentBasePreset === 'relax' ? 'flat' : 'relax';
+    }
   }
   private async tryNotifyQuadTap(quadTap: { [i: string]: number }) {
     if (this.quadTapNotification === undefined) return;

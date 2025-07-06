@@ -4,6 +4,7 @@ import { executeFunction } from '../../8sleep/deviceApi.js';
 import logger from '../../logger.js';
 import memoryDB from '../../db/memoryDB.js';
 import { trimixBase } from '../../8sleep/trimixBaseControl.js';
+import { BASE_PRESETS } from '../../8sleep/basePresets.js';
 
 const router = express.Router();
 
@@ -40,7 +41,7 @@ router.get('/base-control', async (_req, res) => {
   try {
     // Check if base is configured
     const isConfigured = await trimixBase.isConfigured();
-    
+
     // Get current base position from memory
     const baseStatus = memoryDB.data?.baseStatus || {
       head: 0,
@@ -67,11 +68,13 @@ router.post('/base-control', async (req, res) => {
 
     // Store the target position
     if (memoryDB.data) {
+      const isConfigured = await trimixBase.isConfigured();
       memoryDB.data.baseStatus = {
         head: validatedData.head,
         feet: validatedData.feet,
         isMoving: true,
         lastUpdate: new Date().toISOString(),
+        isConfigured,
       };
       await memoryDB.write();
     }
@@ -141,26 +144,24 @@ router.post('/base-control', async (req, res) => {
 });
 
 // POST /api/base-control/preset
-router.post('/base-control/preset', async (req, res) => {
+router.post('/base-control/preset', async (req, res): Promise<void> => {
   try {
-    const { preset } = req.body;
-
-    const presets: Record<string, BasePosition> = {
-      flat: { head: 0, feet: 0, feedRate: 50 },
-      sleep: { head: 10, feet: 5, feedRate: 50 },
-      relax: { head: 30, feet: 15, feedRate: 50 },
+    const { preset } = req.body as {
+      preset: keyof typeof BASE_PRESETS | undefined;
     };
 
-    if (!presets[preset]) {
-      return res.status(400).json({ error: 'Invalid preset' });
+    if (!preset || !BASE_PRESETS[preset]) {
+      res.status(400).json({ error: 'Invalid preset' });
+      return;
     }
 
-    const position = presets[preset];
+    const position = BASE_PRESETS[preset];
 
     logger.info(`Setting base to ${preset} preset:`, position);
 
     if (memoryDB.data) {
       memoryDB.data.baseStatus = {
+        isConfigured: memoryDB.data.baseStatus?.isConfigured || false,
         head: position.head,
         feet: position.feet,
         isMoving: true,
