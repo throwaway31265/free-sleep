@@ -52,13 +52,13 @@ export class FrankenMonitor {
   private wasPriming = false;
   private currentBasePreset: keyof typeof BASE_PRESETS = 'relax';
 
-  // private monitorInterval = 1000; // 1 second interval
-
   public async start() {
     if (this.isRunning) {
       logger.warn('FrankenMonitor is already running');
       return;
     }
+
+    logger.info('Starting FrankenMonitor');
 
     this.isRunning = true;
     // monitorLoop
@@ -79,7 +79,7 @@ export class FrankenMonitor {
 
   public async dismissNotification(
     times: { [i: string]: number },
-    snooze: boolean = false,
+    snooze = false,
   ) {
     logger.info(
       `[dismissAlarm] times: ${JSON.stringify(times)} snooze: ${snooze}`,
