@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { executeFunction } from '../../8sleep/deviceApi.js';
 import logger from '../../logger.js';
 import memoryDB from '../../db/memoryDB.js';
+import { trimixBase } from '../../8sleep/trimixBaseControl.js';
 
 const router = express.Router();
 
@@ -37,6 +38,9 @@ export type BaseStatus = z.infer<typeof BaseStatusSchema>;
 // GET /api/base-control
 router.get('/base-control', async (_req, res) => {
   try {
+    // Check if base is configured
+    const isConfigured = await trimixBase.isConfigured();
+    
     // Get current base position from memory
     const baseStatus = memoryDB.data?.baseStatus || {
       head: 0,
@@ -45,8 +49,8 @@ router.get('/base-control', async (_req, res) => {
       lastUpdate: new Date().toISOString(),
     };
 
-    logger.debug('Getting base status:', baseStatus);
-    res.json(baseStatus);
+    logger.debug('Getting base status:', { ...baseStatus, isConfigured });
+    res.json({ ...baseStatus, isConfigured });
   } catch (error) {
     logger.error('Error getting base status:', error);
     res.status(500).json({ error: 'Failed to get base status' });
@@ -72,35 +76,52 @@ router.post('/base-control', async (req, res) => {
       await memoryDB.write();
     }
 
-    // Note: In a real implementation, this would communicate with the actual
-    // adjustable base via BLE. For now, we're just storing the state.
-    // The actual BLE communication would need to be implemented similar to
-    // how the capybara source handles it via the TriMix BedFrame class.
+    // Try to control actual base via BLE
+    try {
+      logger.info('Attempting to control actual base via BLE');
+      await trimixBase.setPosition({
+        head: validatedData.head,
+        feet: validatedData.feet,
+        feedRate: validatedData.feedRate || 50,
+      });
 
-    logger.warn('Base control is currently simulated - no actual hardware control implemented');
-    logger.debug('Would send to base:', {
-      feedRate: validatedData.feedRate,
-      torsoAngle: validatedData.head,
-      legAngle: validatedData.feet,
-    });
+      // Movement takes time, estimate based on angle change
+      const estimatedTime = Math.max(
+        Math.abs((memoryDB.data?.baseStatus?.head || 0) - validatedData.head) *
+          200,
+        Math.abs((memoryDB.data?.baseStatus?.feet || 0) - validatedData.feet) *
+          200,
+        3000, // Minimum 3 seconds
+      );
 
-    const baseControlArg = JSON.stringify({
-      feedRate: validatedData.feedRate,
-      torsoAngle: validatedData.head,
-      legAngle: validatedData.feet,
-    });
+      setTimeout(async () => {
+        logger.info('Base movement completed');
+        if (memoryDB.data?.baseStatus) {
+          memoryDB.data.baseStatus.isMoving = false;
+          await memoryDB.write();
+        }
+      }, estimatedTime);
+    } catch (bleError) {
+      logger.error('BLE control failed, falling back to simulation:', bleError);
 
-    await executeFunction('SET_BASE_POSITION', baseControlArg);
+      // Fallback to simulation
+      const baseControlArg = JSON.stringify({
+        feedRate: validatedData.feedRate,
+        torsoAngle: validatedData.head,
+        legAngle: validatedData.feet,
+      });
+      await executeFunction('SET_BASE_POSITION', baseControlArg);
 
-    // Simulate movement completion after a delay
-    setTimeout(async () => {
-      logger.debug('Simulating movement completion');
-      if (memoryDB.data?.baseStatus) {
-        memoryDB.data.baseStatus.isMoving = false;
-        await memoryDB.write();
-        logger.info('Base movement simulation completed');
-      }
-    }, 5000); // 5 seconds to simulate movement
+      // Simulate movement completion after a delay
+      setTimeout(async () => {
+        logger.debug('Simulating movement completion');
+        if (memoryDB.data?.baseStatus) {
+          memoryDB.data.baseStatus.isMoving = false;
+          await memoryDB.write();
+          logger.info('Base movement simulation completed');
+        }
+      }, 5000);
+    }
 
     res.json({
       success: true,
@@ -148,31 +169,53 @@ router.post('/base-control/preset', async (req, res) => {
       await memoryDB.write();
     }
 
-    logger.warn('Base control preset is currently simulated - no actual hardware control');
-    logger.debug('Would send preset to base:', {
-      preset,
-      feedRate: position.feedRate,
-      torsoAngle: position.head,
-      legAngle: position.feet,
-    });
+    // Try to control actual base via BLE
+    try {
+      logger.info(`Setting base to ${preset} preset via BLE`);
+      await trimixBase.setPosition({
+        head: position.head,
+        feet: position.feet,
+        feedRate: position.feedRate || 50,
+      });
 
-    const baseControlArg = JSON.stringify({
-      feedRate: position.feedRate,
-      torsoAngle: position.head,
-      legAngle: position.feet,
-    });
+      // Movement takes time, estimate based on angle change
+      const estimatedTime = Math.max(
+        Math.abs((memoryDB.data?.baseStatus?.head || 0) - position.head) * 200,
+        Math.abs((memoryDB.data?.baseStatus?.feet || 0) - position.feet) * 200,
+        3000, // Minimum 3 seconds
+      );
 
-    await executeFunction('SET_BASE_POSITION', baseControlArg);
+      setTimeout(async () => {
+        logger.info(`Base preset ${preset} movement completed`);
+        if (memoryDB.data?.baseStatus) {
+          memoryDB.data.baseStatus.isMoving = false;
+          await memoryDB.write();
+        }
+      }, estimatedTime);
+    } catch (bleError) {
+      logger.error(
+        'BLE preset control failed, falling back to simulation:',
+        bleError,
+      );
 
-    // Simulate movement completion
-    setTimeout(async () => {
-      logger.debug('Simulating preset movement completion');
-      if (memoryDB.data?.baseStatus) {
-        memoryDB.data.baseStatus.isMoving = false;
-        await memoryDB.write();
-        logger.info(`Base preset ${preset} simulation completed`);
-      }
-    }, 5000);
+      // Fallback to simulation
+      const baseControlArg = JSON.stringify({
+        feedRate: position.feedRate,
+        torsoAngle: position.head,
+        legAngle: position.feet,
+      });
+      await executeFunction('SET_BASE_POSITION', baseControlArg);
+
+      // Simulate movement completion
+      setTimeout(async () => {
+        logger.debug('Simulating preset movement completion');
+        if (memoryDB.data?.baseStatus) {
+          memoryDB.data.baseStatus.isMoving = false;
+          await memoryDB.write();
+          logger.info(`Base preset ${preset} simulation completed`);
+        }
+      }, 5000);
+    }
 
     res.json({
       success: true,
@@ -182,6 +225,34 @@ router.post('/base-control/preset', async (req, res) => {
   } catch (error) {
     logger.error('Error setting base preset:', error);
     res.status(500).json({ error: 'Failed to set base preset' });
+  }
+});
+
+// POST /api/base-control/stop
+router.post('/base-control/stop', async (_req, res) => {
+  try {
+    logger.info('Emergency stop requested');
+
+    // Try to stop via BLE
+    try {
+      await trimixBase.stop();
+      logger.info('Base movement stopped via BLE');
+    } catch (bleError) {
+      logger.error('Failed to stop base via BLE:', bleError);
+    }
+
+    // Always update status
+    if (memoryDB.data) {
+      if (memoryDB.data.baseStatus) {
+        memoryDB.data.baseStatus.isMoving = false;
+        await memoryDB.write();
+      }
+    }
+
+    res.json({ success: true, message: 'Stop command sent' });
+  } catch (error) {
+    logger.error('Error stopping base:', error);
+    res.status(500).json({ error: 'Failed to stop base' });
   }
 });
 

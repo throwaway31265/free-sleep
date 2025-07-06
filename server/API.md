@@ -298,6 +298,70 @@ The server exposes RESTful endpoints for interaction:
   }
   ```
 
+### `/api/base-control`
+
+#### **GET /base-control**
+
+- **Description:** Retrieves the current position and status of the adjustable base.
+- **Sample Response:**
+  ```json
+  {
+    "head": 30,
+    "feet": 15,
+    "isMoving": false,
+    "lastUpdate": "2025-02-15T12:00:00.000Z"
+  }
+  ```
+
+#### **POST /base-control**
+
+- **Description:** Sets the position of the adjustable base.
+- **Request Body:**
+  ```json
+  {
+    "head": 45,        // Head angle in degrees (0-60)
+    "feet": 20,        // Feet angle in degrees (0-45)
+    "feedRate": 50     // Optional: Movement speed (30-100), defaults to 50
+  }
+  ```
+- **Sample Response:**
+  ```json
+  {
+    "success": true,
+    "position": {
+      "head": 45,
+      "feet": 20,
+      "feedRate": 50
+    }
+  }
+  ```
+
+#### **POST /base-control/preset**
+
+- **Description:** Sets the base to a predefined position preset.
+- **Request Body:**
+  ```json
+  {
+    "preset": "relax"  // Options: "flat", "sleep", "relax"
+  }
+  ```
+- **Preset Positions:**
+  - `flat`: head=0°, feet=0°
+  - `sleep`: head=10°, feet=5°
+  - `relax`: head=30°, feet=15°
+- **Sample Response:**
+  ```json
+  {
+    "success": true,
+    "preset": "relax",
+    "position": {
+      "head": 30,
+      "feet": 15,
+      "feedRate": 50
+    }
+  }
+  ```
+
 ## Partial Updates for POST Requests
 
 For the POST endpoints (`/api/deviceStatus`, `/api/settings`, `/api/schedules`), you do not need to send a complete payload. These endpoints support partial updates, meaning you can send only the fields you wish to modify, and the system will merge your input with the existing data.
