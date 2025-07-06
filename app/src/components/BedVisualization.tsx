@@ -6,13 +6,15 @@ interface BedVisualizationProps {
   feetPosition: number; // 0-20 degrees (mapped from 0-30)
 }
 
-export default function BedVisualization({ headPosition, feetPosition }: BedVisualizationProps) {
+export default function BedVisualization({
+  headPosition,
+  feetPosition,
+}: BedVisualizationProps) {
   const [headImageSrc, setHeadImageSrc] = useState('');
   const [feetImageSrc, setFeetImageSrc] = useState('');
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [currentHeadPosition, setCurrentHeadPosition] = useState(0);
   const [currentFeetPosition, setCurrentFeetPosition] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   // Preload all images on component mount
   useEffect(() => {
@@ -51,44 +53,20 @@ export default function BedVisualization({ headPosition, feetPosition }: BedVisu
     preloadImages();
   }, []);
 
-  // Animate positions smoothly when target changes
+  // Update positions directly when they change
   useEffect(() => {
     if (!imagesLoaded) return;
-    
-    const targetHeadPosition = Math.round(Math.max(0, Math.min(45, headPosition)));
-    const targetFeetPosition = Math.round(Math.max(0, Math.min(20, (feetPosition / 30) * 20)));
-    
-    // If positions are the same, no animation needed
-    if (targetHeadPosition === currentHeadPosition && targetFeetPosition === currentFeetPosition) {
-      return;
-    }
-    
-    setIsAnimating(true);
-    
-    const animateToTarget = () => {
-      const headDiff = targetHeadPosition - currentHeadPosition;
-      const feetDiff = targetFeetPosition - currentFeetPosition;
-      
-      // Calculate steps (move 1 degree at a time)
-      const headStep = headDiff > 0 ? 1 : headDiff < 0 ? -1 : 0;
-      const feetStep = feetDiff > 0 ? 1 : feetDiff < 0 ? -1 : 0;
-      
-      // If we've reached the target, stop animating
-      if (headStep === 0 && feetStep === 0) {
-        setIsAnimating(false);
-        return;
-      }
-      
-      // Update current positions
-      setCurrentHeadPosition(prev => prev + headStep);
-      setCurrentFeetPosition(prev => prev + feetStep);
-      
-      // Continue animation after a short delay
-      setTimeout(animateToTarget, 100); // 100ms between steps
-    };
-    
-    animateToTarget();
-  }, [headPosition, feetPosition, imagesLoaded, currentHeadPosition, currentFeetPosition]);
+
+    const targetHeadPosition = Math.round(
+      Math.max(0, Math.min(45, headPosition)),
+    );
+    const targetFeetPosition = Math.round(
+      Math.max(0, Math.min(20, (feetPosition / 30) * 20)),
+    );
+
+    setCurrentHeadPosition(targetHeadPosition);
+    setCurrentFeetPosition(targetFeetPosition);
+  }, [headPosition, feetPosition, imagesLoaded]);
 
   // Update image sources when current positions change
   useEffect(() => {
@@ -120,8 +98,8 @@ export default function BedVisualization({ headPosition, feetPosition }: BedVisu
       <Box
         sx={{
           position: 'relative',
-          width: '100%',
-          height: '100%',
+          width: '400px',
+          height: '250px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -142,7 +120,7 @@ export default function BedVisualization({ headPosition, feetPosition }: BedVisu
             zIndex: 2,
           }}
         />
-        
+
         {/* Feet section (right side) */}
         <Box
           sx={{
@@ -159,46 +137,7 @@ export default function BedVisualization({ headPosition, feetPosition }: BedVisu
           }}
         />
       </Box>
-      
-      {/* Position indicators */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 12,
-          left: 12,
-          backgroundColor: 'primary.main',
-          color: 'white',
-          px: 1.5,
-          py: 0.8,
-          borderRadius: 1,
-          fontSize: '0.875rem',
-          fontWeight: 'medium',
-          zIndex: 3,
-          boxShadow: 1,
-        }}
-      >
-        Head: {currentHeadPosition}°
-      </Box>
-      
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 12,
-          right: 12,
-          backgroundColor: 'secondary.main',
-          color: 'white',
-          px: 1.5,
-          py: 0.8,
-          borderRadius: 1,
-          fontSize: '0.875rem',
-          fontWeight: 'medium',
-          zIndex: 3,
-          boxShadow: 1,
-        }}
-      >
-        Feet: {Math.round((currentFeetPosition / 20) * 30)}°
-      </Box>
-      
+
       {/* Loading state overlay */}
       {!imagesLoaded ? (
         <Box
@@ -211,10 +150,10 @@ export default function BedVisualization({ headPosition, feetPosition }: BedVisu
             textAlign: 'center',
           }}
         >
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          <Typography variant="body2" sx={{ mb: 1, color: '#fff' }}>
             Loading bed visualization...
           </Typography>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption" sx={{ color: '#888' }}>
             Preloading {46 + 21} images for smooth animation
           </Typography>
         </Box>
