@@ -35,7 +35,7 @@ export function AppStoreProvider({ children }: React.PropsWithChildren) {
   // Exclude base status query from global fetching count since it's background polling
   const totalFetching = useIsFetching();
   const baseFetching = useIsFetching({ queryKey: ['baseStatus'] });
-  const isFetching = (totalFetching - baseFetching) > 0;
+  const isFetching = totalFetching - baseFetching > 0;
   const { data: settings } = useSettings();
 
   const { side, setSide } = useAppStore();
