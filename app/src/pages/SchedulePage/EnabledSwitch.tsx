@@ -21,7 +21,7 @@ export default function EnabledSwitch() {
           disabled={isUpdating}
         />
       }
-      label="Enabled"
+      label={selectedSchedule?.power.enabled ? 'Enabled' : 'Disabled'}
     />
   );
 }

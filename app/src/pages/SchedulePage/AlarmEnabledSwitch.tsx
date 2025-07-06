@@ -21,7 +21,7 @@ export default function AlarmEnabledSwitch() {
           disabled={isUpdating}
         />
       }
-      label="Enabled"
+      label={selectedSchedule?.alarm.enabled ? 'Enabled' : 'Disabled'}
     />
   );
 }
