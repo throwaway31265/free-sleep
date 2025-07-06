@@ -8,10 +8,18 @@ type SaveButtonProps = {
 
 export default function SaveButton({ onSave }: SaveButtonProps) {
   const { isUpdating } = useAppStore();
-  const { changesPresent, isValid } = useScheduleStore();
+  const { changesPresent, isValid, selectedDays, selectedDay } =
+    useScheduleStore();
   if (!changesPresent) return null;
 
   const valid = isValid();
+
+  const selectedDaysList = Object.entries(selectedDays)
+    .filter(([_, isSelected]) => isSelected)
+    .map(([day, _]) => day);
+
+  const allSelectedDays = [...new Set([selectedDay, ...selectedDaysList])];
+  const dayCount = allSelectedDays.length;
 
   return (
     <Button
@@ -19,7 +27,7 @@ export default function SaveButton({ onSave }: SaveButtonProps) {
       onClick={onSave}
       disabled={isUpdating || !valid}
     >
-      Save
+      Save {dayCount > 1 ? `(${dayCount} days)` : ''}
     </Button>
   );
 }

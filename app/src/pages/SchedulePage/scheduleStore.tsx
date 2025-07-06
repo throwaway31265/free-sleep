@@ -60,6 +60,7 @@ type ScheduleStore = {
 
   selectedDays: Record<DayOfWeek, boolean>;
   toggleSelectedDay: (day: DayOfWeek) => void;
+  setSelectedDays: (days: DayOfWeek[]) => void;
 };
 
 export const useScheduleStore = create<ScheduleStore>((set, get) => ({
@@ -73,8 +74,12 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
     if (!originalSchedules) return;
     const selectedSchedule = originalSchedules[side][selectedDay];
 
+    // Initialize with the current day selected by default
+    const initialSelectedDays = { ...DEFAULT_DAYS_SELECTED };
+    initialSelectedDays[selectedDay] = true;
+
     set({
-      selectedDays: { ...DEFAULT_DAYS_SELECTED },
+      selectedDays: initialSelectedDays,
       accordionExpanded: undefined,
       validations: { ...DEFAULT_VALIDATIONS },
       selectedSchedule,
@@ -156,6 +161,15 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
         [day]: !selectedDays[day],
       },
     });
+    checkForChanges();
+  },
+  setSelectedDays: (days) => {
+    const { checkForChanges } = get();
+    const newSelectedDays = { ...DEFAULT_DAYS_SELECTED };
+    days.forEach((day) => {
+      newSelectedDays[day] = true;
+    });
+    set({ selectedDays: newSelectedDays });
     checkForChanges();
   },
 

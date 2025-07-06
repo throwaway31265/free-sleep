@@ -438,7 +438,7 @@ export default function BaseControlPage() {
         <Box
           sx={{
             position: 'fixed',
-            bottom: 120,
+            bottom: { xs: 100, md: 120 }, // Position above navigation bar
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 1000,
