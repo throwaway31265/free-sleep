@@ -18,7 +18,8 @@ export default function SaveButton({ onSave }: SaveButtonProps) {
     .filter(([_, isSelected]) => isSelected)
     .map(([day, _]) => day);
 
-  const allSelectedDays = [...new Set([selectedDay, ...selectedDaysList])];
+  // Only count actually selected days, consistent with MultiDaySelector
+  const allSelectedDays = selectedDaysList;
   const dayCount = allSelectedDays.length;
 
   return (

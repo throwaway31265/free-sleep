@@ -56,13 +56,14 @@ export default function SchedulePage() {
     const groupDays = dayIndices.map(
       (index) => LOWERCASE_DAYS[index] as DayOfWeek,
     );
-    const otherDays = groupDays.filter((_, index) => index !== 0); // Exclude first day to avoid duplication in the store
+    // Include ALL days from the group in selectedDays for proper counting
+    const allGroupDays = groupDays;
 
     setViewMode('edit');
 
     // Set selected days AFTER switching to edit mode to prevent them from being cleared
     setTimeout(() => {
-      setSelectedDays(otherDays);
+      setSelectedDays(allGroupDays);
     }, 0);
   };
 
