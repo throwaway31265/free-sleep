@@ -237,7 +237,7 @@ export class FrankenMonitor {
 
     // Trigger vibration feedback for quad tap
     try {
-      await executeFunction('VIBRATE', 'l');
+      await executeFunction('VIBRATE', 'left');
       logger.debug('[quadTap] Vibration feedback triggered');
     } catch (error) {
       logger.error(
