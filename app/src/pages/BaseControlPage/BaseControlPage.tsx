@@ -15,6 +15,7 @@ import { useTheme } from '@mui/material/styles';
 import { useAppStore } from '@state/appStore';
 import { useEffect, useState, useMemo } from 'react';
 import PageContainer from '../PageContainer';
+import BedVisualization from '@components/BedVisualization';
 import {
   useBaseStatus,
   useSetBasePosition,
@@ -37,15 +38,17 @@ export default function BaseControlPage() {
   const theme = useTheme();
   const { isUpdating } = useAppStore();
   const [position, setPosition] = useState<BasePosition>({ head: 0, feet: 0 });
+  const [isOptimisticallyMoving, setIsOptimisticallyMoving] = useState(false);
+  const [optimisticMovementStartTime, setOptimisticMovementStartTime] = useState<number | null>(null);
 
   const { data: baseStatus, isLoading } = useBaseStatus();
   const setBasePositionMutation = useSetBasePosition();
   const setBasePresetMutation = useSetBasePreset();
   const stopBaseMutation = useStopBase();
 
-  // Update local state when base status changes, but only when meaningful changes occur
+  // Update local state when base status changes - always sync with backend
   useEffect(() => {
-    if (baseStatus && !baseStatus.isMoving) {
+    if (baseStatus) {
       setPosition((prev) => {
         // Only update if the position has actually changed
         if (prev.head !== baseStatus.head || prev.feet !== baseStatus.feet) {
@@ -54,7 +57,19 @@ export default function BaseControlPage() {
         return prev;
       });
     }
-  }, [baseStatus?.head, baseStatus?.feet, baseStatus?.isMoving]);
+  }, [baseStatus?.head, baseStatus?.feet]);
+
+  // Stop optimistic movement when backend reports movement has stopped
+  useEffect(() => {
+    if (baseStatus && !baseStatus.isMoving && isOptimisticallyMoving) {
+      // Only stop if we've been optimistically moving for at least 2 seconds
+      // This prevents stopping too early if the backend hasn't started reporting movement yet
+      if (optimisticMovementStartTime && Date.now() - optimisticMovementStartTime > 2000) {
+        setIsOptimisticallyMoving(false);
+        setOptimisticMovementStartTime(null);
+      }
+    }
+  }, [baseStatus?.isMoving, isOptimisticallyMoving, optimisticMovementStartTime]);
 
   const handleHeadChange = (_: Event, newValue: number | number[]) => {
     setPosition((prev) => ({ ...prev, head: newValue as number }));
@@ -65,23 +80,50 @@ export default function BaseControlPage() {
   };
 
   const handlePresetClick = async (preset: keyof typeof presets) => {
-    setPosition(presets[preset]);
-    await setBasePresetMutation.mutateAsync(preset);
+    // Start optimistic movement state
+    setIsOptimisticallyMoving(true);
+    setOptimisticMovementStartTime(Date.now());
+    
+    try {
+      // Don't optimistically update local state - let backend report the changes
+      await setBasePresetMutation.mutateAsync(preset);
+    } catch (error) {
+      // If command fails, stop optimistic movement
+      setIsOptimisticallyMoving(false);
+      setOptimisticMovementStartTime(null);
+      throw error;
+    }
   };
 
   const applyPosition = async () => {
-    await setBasePositionMutation.mutateAsync({
-      head: position.head,
-      feet: position.feet,
-      feedRate: 50, // Default feed rate
-    });
+    // Start optimistic movement state
+    setIsOptimisticallyMoving(true);
+    setOptimisticMovementStartTime(Date.now());
+    
+    try {
+      await setBasePositionMutation.mutateAsync({
+        head: position.head,
+        feet: position.feet,
+        feedRate: 50, // Default feed rate
+      });
+    } catch (error) {
+      // If command fails, stop optimistic movement
+      setIsOptimisticallyMoving(false);
+      setOptimisticMovementStartTime(null);
+      throw error;
+    }
   };
 
   const handleStop = async () => {
+    // Stop optimistic movement immediately when stop is requested
+    setIsOptimisticallyMoving(false);
+    setOptimisticMovementStartTime(null);
+    
     await stopBaseMutation.mutateAsync();
   };
 
   const isMoving = baseStatus?.isMoving || false;
+  const isActuallyMoving = isOptimisticallyMoving || isMoving;
   const isMutating =
     setBasePositionMutation.isPending ||
     setBasePresetMutation.isPending ||
@@ -116,6 +158,9 @@ export default function BaseControlPage() {
         Base Control
       </Typography>
 
+      {/* Bed Visualization */}
+      <BedVisualization headPosition={position.head} feetPosition={position.feet} />
+
       {/* Loading indicator */}
       {isLoading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
@@ -124,7 +169,7 @@ export default function BaseControlPage() {
       )}
 
       {/* Movement status */}
-      {isMoving && !isMutating && (
+      {isActuallyMoving && !isMutating && (
         <Box sx={{ textAlign: 'center', mb: 2 }}>
           <Typography variant="body2" color="primary">
             Base is moving...
@@ -137,7 +182,7 @@ export default function BaseControlPage() {
         <Button
           variant={presetButtonStates.flat ? 'contained' : 'outlined'}
           onClick={() => handlePresetClick('flat')}
-          disabled={isUpdating || isMoving || isMutating}
+          disabled={isUpdating || isActuallyMoving || isMutating}
           startIcon={<BedIcon />}
           fullWidth
         >
@@ -146,7 +191,7 @@ export default function BaseControlPage() {
         <Button
           variant={presetButtonStates.sleep ? 'contained' : 'outlined'}
           onClick={() => handlePresetClick('sleep')}
-          disabled={isUpdating || isMoving || isMutating}
+          disabled={isUpdating || isActuallyMoving || isMutating}
           startIcon={<HotelIcon />}
           fullWidth
         >
@@ -155,7 +200,7 @@ export default function BaseControlPage() {
         <Button
           variant={presetButtonStates.relax ? 'contained' : 'outlined'}
           onClick={() => handlePresetClick('relax')}
-          disabled={isUpdating || isMoving || isMutating}
+          disabled={isUpdating || isActuallyMoving || isMutating}
           startIcon={<WeekendIcon />}
           fullWidth
         >
@@ -184,7 +229,7 @@ export default function BaseControlPage() {
               ]}
               valueLabelDisplay="on"
               valueLabelFormat={(value) => `${value}°`}
-              disabled={isUpdating || isMoving || isMutating}
+              disabled={isUpdating || isActuallyMoving || isMutating}
             />
           </Box>
         </CardContent>
@@ -211,7 +256,7 @@ export default function BaseControlPage() {
               ]}
               valueLabelDisplay="on"
               valueLabelFormat={(value) => `${value}°`}
-              disabled={isUpdating || isMoving || isMutating}
+              disabled={isUpdating || isActuallyMoving || isMutating}
             />
           </Box>
         </CardContent>
@@ -222,7 +267,7 @@ export default function BaseControlPage() {
         <Button
           variant="contained"
           onClick={applyPosition}
-          disabled={isUpdating || isMutating || isMoving}
+          disabled={isUpdating || isMutating || isActuallyMoving}
           size="large"
           fullWidth
         >
@@ -235,7 +280,7 @@ export default function BaseControlPage() {
           variant="contained"
           color="error"
           onClick={handleStop}
-          disabled={!isMoving || stopBaseMutation.isPending}
+          disabled={!isActuallyMoving || stopBaseMutation.isPending}
           size="large"
           fullWidth
         >

@@ -1,6 +1,5 @@
 import express from 'express';
 import { z } from 'zod';
-import { executeFunction } from '../../8sleep/deviceApi.js';
 import logger from '../../logger.js';
 import memoryDB from '../../db/memoryDB.js';
 import { trimixBase } from '../../8sleep/trimixBaseControl.js';
@@ -66,65 +65,18 @@ router.post('/base-control', async (req, res) => {
 
     logger.info('Setting base position:', validatedData);
 
-    // Store the target position
-    if (memoryDB.data) {
-      const isConfigured = await trimixBase.isConfigured();
-      memoryDB.data.baseStatus = {
-        head: validatedData.head,
-        feet: validatedData.feet,
-        isMoving: true,
-        lastUpdate: new Date().toISOString(),
-        isConfigured,
-      };
-      await memoryDB.write();
-    }
+    // Let BLE notifications handle both position and movement status updates
+    // No manual state updates needed here
 
-    // Try to control actual base via BLE
-    try {
-      logger.info('Attempting to control actual base via BLE');
-      await trimixBase.setPosition({
-        head: validatedData.head,
-        feet: validatedData.feet,
-        feedRate: validatedData.feedRate || 50,
-      });
+    // Control actual base via BLE
+    logger.info('Setting base position via BLE');
+    await trimixBase.setPosition({
+      head: validatedData.head,
+      feet: validatedData.feet,
+      feedRate: validatedData.feedRate || 50,
+    });
 
-      // Movement takes time, estimate based on angle change
-      const estimatedTime = Math.max(
-        Math.abs((memoryDB.data?.baseStatus?.head || 0) - validatedData.head) *
-          200,
-        Math.abs((memoryDB.data?.baseStatus?.feet || 0) - validatedData.feet) *
-          200,
-        3000, // Minimum 3 seconds
-      );
-
-      setTimeout(async () => {
-        logger.info('Base movement completed');
-        if (memoryDB.data?.baseStatus) {
-          memoryDB.data.baseStatus.isMoving = false;
-          await memoryDB.write();
-        }
-      }, estimatedTime);
-    } catch (bleError) {
-      logger.error('BLE control failed, falling back to simulation:', bleError);
-
-      // Fallback to simulation
-      const baseControlArg = JSON.stringify({
-        feedRate: validatedData.feedRate,
-        torsoAngle: validatedData.head,
-        legAngle: validatedData.feet,
-      });
-      await executeFunction('SET_BASE_POSITION', baseControlArg);
-
-      // Simulate movement completion after a delay
-      setTimeout(async () => {
-        logger.debug('Simulating movement completion');
-        if (memoryDB.data?.baseStatus) {
-          memoryDB.data.baseStatus.isMoving = false;
-          await memoryDB.write();
-          logger.info('Base movement simulation completed');
-        }
-      }, 5000);
-    }
+    // Note: Position and movement status will be updated automatically by BLE notifications
 
     res.json({
       success: true,
@@ -159,64 +111,18 @@ router.post('/base-control/preset', async (req, res): Promise<void> => {
 
     logger.info(`Setting base to ${preset} preset:`, position);
 
-    if (memoryDB.data) {
-      memoryDB.data.baseStatus = {
-        isConfigured: memoryDB.data.baseStatus?.isConfigured || false,
-        head: position.head,
-        feet: position.feet,
-        isMoving: true,
-        lastUpdate: new Date().toISOString(),
-      };
-      await memoryDB.write();
-    }
+    // Let BLE notifications handle both position and movement status updates
+    // No manual state updates needed here
 
-    // Try to control actual base via BLE
-    try {
-      logger.info(`Setting base to ${preset} preset via BLE`);
-      await trimixBase.setPosition({
-        head: position.head,
-        feet: position.feet,
-        feedRate: position.feedRate || 50,
-      });
+    // Control actual base via BLE
+    logger.info(`Setting base to ${preset} preset via BLE`);
+    await trimixBase.setPosition({
+      head: position.head,
+      feet: position.feet,
+      feedRate: position.feedRate || 50,
+    });
 
-      // Movement takes time, estimate based on angle change
-      const estimatedTime = Math.max(
-        Math.abs((memoryDB.data?.baseStatus?.head || 0) - position.head) * 200,
-        Math.abs((memoryDB.data?.baseStatus?.feet || 0) - position.feet) * 200,
-        3000, // Minimum 3 seconds
-      );
-
-      setTimeout(async () => {
-        logger.info(`Base preset ${preset} movement completed`);
-        if (memoryDB.data?.baseStatus) {
-          memoryDB.data.baseStatus.isMoving = false;
-          await memoryDB.write();
-        }
-      }, estimatedTime);
-    } catch (bleError) {
-      logger.error(
-        'BLE preset control failed, falling back to simulation:',
-        bleError,
-      );
-
-      // Fallback to simulation
-      const baseControlArg = JSON.stringify({
-        feedRate: position.feedRate,
-        torsoAngle: position.head,
-        legAngle: position.feet,
-      });
-      await executeFunction('SET_BASE_POSITION', baseControlArg);
-
-      // Simulate movement completion
-      setTimeout(async () => {
-        logger.debug('Simulating preset movement completion');
-        if (memoryDB.data?.baseStatus) {
-          memoryDB.data.baseStatus.isMoving = false;
-          await memoryDB.write();
-          logger.info(`Base preset ${preset} simulation completed`);
-        }
-      }, 5000);
-    }
+    // Note: Position and movement status will be updated automatically by BLE notifications
 
     res.json({
       success: true,
@@ -234,21 +140,11 @@ router.post('/base-control/stop', async (_req, res) => {
   try {
     logger.info('Emergency stop requested');
 
-    // Try to stop via BLE
-    try {
-      await trimixBase.stop();
-      logger.info('Base movement stopped via BLE');
-    } catch (bleError) {
-      logger.error('Failed to stop base via BLE:', bleError);
-    }
+    // Stop base via BLE
+    await trimixBase.stop();
+    logger.info('Base movement stopped via BLE');
 
-    // Always update status
-    if (memoryDB.data) {
-      if (memoryDB.data.baseStatus) {
-        memoryDB.data.baseStatus.isMoving = false;
-        await memoryDB.write();
-      }
-    }
+    // Note: isMoving status will be updated automatically by BLE System Flags packets when motors actually stop
 
     res.json({ success: true, message: 'Stop command sent' });
   } catch (error) {

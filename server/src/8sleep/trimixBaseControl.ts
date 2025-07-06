@@ -387,6 +387,9 @@ export class TriMixBaseControl {
   /**
    * Decodes a validated notification packet and updates the database.
    */
+  private lastPosition = { head: -1, feet: -1 };
+  private movementTimeout: NodeJS.Timeout | null = null;
+
   private parseNotification(packet: Uint8Array): void {
     const hexString = Array.from(packet)
       .map((b) => b.toString(16).padStart(2, '0'))
@@ -411,51 +414,43 @@ export class TriMixBaseControl {
       const headAngle = ticksToTorsoAngle(avgTorsoTicks);
       const feetAngle = ticksToLegAngle(avgLegTicks);
 
+      // Detect movement by comparing with last known position
+      const positionChanged = this.lastPosition.head !== headAngle || this.lastPosition.feet !== feetAngle;
+      
+      if (positionChanged) {
+        // Position changed - base is moving
+        this.lastPosition = { head: headAngle, feet: feetAngle };
+        
+        // Clear any existing timeout
+        if (this.movementTimeout) {
+          clearTimeout(this.movementTimeout);
+        }
+        
+        // Set timeout to detect when movement stops (no position updates for 3 seconds)
+        this.movementTimeout = setTimeout(() => {
+          if (memoryDB.data?.baseStatus) {
+            memoryDB.data.baseStatus.isMoving = false;
+            memoryDB.data.baseStatus.lastUpdate = new Date().toISOString();
+            memoryDB.write();
+          }
+        }, 3000);
+      }
+
       if (!memoryDB.data.baseStatus) {
         memoryDB.data.baseStatus = {
           head: headAngle,
           feet: feetAngle,
-          isMoving: false,
+          isMoving: positionChanged,
           lastUpdate: new Date().toISOString(),
           isConfigured: true,
         };
       } else {
         memoryDB.data.baseStatus.head = headAngle;
         memoryDB.data.baseStatus.feet = feetAngle;
+        memoryDB.data.baseStatus.isMoving = positionChanged || memoryDB.data.baseStatus.isMoving;
         memoryDB.data.baseStatus.lastUpdate = new Date().toISOString();
       }
       memoryDB.write();
-      // logger.info(`Parsed position: Head=${headAngle}°, Feet=${feetAngle}°`);
-    } else if (packetType === 0x19) {
-      // System Flags Packet
-      const rightTorsoStatus = view.getUint8(9);
-      const rightLegStatus = view.getUint8(10);
-      const leftTorsoStatus = view.getUint8(11);
-      const leftLegStatus = view.getUint8(12);
-
-      // Based on observed packet data, movement is detected when any motor status is NOT 0
-      // When all motors are stopped, all status values should be 0
-      const isMoving = [
-        rightTorsoStatus,
-        rightLegStatus,
-        leftTorsoStatus,
-        leftLegStatus,
-      ].some((status) => status !== 0);
-
-      if (!memoryDB.data.baseStatus) {
-        memoryDB.data.baseStatus = {
-          head: 0,
-          feet: 0,
-          isMoving: isMoving,
-          lastUpdate: new Date().toISOString(),
-          isConfigured: true,
-        };
-      } else {
-        memoryDB.data.baseStatus.isMoving = isMoving;
-        memoryDB.data.baseStatus.lastUpdate = new Date().toISOString();
-      }
-      memoryDB.write();
-      // logger.info(`Parsed moving status: ${isMoving}`);
     }
   }
 
