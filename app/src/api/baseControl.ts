@@ -35,7 +35,7 @@ const setBasePosition = async (position: BasePosition) => {
   return response.data;
 };
 
-const setBasePreset = async (preset: 'flat' | 'sleep' | 'relax') => {
+const setBasePreset = async (preset: 'flat' | 'sleep' | 'relax' | 'read') => {
   const response = await axiosInstance.post('/base-control/preset', {
     preset,
   });

@@ -1,0 +1,6 @@
+<svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sleep position - head: 1° (very subtle elevation), feet: 5° (slight elevation) -->
+  <path d="M 10 23 L 40 24 L 70 23 L 90 21" stroke="#ffffff" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.9"/>
+  <!-- Pillow positioned on slightly elevated head -->
+  <ellipse cx="22" cy="23" rx="8" ry="4" fill="#ffffff"/>
+</svg>
