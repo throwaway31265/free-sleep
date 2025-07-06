@@ -8,6 +8,7 @@ const BaseStatusSchema = z.object({
   feet: z.number(),
   isMoving: z.boolean(),
   lastUpdate: z.string(),
+  isConfigured: z.boolean().optional(),
 });
 
 const BasePositionSchema = z.object({
