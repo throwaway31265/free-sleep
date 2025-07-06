@@ -50,7 +50,7 @@ const normalizeScheduleForComparison = (schedule: DailySchedule): string => {
   };
 
   // Convert to JSON string for comparison with sorted keys at all levels
-  const sortedJsonString = JSON.stringify(normalized, (key, value) => {
+  const sortedJsonString = JSON.stringify(normalized, (__key, value) => {
     if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
       // Sort object keys for consistent comparison
       const sortedObj: any = {};
