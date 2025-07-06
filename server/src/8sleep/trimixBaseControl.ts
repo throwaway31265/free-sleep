@@ -1,9 +1,7 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { ChildProcess, spawn } from 'child_process';
 import { readFile } from 'fs/promises';
 import logger from '../logger.js';
-
-const execAsync = promisify(exec);
+import memoryDB from '../db/memoryDB.js';
 
 // Configuration file path
 const BASE_CONFIG_PATH = '/persistent/AdjustableBaseConfiguration.json';
@@ -127,22 +125,38 @@ const legAngleMap = new Map<number, number>([
   [45, 1806],
 ]);
 
-// --- Command Generation ---
+// --- Ticks-to-Angle Conversion ---
+function ticksToAngle(ticks: number, map: Map<number, number>): number {
+  let closestAngle = 0;
+  let smallestDiff = Infinity;
 
-/**
- * Calculates the 2-byte little-endian checksum for a given payload.
- */
+  for (const [angle, mapTicks] of map.entries()) {
+    const diff = Math.abs(ticks - mapTicks);
+    if (diff < smallestDiff) {
+      smallestDiff = diff;
+      closestAngle = angle;
+    }
+  }
+  return closestAngle;
+}
+
+function ticksToTorsoAngle(ticks: number): number {
+  return ticksToAngle(ticks, torsoAngleMap);
+}
+
+function ticksToLegAngle(ticks: number): number {
+  return ticksToAngle(ticks, legAngleMap);
+}
+
+// --- Command Generation ---
 function calculateChecksum(payload: Uint8Array): Uint8Array {
   const sum = payload.reduce((acc, byte) => acc + byte, 0);
   const checksum = new Uint8Array(2);
   const view = new DataView(checksum.buffer);
-  view.setUint16(0, sum, true); // true for little-endian
+  view.setUint16(0, sum, true);
   return checksum;
 }
 
-/**
- * Appends a checksum to a payload to create the final packet.
- */
 function buildPacketWithChecksum(payload: Uint8Array): Uint8Array {
   const checksum = calculateChecksum(payload);
   const packet = new Uint8Array(payload.length + checksum.length);
@@ -151,9 +165,6 @@ function buildPacketWithChecksum(payload: Uint8Array): Uint8Array {
   return packet;
 }
 
-/**
- * Creates a command to set a motor to a specific angle.
- */
 function createSetAngleCommand(
   motor: 'torso' | 'leg',
   angle: number,
@@ -161,38 +172,29 @@ function createSetAngleCommand(
 ): Uint8Array {
   const payload = new Uint8Array(18).fill(0);
   const view = new DataView(payload.buffer);
-
-  // Magic Header for standard commands
   view.setUint32(0, 0xffffffff, false);
   view.setUint8(4, 0x01);
   view.setUint8(5, 0x00);
-
-  // Command section
-  view.setUint8(6, 0x21); // Set Angle/Ticks command
+  view.setUint8(6, 0x21);
   view.setUint8(7, 0x14);
   view.setUint8(8, feedRate);
 
   if (motor === 'torso') {
-    view.setUint8(9, 0x06); // Torso motor ID
+    view.setUint8(9, 0x06);
     const ticks = torsoAngleMap.get(angle);
     if (ticks === undefined)
       throw new Error(`Invalid angle ${angle} for torso.`);
-    view.setUint16(10, ticks, true); // Ticks (little-endian)
+    view.setUint16(10, ticks, true);
   } else if (motor === 'leg') {
-    view.setUint8(9, 0x05); // Leg motor ID
+    view.setUint8(9, 0x05);
     const ticks = legAngleMap.get(angle);
     if (ticks === undefined) throw new Error(`Invalid angle ${angle} for leg.`);
-    view.setUint16(10, ticks, true); // Ticks (little-endian)
+    view.setUint16(10, ticks, true);
   }
-
   return buildPacketWithChecksum(payload);
 }
 
-/**
- * Creates the special command to stop all motor movement.
- */
 function createStopCommand(): Uint8Array {
-  // This is a special, hardcoded payload from the source code.
   const payload = new Uint8Array([255, 255, 255, 255, 5, 0, 0, 0, 0, 215, 0]);
   return buildPacketWithChecksum(payload);
 }
@@ -209,32 +211,38 @@ export class TriMixBaseControl {
   private writeCharacteristicPath: string | null = null;
   private baseAddress: string | null = null;
   private baseConfig: BaseConfiguration | null = null;
+  private bleProcess: ChildProcess | null = null;
+  private inGattMenu = false;
 
   constructor() {
-    // Will be initialized when we read the config
+    this.initialize();
   }
 
   /**
-   * Load base configuration from file
+   * Load configuration and start the BLE management process.
+   */
+  async initialize(): Promise<void> {
+    const configLoaded = await this.loadConfiguration();
+    if (!configLoaded) {
+      logger.error('Failed to load base configuration. Retrying in 30s...');
+      setTimeout(() => this.initialize(), 30000);
+      return;
+    }
+    this.startBleProcess();
+  }
+
+  /**
+   * Load base configuration from file.
    */
   private async loadConfiguration(): Promise<boolean> {
     try {
       const configData = await readFile(BASE_CONFIG_PATH, 'utf-8');
       this.baseConfig = JSON.parse(configData) as BaseConfiguration;
       this.baseAddress = this.baseConfig.Address;
-
-      // Build characteristic paths
       const macForPath = this.baseAddress.replace(/:/g, '_');
       this.notifyCharacteristicPath = `/org/bluez/hci0/dev_${macForPath}/service0008/char0009`;
       this.writeCharacteristicPath = `/org/bluez/hci0/dev_${macForPath}/service0008/char000f`;
-
-      logger.info('Loaded base configuration:', {
-        address: this.baseAddress,
-        splitBase: this.baseConfig.SplitBase,
-        notifyPath: this.notifyCharacteristicPath,
-        writePath: this.writeCharacteristicPath,
-      });
-
+      logger.info('Loaded base configuration:', { address: this.baseAddress });
       return true;
     } catch (error) {
       logger.error('Failed to load base configuration:', error);
@@ -243,148 +251,169 @@ export class TriMixBaseControl {
   }
 
   /**
-   * Connect to the base via bluetoothctl
+   * Spawns and manages the bluetoothctl process.
    */
-  async connect(): Promise<boolean> {
-    try {
-      // Load configuration if not already loaded
-      if (!this.baseAddress) {
-        const configLoaded = await this.loadConfiguration();
-        if (!configLoaded) {
-          logger.error('Cannot connect - no base configuration found');
-          return false;
-        }
-      }
-
-      logger.info('Connecting to TriMix base...');
-
-      // Check if already connected
-      const { stdout: infoOutput } = await execAsync(
-        `bluetoothctl info ${this.baseAddress}`,
-      );
-
-      if (infoOutput.includes('Connected: yes')) {
-        logger.info('Base already connected');
-        this.isConnected = true;
-        await this.enableNotifications();
-        return true;
-      }
-
-      // Connect to the base
-      await execAsync(`bluetoothctl connect ${this.baseAddress}`);
-
-      // Wait a bit for connection to stabilize
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Enable notifications
-      await this.enableNotifications();
-
-      this.isConnected = true;
-      logger.info('Successfully connected to TriMix base');
-      return true;
-    } catch (error) {
-      logger.error('Failed to connect to base:', error);
-      this.isConnected = false;
-      return false;
-    }
-  }
-
-  /**
-   * Enable notifications on the characteristic
-   */
-  private async enableNotifications(): Promise<void> {
-    if (!this.notifyCharacteristicPath) {
-      logger.error('Notify characteristic path is not set.');
+  private startBleProcess(): void {
+    if (this.bleProcess) {
+      logger.info('Bluetoothctl process is already running.');
       return;
     }
-    try {
-      logger.info('Enabling notifications on characteristic...');
-      const command = `bluetoothctl << EOF
-menu gatt
-select-attribute ${this.notifyCharacteristicPath}
-notify on
-back
-quit
-EOF`;
+    logger.info('Starting bluetoothctl process...');
+    this.bleProcess = spawn('bluetoothctl', [], { shell: true });
 
-      const { stdout } = await execAsync(command);
-      logger.debug('Notification enable response:', stdout);
-    } catch (error) {
-      logger.warn('Failed to enable notifications:', error);
+    this.bleProcess.stdout?.on('data', (data: Buffer) => {
+      this.handleBleOutput(data.toString());
+    });
+
+    this.bleProcess.stderr?.on('data', (data: Buffer) => {
+      logger.error(`bluetoothctl stderr: ${data.toString()}`);
+    });
+
+    this.bleProcess.on('close', (code) => {
+      logger.warn(
+        `bluetoothctl process exited with code ${code}. Restarting in 5s.`,
+      );
+      this.bleProcess = null;
+      this.isConnected = false;
+      this.inGattMenu = false;
+      setTimeout(() => this.startBleProcess(), 5000);
+    });
+
+    // Initial connection command
+    this.sendCommandToProcess(`connect ${this.baseAddress}`);
+  }
+
+  /**
+   * Handles stdout from the bluetoothctl process.
+   */
+  private handleBleOutput(output: string): void {
+    logger.debug(`[bluetoothctl] ${output.trim()}`);
+    if (!this.isConnected && output.includes('Connection successful')) {
+      this.isConnected = true;
+      logger.info('Base connected. Enabling notifications...');
+      this.enableNotificationsViaProcess();
+    }
+
+    if (output.includes('Menu gatt:')) {
+      this.inGattMenu = true;
+    }
+
+    if (
+      output.includes(this.notifyCharacteristicPath!) &&
+      output.includes('Value:')
+    ) {
+      const hexString = output
+        .substring(output.indexOf('Value:') + 6)
+        .trim()
+        .replace(/\s+/g, ' ');
+      this.parseNotification(hexString);
     }
   }
 
   /**
-   * Finds the closest valid angle in the map.
+   * Sends commands to enable notifications via the persistent process.
    */
-  private getClosestTorsoAngle(angle: number): number {
-    const angles = Array.from(torsoAngleMap.keys()).sort((a, b) => a - b);
-    return angles.reduce((prev, curr) =>
-      Math.abs(curr - angle) < Math.abs(prev - angle) ? curr : prev,
+  private enableNotificationsViaProcess(): void {
+    this.sendCommandToProcess('menu gatt');
+    this.sendCommandToProcess(
+      `select-attribute ${this.notifyCharacteristicPath}`,
     );
+    this.sendCommandToProcess('notify on');
   }
 
   /**
-   * Finds the closest valid angle in the map.
+   * Decodes notification packets and updates the database.
    */
-  private getClosestLegAngle(angle: number): number {
-    const angles = Array.from(legAngleMap.keys()).sort((a, b) => a - b);
-    return angles.reduce((prev, curr) =>
-      Math.abs(curr - angle) < Math.abs(prev - angle) ? curr : prev,
-    );
-  }
+  private parseNotification(hexString: string): void {
+    const bytes = hexString.split(' ').map((s) => parseInt(s, 16));
+    if (bytes.length < 18) return;
 
-  /**
-   * Send command to base via bluetoothctl
-   */
-  private async sendCommand(payload: Uint8Array): Promise<void> {
-    if (!this.isConnected) {
-      throw new Error('Not connected to base');
+    const view = new DataView(new Uint8Array(bytes).buffer);
+    const packetType = view.getUint8(6);
+
+    if (!memoryDB.data) return;
+
+    if (packetType === 0x22) {
+      // Position State Packet
+      const leftTorsoTicks = view.getUint16(11, true);
+      const rightTorsoTicks = view.getUint16(15, true);
+      const leftLegTicks = view.getUint16(9, true);
+      const rightLegTicks = view.getUint16(13, true);
+
+      const avgTorsoTicks = Math.round((leftTorsoTicks + rightTorsoTicks) / 2);
+      const avgLegTicks = Math.round((leftLegTicks + rightLegTicks) / 2);
+
+      const headAngle = ticksToTorsoAngle(avgTorsoTicks);
+      const feetAngle = ticksToLegAngle(avgLegTicks);
+
+      if (memoryDB.data.baseStatus) {
+        memoryDB.data.baseStatus.head = headAngle;
+        memoryDB.data.baseStatus.feet = feetAngle;
+        memoryDB.data.baseStatus.lastUpdate = new Date().toISOString();
+        memoryDB.write();
+      }
+      logger.debug(`Parsed position: Head=${headAngle}°, Feet=${feetAngle}°`);
+    } else if (packetType === 0x19) {
+      // System Flags Packet
+      const rightTorsoStatus = view.getUint8(9);
+      const rightLegStatus = view.getUint8(10);
+      const leftTorsoStatus = view.getUint8(11);
+      const leftLegStatus = view.getUint8(12);
+
+      const isMoving = [
+        rightTorsoStatus,
+        rightLegStatus,
+        leftTorsoStatus,
+        leftLegStatus,
+      ].some((status) => status === 0);
+
+      if (memoryDB.data.baseStatus) {
+        memoryDB.data.baseStatus.isMoving = isMoving;
+        memoryDB.data.baseStatus.lastUpdate = new Date().toISOString();
+        memoryDB.write();
+      }
+      logger.debug(`Parsed moving status: ${isMoving}`);
     }
-    if (!this.writeCharacteristicPath) {
+  }
+
+  /**
+   * Writes a command to the stdin of the bluetoothctl process.
+   */
+  private sendCommandToProcess(command: string): void {
+    if (!this.bleProcess) {
+      logger.error('Cannot send command, bluetoothctl process is not running.');
+      return;
+    }
+    logger.info(`> ${command}`);
+    this.bleProcess.stdin?.write(`${command}\n`);
+  }
+
+  /**
+   * Sends a command payload to the base.
+   */
+  private async sendPayload(payload: Uint8Array): Promise<void> {
+    if (!this.isConnected) throw new Error('Not connected to base');
+    if (!this.writeCharacteristicPath)
       throw new Error('Write characteristic path is not set.');
-    }
 
     const hexBytes = Array.from(payload)
       .map((b) => `0x${b.toString(16).padStart(2, '0')}`)
       .join(' ');
 
-    logger.info('Sending BLE command to base:');
-    logger.info(`  Payload bytes: [${Array.from(payload).join(', ')}]`);
-    logger.info(`  Hex string: ${hexBytes}`);
-
-    const command = `bluetoothctl << 'EOF'
-menu gatt
-select-attribute ${this.writeCharacteristicPath}
-write "${hexBytes}"
-back
-quit
-EOF`;
-
-    try {
-      const { stdout, stderr } = await execAsync(command);
-      logger.info('Bluetoothctl full response:', stdout);
-      if (stderr) {
-        logger.warn('Bluetoothctl stderr:', stderr);
-      }
-
-      if (
-        stdout.includes('WriteValue') ||
-        stdout.includes('Attempting to write')
-      ) {
-        logger.info('Write command accepted by bluetoothctl');
-      } else if (stdout.includes('Failed') || stdout.includes('Error')) {
-        logger.error('Write command failed - check bluetoothctl output above');
-      }
-    } catch (error) {
-      logger.error('Failed to send command:', error);
-      throw error;
+    logger.info('Sending command payload:', hexBytes);
+    if (!this.inGattMenu) {
+      this.sendCommandToProcess('menu gatt');
     }
+    this.sendCommandToProcess(
+      `select-attribute ${this.writeCharacteristicPath}`,
+    );
+    this.sendCommandToProcess(`write "${hexBytes}"`);
+    // Return to listening on the notification characteristic
+    this.sendCommandToProcess(
+      `select-attribute ${this.notifyCharacteristicPath}`,
+    );
   }
 
-  /**
-   * Check if base is configured
-   */
   async isConfigured(): Promise<boolean> {
     try {
       await readFile(BASE_CONFIG_PATH, 'utf-8');
@@ -394,86 +423,47 @@ EOF`;
     }
   }
 
-  /**
-   * Set base position (both sides synchronized)
-   */
   async setPosition(position: BasePosition): Promise<void> {
-    if (!this.isConnected) {
-      await this.connect();
-    }
-
     logger.info('Setting base position:', position);
-
     try {
-      // Set torso angle
-      const torsoAngle = this.getClosestTorsoAngle(position.head);
+      const torsoAngle = this.getClosestAngle(position.head, torsoAngleMap);
+      const legAngle = this.getClosestAngle(position.feet, legAngleMap);
+
       const torsoCommand = createSetAngleCommand(
         'torso',
         torsoAngle,
         position.feedRate,
       );
-      logger.info(
-        `Setting torso to angle ${torsoAngle} (requested ${position.head})`,
-      );
-      await this.sendCommand(torsoCommand);
-
-      // Wait a bit between commands
+      await this.sendPayload(torsoCommand);
       await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Set leg angle
-      const legAngle = this.getClosestLegAngle(position.feet);
       const legCommand = createSetAngleCommand(
         'leg',
         legAngle,
         position.feedRate,
       );
-      logger.info(
-        `Setting leg to angle ${legAngle} (requested ${position.feet})`,
-      );
-      await this.sendCommand(legCommand);
+      await this.sendPayload(legCommand);
     } catch (error) {
       logger.error(`Failed to set position: ${error}`);
       throw error;
     }
   }
 
-  /**
-   * Stop all movement
-   */
-  async stop(): Promise<void> {
-    if (!this.isConnected) {
-      logger.warn('Cannot stop - not connected to base');
-      return;
-    }
-    logger.info('Stopping all base movement');
-    const command = createStopCommand();
-    await this.sendCommand(command);
+  private getClosestAngle(angle: number, map: Map<number, number>): number {
+    const angles = Array.from(map.keys()).sort((a, b) => a - b);
+    return angles.reduce((prev, curr) =>
+      Math.abs(curr - angle) < Math.abs(prev - angle) ? curr : prev,
+    );
   }
 
-  /**
-   * Go to flat position
-   */
+  async stop(): Promise<void> {
+    logger.info('Stopping all base movement');
+    const command = createStopCommand();
+    await this.sendPayload(command);
+  }
+
   async goToFlat(): Promise<void> {
     await this.setPosition({ head: 0, feet: 0, feedRate: 50 });
   }
-
-  /**
-   * Disconnect from base
-   */
-  async disconnect(): Promise<void> {
-    if (!this.isConnected || !this.baseAddress) {
-      return;
-    }
-
-    try {
-      await execAsync(`bluetoothctl disconnect ${this.baseAddress}`);
-      this.isConnected = false;
-      logger.info('Disconnected from base');
-    } catch (error) {
-      logger.error('Error disconnecting:', error);
-    }
-  }
 }
 
-// Singleton instance
 export const trimixBase = new TriMixBaseControl();
