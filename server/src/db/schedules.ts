@@ -25,6 +25,7 @@ const defaultDailySchedule: DailySchedule = {
     enabled: false,
     alarmTemperature: 82,
   },
+  elevations: {},
 };
 
 const defaultSideSchedule: SideSchedule = {

@@ -23,7 +23,7 @@ function TemperatureIcon() {
 
 export const PAGES: Page[] = [
   { title: 'Temperature', route: '/temperature', icon: <TemperatureIcon /> },
-  { title: 'Base Control', route: '/base-control', icon: <AdjustIcon /> },
+  { title: 'Elevation', route: '/base-control', icon: <AdjustIcon /> },
   { title: 'Schedules', route: '/schedules', icon: <ScheduleIcon /> },
   { title: 'Data', route: '/data', icon: <BarChartIcon /> },
   { title: 'Settings', route: '/settings', icon: <SettingsIcon /> },
