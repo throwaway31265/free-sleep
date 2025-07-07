@@ -8,6 +8,7 @@ import _ from 'lodash';
 import { useEffect } from 'react';
 import type { DeepPartial } from 'ts-essentials';
 import AlarmAccordion from './AlarmAccordion.tsx';
+import ElevationAdjustmentsAccordion from './ElevationAdjustmentsAccordion.tsx';
 import EnabledSwitch from './EnabledSwitch.tsx';
 import MultiDaySelector from './MultiDaySelector.tsx';
 import PowerOffTime from './PowerOffTime.tsx';
@@ -118,6 +119,7 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
       {selectedSchedule?.power.enabled && (
         <>
           <TemperatureAdjustmentsAccordion displayCelsius={displayCelsius} />
+          <ElevationAdjustmentsAccordion />
           <AlarmAccordion />
         </>
       )}

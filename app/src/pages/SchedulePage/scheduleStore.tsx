@@ -53,6 +53,9 @@ type ScheduleStore = {
   updateSelectedTemperatures: (
     temperatures: DailySchedule['temperatures'],
   ) => void;
+  updateSelectedElevations: (
+    elevations: DailySchedule['elevations'],
+  ) => void;
 
   // Keep a copy of the original schedules
   originalSchedules: Schedules | undefined;
@@ -147,6 +150,20 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
       selectedSchedule: {
         ...selectedScheduleCopy,
         temperatures,
+      },
+    });
+    checkForChanges();
+  },
+  // Updating schedules - (Elevations) - needs to replace the entire elevations field instead of merging it
+  updateSelectedElevations: (elevations) => {
+    const { selectedSchedule, checkForChanges } = get();
+    const selectedScheduleCopy = _.cloneDeep(selectedSchedule);
+    if (!selectedSchedule) return;
+    set({
+      // @ts-ignore
+      selectedSchedule: {
+        ...selectedScheduleCopy,
+        elevations,
       },
     });
     checkForChanges();

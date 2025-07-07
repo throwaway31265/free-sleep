@@ -199,6 +199,20 @@ export default function GroupedScheduleCard({
                     {Object.keys(schedule.temperatures).length}
                   </Typography>
                 )}
+
+                {Object.keys(schedule.elevations).length > 0 && (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      fontSize: { xs: '13px', sm: '14px' },
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    <strong style={{ color: '#fff' }}>Elevations:</strong>{' '}
+                    {Object.keys(schedule.elevations).length}
+                  </Typography>
+                )}
               </Box>
             ) : (
               <Typography

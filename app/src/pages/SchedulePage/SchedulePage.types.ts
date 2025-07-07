@@ -6,4 +6,5 @@ export type AccordionExpanded =
   | undefined
   | 'applyToDays'
   | 'temperatureAdjustments'
+  | 'elevationAdjustments'
   | 'alarm';
