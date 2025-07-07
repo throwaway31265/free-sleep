@@ -47,6 +47,7 @@ const normalizeScheduleForComparison = (schedule: DailySchedule): string => {
       alarmTemperature: schedule.alarm.alarmTemperature,
     },
     temperatures: schedule.temperatures,
+    elevations: schedule.elevations,
   };
 
   // Convert to JSON string for comparison with sorted keys at all levels
