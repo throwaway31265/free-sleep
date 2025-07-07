@@ -7,6 +7,7 @@ import type { DayOfWeek, Side } from '../db/schedulesSchema.js';
 import settingsDB from '../db/settings.js';
 import logger from '../logger.js';
 import { scheduleAlarm } from './alarmScheduler.js';
+import { scheduleElevations } from './baseScheduler.js';
 import {
   schedulePowerOffAndSleepAnalysis,
   schedulePowerOn,
@@ -57,6 +58,12 @@ async function setupJobs() {
         side as Side,
         day as DayOfWeek,
         schedule.temperatures,
+      );
+      scheduleElevations(
+        settingsData,
+        side as Side,
+        day as DayOfWeek,
+        schedule.elevations,
       );
       scheduleAlarm(settingsData, side as Side, day as DayOfWeek, schedule);
     });

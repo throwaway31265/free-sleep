@@ -1,7 +1,7 @@
 import { ChildProcess, spawn } from 'child_process';
 import { readFile } from 'fs/promises';
-import logger from '../logger.js';
 import memoryDB from '../db/memoryDB.js';
+import logger from '../logger.js';
 
 // Configuration file path
 const BASE_CONFIG_PATH = '/persistent/AdjustableBaseConfiguration.json';
@@ -303,8 +303,11 @@ export class TriMixBaseControl {
     for (const line of lines) {
       // Strip ANSI escape codes and other control characters from the line
       const cleanLine = line
+        // biome-ignore lint/suspicious/noControlCharactersInRegex: <explanation>
         .replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '') // Remove ANSI escape sequences
+        // biome-ignore lint/suspicious/noControlCharactersInRegex: <explanation>
         .replace(/\u0001\u001b\[.*?\u0001\u001b\[.*?\u0002/g, '') // Remove specific color codes
+        // biome-ignore lint/suspicious/noControlCharactersInRegex: <explanation>
         .replace(/\u0001.*?\u0002/g, '') // Remove other control sequences
         .replace(/\r/g, '') // Remove carriage returns
         .replace(/\[[^\]]*\]/g, ''); // Remove any remaining bracket sequences
@@ -330,7 +333,7 @@ export class TriMixBaseControl {
     while (this.notificationBuffer.length >= 20) {
       // Find the start of a packet (0xff ff ff ff)
       const startIndex = this.notificationBuffer.findIndex(
-        (byte, i) =>
+        (_byte, i) =>
           this.notificationBuffer[i] === 0xff &&
           this.notificationBuffer[i + 1] === 0xff &&
           this.notificationBuffer[i + 2] === 0xff &&
@@ -388,14 +391,9 @@ export class TriMixBaseControl {
    * Decodes a validated notification packet and updates the database.
    */
   private lastPosition = { head: -1, feet: -1 };
-  private movementTimeout: NodeJS.Timeout | null = null;
+  private movementTimeout: Timer | null = null;
 
   private parseNotification(packet: Uint8Array): void {
-    const hexString = Array.from(packet)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join(' ');
-    // logger.info(`Parsing valid packet: "${hexString}"`);
-
     const view = new DataView(packet.buffer);
     const packetType = view.getUint8(6);
 
@@ -415,17 +413,19 @@ export class TriMixBaseControl {
       const feetAngle = ticksToLegAngle(avgLegTicks);
 
       // Detect movement by comparing with last known position
-      const positionChanged = this.lastPosition.head !== headAngle || this.lastPosition.feet !== feetAngle;
-      
+      const positionChanged =
+        this.lastPosition.head !== headAngle ||
+        this.lastPosition.feet !== feetAngle;
+
       if (positionChanged) {
         // Position changed - base is moving
         this.lastPosition = { head: headAngle, feet: feetAngle };
-        
+
         // Clear any existing timeout
         if (this.movementTimeout) {
           clearTimeout(this.movementTimeout);
         }
-        
+
         // Set timeout to detect when movement stops (no position updates for 3 seconds)
         this.movementTimeout = setTimeout(() => {
           if (memoryDB.data?.baseStatus) {
@@ -447,7 +447,8 @@ export class TriMixBaseControl {
       } else {
         memoryDB.data.baseStatus.head = headAngle;
         memoryDB.data.baseStatus.feet = feetAngle;
-        memoryDB.data.baseStatus.isMoving = positionChanged || memoryDB.data.baseStatus.isMoving;
+        memoryDB.data.baseStatus.isMoving =
+          positionChanged || memoryDB.data.baseStatus.isMoving;
         memoryDB.data.baseStatus.lastUpdate = new Date().toISOString();
       }
       memoryDB.write();

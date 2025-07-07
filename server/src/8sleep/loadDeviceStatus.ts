@@ -84,7 +84,8 @@ const decodeSettings = (rawSettings: string): DeviceStatus['settings'] => {
   // @ts-ignore
   const renamedDecoded = _.mapKeys(
     decoded,
-    (value, key) => SETTINGS_KEY_MAPPING[key] || key,
+    (_value, key) =>
+      SETTINGS_KEY_MAPPING[key as keyof typeof SETTINGS_KEY_MAPPING] || key,
   );
   return renamedDecoded as DeviceStatus['settings'];
 };

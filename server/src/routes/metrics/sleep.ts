@@ -87,37 +87,41 @@ router.put<
     }
     // Convert entered_bed_at and exited_bed_at to epoch timestamps
     const updatedRecord = { ...parsedData.data };
+    let enteredBedTimestamp: number | undefined;
+    let leftBedTimestamp: number | undefined;
+
     if (updatedRecord.entered_bed_at) {
-      // @ts-ignore
-      updatedRecord.entered_bed_at = Math.floor(
+      enteredBedTimestamp = Math.floor(
         new Date(updatedRecord.entered_bed_at).getTime() / 1000,
       );
+      // @ts-ignore
+      updatedRecord.entered_bed_at = enteredBedTimestamp;
     }
     if (updatedRecord.left_bed_at) {
-      // @ts-ignore
-      updatedRecord.left_bed_at = Math.floor(
+      leftBedTimestamp = Math.floor(
         new Date(updatedRecord.left_bed_at).getTime() / 1000,
       );
+      // @ts-ignore
+      updatedRecord.left_bed_at = leftBedTimestamp;
     }
 
     // Need to recalculate the number of times someone left the bed during the new sleep interval
-    // @ts-ignore
-    if (updatedRecord.entered_bed_at && updatedRecord.left_bed_at) {
+    if (enteredBedTimestamp && leftBedTimestamp) {
       // @ts-ignore
       updatedRecord.sleep_period_seconds =
-        updatedRecord.left_bed_at - updatedRecord.entered_bed_at;
+        leftBedTimestamp - enteredBedTimestamp;
 
       // @ts-ignore
       updatedRecord.times_exited_bed =
-        existingRecord.not_present_intervals.filter(([start, end]) => {
-          const startTime = Math.floor(new Date(start).getTime() / 1000);
-          const endTime = Math.floor(new Date(end).getTime() / 1000);
-          // @ts-ignore
-          return (
-            startTime >= updatedRecord.entered_bed_at &&
-            endTime <= updatedRecord.left_bed_at
-          );
-        }).length;
+        (existingRecord?.not_present_intervals as unknown as any[])?.filter(
+          ([start, end]: [string, string]) => {
+            const startTime = Math.floor(new Date(start).getTime() / 1000);
+            const endTime = Math.floor(new Date(end).getTime() / 1000);
+            return (
+              startTime >= enteredBedTimestamp && endTime <= leftBedTimestamp
+            );
+          },
+        ).length || 0;
     }
 
     // Update the record in the database
