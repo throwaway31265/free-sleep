@@ -44,6 +44,8 @@ router.post('/schedules', async (req: Request, res: Response) => {
         if (schedule.temperatures)
           schedulesDB.data[side][day].temperatures = schedule.temperatures;
         if (schedule.alarm) schedulesDB.data[side][day].alarm = schedule.alarm;
+        if (schedule.elevations)
+          schedulesDB.data[side][day].elevations = schedule.elevations;
       });
     },
   );
