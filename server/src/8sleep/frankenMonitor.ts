@@ -1,13 +1,13 @@
 import cbor from 'cbor';
 import fs from 'fs';
+import memoryDB from '../db/memoryDB.js';
 import settingsDB from '../db/settings.js';
 import logger from '../logger.js';
+import { BASE_PRESETS } from './basePresets.js';
 import { executeFunction } from './deviceApi.js';
 import { getFranken } from './frankenServer.js';
 import { wait } from './promises.js';
 import { trimixBase } from './trimixBaseControl.js';
-import memoryDB from '../db/memoryDB.js';
-import { BASE_PRESETS } from './basePresets.js';
 
 const defaultAlarmDismiss: { [i: string]: number } = {};
 const defaultDoubleTap: { [i: string]: number } = {};

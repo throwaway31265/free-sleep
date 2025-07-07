@@ -1,9 +1,9 @@
 import express from 'express';
 import { z } from 'zod';
-import logger from '../../logger.js';
-import memoryDB from '../../db/memoryDB.js';
-import { trimixBase } from '../../8sleep/trimixBaseControl.js';
 import { BASE_PRESETS } from '../../8sleep/basePresets.js';
+import { trimixBase } from '../../8sleep/trimixBaseControl.js';
+import memoryDB from '../../db/memoryDB.js';
+import logger from '../../logger.js';
 
 const router = express.Router();
 

@@ -51,12 +51,12 @@ function getVibrationArgument() {
 
 function sideToFunction(side: Side): FrankenFunctions {
   switch (side) {
-  case 'left':
-    return 'ALARM_LEFT';
-  case 'right':
-    return 'ALARM_RIGHT';
-  case 'solo':
-    return 'ALARM_SOLO';
+    case 'left':
+      return 'ALARM_LEFT';
+    case 'right':
+      return 'ALARM_RIGHT';
+    case 'solo':
+      return 'ALARM_SOLO';
   }
 }
 
