@@ -94,5 +94,5 @@ systemctl status sshd.service --no-pager
 echo ""
 echo "SSH service setup complete!"
 echo "SSH uses port 8822!"
-echo "SSH into your device with `ssh root@<IP> -p 8822`"
+echo "SSH into your device with \`ssh root@<IP> -p 8822\`"
 echo ""
