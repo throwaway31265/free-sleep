@@ -302,7 +302,7 @@ export class TriMixBaseControl {
     }
 
     // Handle info command response to check existing connection
-    if (output.includes('Connected: yes') && output.includes(this.baseAddress)) {
+    if ( this.baseAddress && output.includes('Connected: yes') && output.includes(this.baseAddress)) {
       if (!this.isConnected) {
         this.isConnected = true;
         logger.info('Device already connected. Trusting device and enabling notifications...');
@@ -315,7 +315,7 @@ export class TriMixBaseControl {
       output.includes('Connection successful') ||
       output.includes('Already connected') ||
       output.includes('Device connected') ||
-      (output.includes('Menu gatt:') && output.includes(this.baseAddress))
+      (output.includes('Menu gatt:') && this.baseAddress && output.includes(this.baseAddress))
     )) {
       this.isConnected = true;
       logger.info('Base connected. Trusting device and enabling notifications...');
