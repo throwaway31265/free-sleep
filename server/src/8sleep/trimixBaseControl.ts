@@ -280,6 +280,8 @@ export class TriMixBaseControl {
       setTimeout(() => this.startBleProcess(), 5000);
     });
 
+    // Check if already connected before attempting new connection
+    this.sendCommandToProcess('info');
     // Initial connection command
     this.sendCommandToProcess(`connect ${this.baseAddress}`);
   }
@@ -288,10 +290,47 @@ export class TriMixBaseControl {
    * Handles raw output from bluetoothctl, extracts hex, and adds to buffer.
    */
   private handleBleOutput(output: string): void {
-    if (!this.isConnected && output.includes('Connection successful')) {
+    // Handle pairing requests
+    if (output.includes('Request passkey') || output.includes('Enter passkey')) {
+      logger.info('Pairing request detected, sending PIN 123456');
+      this.sendCommandToProcess('123456');
+    }
+
+    if (output.includes('[agent] Confirm passkey') && output.includes('123456')) {
+      logger.info('Confirming passkey 123456');
+      this.sendCommandToProcess('yes');
+    }
+
+    // Handle info command response to check existing connection
+    if (output.includes('Connected: yes') && output.includes(this.baseAddress)) {
+      if (!this.isConnected) {
+        this.isConnected = true;
+        logger.info('Device already connected. Trusting device and enabling notifications...');
+        this.trustAndEnableNotifications();
+      }
+    }
+
+    // Enhanced connection detection
+    if (!this.isConnected && (
+      output.includes('Connection successful') ||
+      output.includes('Already connected') ||
+      output.includes('Device connected') ||
+      (output.includes('Menu gatt:') && output.includes(this.baseAddress))
+    )) {
       this.isConnected = true;
-      logger.info('Base connected. Enabling notifications...');
-      this.enableNotificationsViaProcess();
+      logger.info('Base connected. Trusting device and enabling notifications...');
+      this.trustAndEnableNotifications();
+    }
+
+    // Handle disconnection
+    if (this.isConnected && (
+      output.includes('Disconnected') ||
+      output.includes('Connection lost') ||
+      output.includes('Device disconnected')
+    )) {
+      this.isConnected = false;
+      this.inGattMenu = false;
+      logger.warn('Base disconnected. Will attempt to reconnect...');
     }
 
     if (output.includes('Menu gatt:')) {
@@ -374,6 +413,16 @@ export class TriMixBaseControl {
         this.notificationBuffer = [];
       }
     }
+  }
+
+  /**
+   * Trusts the device and then enables notifications.
+   */
+  private trustAndEnableNotifications(): void {
+    // First trust the device
+    this.sendCommandToProcess(`trust ${this.baseAddress}`);
+    // Then enable notifications
+    this.enableNotificationsViaProcess();
   }
 
   /**
