@@ -96,7 +96,7 @@ Description=Free Sleep Server
 After=network.target
 
 [Service]
-ExecStart=/home/$USERNAME/.bun/bin/bun run start
+ExecStart=/home/$USERNAME/.bun/bin/bun run dev
 WorkingDirectory=$SERVER_DIR
 Restart=always
 User=$USERNAME
