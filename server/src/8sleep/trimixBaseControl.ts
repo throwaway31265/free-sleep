@@ -281,7 +281,7 @@ export class TriMixBaseControl {
     });
 
     // Check if already connected before attempting new connection
-    this.sendCommandToProcess('info');
+    this.sendCommandToProcess(`info ${this.baseAddress}`);
     // Initial connection command
     this.sendCommandToProcess(`connect ${this.baseAddress}`);
   }
