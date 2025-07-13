@@ -26,7 +26,7 @@
     1. [Pod 3](docs/pod_3_teardown/6_firmware_reset.jpeg)
     1. [Pod 4](docs/pod_4_teardown/3_reset_firmware.png)
 1. Follow the steps to teardown your device and get access to the circuit board
-   1. [Pod 3](docs/pod_3_teardown) 
+   1. [Pod 3](docs/pod_3_teardown)
    1. [Pod 4](docs/pod_4_teardown)
 
 ---
@@ -35,10 +35,10 @@
 
 1. Your pod should be unplugged at this point. It doesn't need a connection to the mattress cover OR power at this point
 1. Using dupont wires, connect your tag-connect cable to your FTDI FT232RL following the images in [docs/jtag/](docs/jtag/)
-1. Connect your tag-connect cable to the circuit board 
+1. Connect your tag-connect cable to the circuit board
    1. [Pod 3](docs/pod_3_teardown/7_pod_3_board_connection.jpeg)
    1. [Pod 4](docs/pod_4_teardown/2_circuit_board.png)
-1. Connect your FTDI FT232RL to your computer 
+1. Connect your FTDI FT232RL to your computer
 
 ---
 
@@ -55,13 +55,13 @@ minicom -b 921600 -o -D /dev/tty.usbserial-B0010NHK
 
 ---
 
-### 3. Plug the power into the pod  
+### 3. Plug the power into the pod
 
 Get ready to interrupt the boot when you see `Hit any key to stop autoboot`. (I just hit CTRL + C)
 
 ![Interrupt](docs/installation/1_interrupt.png)
 
-If you did it correctly, you'll see this 
+If you did it correctly, you'll see this
 
 ![Interrupt success](docs/installation/2_shell.png)
 
@@ -72,7 +72,7 @@ If you did it correctly, you'll see this
 
 ```
 # VERIFY your current_slot = a, if not, go back and firmware reset your pod
-# If it's still not = a, create an issue in github 
+# If it's still not = a, create an issue in github
 printenv current_slot
 
 # If you have current_slot=a
@@ -158,7 +158,7 @@ systemctl mask swupdate-progress swupdate defibrillator eight-kernel telegraf ve
 ```
 # Replace WIFI_NAME and PASSWORD with your actual WiFi credentials
 # (WIFI_NAME appears twice)
-# 
+#
 # DO NOT USE A GUEST NETWORK OR TRY TO DO ANYTHING FANCY TO PREVENT IT FROM TALKING TO THE INTERNET
 #   If you want to block internet access to the pod, we can do that with firewall rules later
 
@@ -176,7 +176,7 @@ nmcli connection reload
 
 ### 12. Install the free-sleep app, this will set up a systemctl service that auto runs on boot
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/nikita/free-sleep/main/scripts/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/geczy/free-sleep/main/scripts/install.sh)"
 ```
 
 ---
@@ -207,7 +207,7 @@ http://192.168.1.50:3000/
 ### 15. Validation
 
 #### Verify the site is still up
-1. Unplug the power from your device and plug it back in 
+1. Unplug the power from your device and plug it back in
 2. Wait up to 4 minutes or so, ensure you can still access the site from another device
 3. If the site is still up, you should be good. NOTE - The website will not fully load until the Pod is connected to the mattress cover. Once it's plugged in to the cover the site should load and work correctly.
 
@@ -217,7 +217,7 @@ http://192.168.1.50:3000/
 3. Connect your pod to the cover as you normally would 4
 4. Using the free-sleep site, set a temperature. (I would suggest the highest temp on one side and the lowest temp on the other side)
 5. Physically verify the temps change (lay on the cover, use a thermometer, whatever)
-6. If the temps change, you're all set! 
+6. If the temps change, you're all set!
 7. If it's not working
    1. Create an issue in GitHub with the output from your minicom session
    2. Login as root to your device with your minicom session again and paste the output of these commands
@@ -233,8 +233,8 @@ iptables -L
 ```
 
 
-You can view logs with `journalctl -u free-sleep --no-pager --output=cat` 
-I will eventually add a shell script to execute to upgrade free-sleep. Feel free to create pull requests to add new features or fix bugs. Thanks! 
+You can view logs with `journalctl -u free-sleep --no-pager --output=cat`
+I will eventually add a shell script to execute to upgrade free-sleep. Feel free to create pull requests to add new features or fix bugs. Thanks!
 
 
 
@@ -246,7 +246,7 @@ I will eventually add a shell script to execute to upgrade free-sleep. Feel free
 ```
 sh /home/dac/free-sleep/scripts/block_internet_access.sh
 
-# You can undo this with 
+# You can undo this with
 sh /home/dac/free-sleep/scripts/unblock_internet_access.sh
 ```
 
@@ -254,7 +254,7 @@ sh /home/dac/free-sleep/scripts/unblock_internet_access.sh
 
 
 ### 17. Add an ssh config
-This will ask for a public key, ssh access is on port 8822 (ex: `ssh root@<POD_IP> -p 8822') 
+This will ask for a public key, ssh access is on port 8822 (ex: `ssh root@<POD_IP> -p 8822')
 ```
 sh /home/dac/free-sleep/scripts/setup_ssh.sh
 ```
