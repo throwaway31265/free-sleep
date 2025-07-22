@@ -251,7 +251,6 @@ sh /home/dac/free-sleep/scripts/unblock_internet_access.sh
 ```
 
 ---
-test
 
 ### 17. Add an ssh config
 This will ask for a public key, ssh access is on port 8822 (ex: `ssh root@<POD_IP> -p 8822')
