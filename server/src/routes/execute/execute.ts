@@ -1,5 +1,5 @@
-import express, { Request, Response } from 'express';
-import { frankenCommands, executeFunction } from '../../8sleep/deviceApi.js';
+import express, { type Request, type Response } from 'express';
+import { executeFunction, frankenCommands } from '../../8sleep/deviceApi.js';
 import logger from '../../logger.js';
 
 const router = express.Router();
@@ -15,16 +15,23 @@ router.post('/execute', async (req: Request, res: Response) => {
     }
 
     // Execute the 8sleep command
-    await executeFunction(command as keyof typeof frankenCommands, arg || 'empty');
+    await executeFunction(
+      command as keyof typeof frankenCommands,
+      arg || 'empty',
+    );
 
     // Respond with success
-    res.json({ success: true, message: `Command '${command}' executed successfully.` });
+    res.json({
+      success: true,
+      message: `Command '${command}' executed successfully.`,
+    });
     return;
   } catch (error) {
     logger.error({ error });
-    res
-      .status(500)
-      .json({ error: 'An error occurred while executing the command.', details: error });
+    res.status(500).json({
+      error: 'An error occurred while executing the command.',
+      details: error,
+    });
   }
 });
 

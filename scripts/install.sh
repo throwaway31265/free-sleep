@@ -4,7 +4,7 @@ set -euo pipefail
 
 # --------------------------------------------------------------------------------
 # Variables
-REPO_URL="https://github.com/throwaway31265/free-sleep/archive/refs/heads/main.zip"
+REPO_URL="https://github.com/geczy/free-sleep/archive/refs/heads/main.zip"
 ZIP_FILE="free-sleep.zip"
 REPO_DIR="/home/dac/free-sleep"
 SERVER_DIR="$REPO_DIR/server"
@@ -32,25 +32,20 @@ mv free-sleep-main "$REPO_DIR"
 chown -R "$USERNAME":"$USERNAME" "$REPO_DIR"
 
 # --------------------------------------------------------------------------------
-# Install or update Volta
+# Install or update Bun
 # - We check once. If it’s not installed, install it.
-echo "Checking if Volta is installed for user '$USERNAME'..."
-if sudo -u "$USERNAME" bash -c 'command -v volta' > /dev/null 2>&1; then
-  echo "Volta is already installed for user '$USERNAME'."
+echo "Checking if Bun is installed for user '$USERNAME'..."
+if sudo -u "$USERNAME" bash -c 'command -v bun' >/dev/null 2>&1; then
+  echo "Bun is already installed for user '$USERNAME'."
 else
-  echo "Volta is not installed. Installing for user '$USERNAME'..."
-  sudo -u "$USERNAME" bash -c 'curl https://get.volta.sh | bash'
-  # Ensure Volta environment variables are in the DAC user’s profile:
-  if ! grep -q 'export VOLTA_HOME=' "/home/$USERNAME/.profile"; then
-    echo -e '\nexport VOLTA_HOME="/home/dac/.volta"\nexport PATH="$VOLTA_HOME/bin:$PATH"\n' \
-      >> "/home/$USERNAME/.profile"
+  echo "Bun is not installed. Installing for user '$USERNAME'..."
+  sudo -u "$USERNAME" bash -c 'curl -fsSL https://bun.sh/install | bash'
+  # Ensure Bun environment variables are in the DAC user’s profile:
+  if ! grep -q 'export BUN_INSTALL=' "/home/$USERNAME/.profile"; then
+    echo -e '\nexport BUN_INSTALL="/home/dac/.bun"\nexport PATH="$BUN_INSTALL/bin:$PATH"\n' \
+      >>"/home/$USERNAME/.profile"
   fi
 fi
-
-# --------------------------------------------------------------------------------
-# Install (or update) Node via Volta
-echo "Installing/ensuring Node 22.13.0 via Volta..."
-sudo -u "$USERNAME" bash -c "source /home/$USERNAME/.profile && volta install node@22.13.0"
 
 # --------------------------------------------------------------------------------
 # Setup /persistent/free-sleep-data (migrate old configs, logs, etc.)
@@ -58,7 +53,7 @@ mkdir -p /persistent/free-sleep-data/logs/
 mkdir -p /persistent/free-sleep-data/lowdb/
 
 # Extract the DAC_SOCKET path from frank.sh (if present) and put it in DAC_SOCK_PATH file
-grep -oP '(?<=DAC_SOCKET=)[^ ]*dac.sock' /opt/eight/bin/frank.sh > /persistent/free-sleep-data/dac_sock_path.txt
+grep -oP '(?<=DAC_SOCKET=)[^ ]*dac.sock' /opt/eight/bin/frank.sh >/persistent/free-sleep-data/dac_sock_path.txt
 
 # DO NOT REMOVE, OLD VERSIONS WILL LOSE settings & schedules
 FILES_TO_MOVE=(
@@ -68,7 +63,7 @@ FILES_TO_MOVE=(
 )
 
 for entry in "${FILES_TO_MOVE[@]}"; do
-  IFS=":" read -r SOURCE_FILE DESTINATION <<< "$entry"
+  IFS=":" read -r SOURCE_FILE DESTINATION <<<"$entry"
   if [ -f "$SOURCE_FILE" ]; then
     mv "$SOURCE_FILE" "$DESTINATION"
     echo "Moved $SOURCE_FILE to $DESTINATION"
@@ -83,10 +78,10 @@ chmod g+s /persistent/free-sleep-data/
 # --------------------------------------------------------------------------------
 # Install server dependencies
 echo "Installing dependencies in $SERVER_DIR ..."
-sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.volta/bin/npm install"
+sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun install"
 
 echo "Running Prisma migrations..."
-sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.volta/bin/npm run migrate deploy"
+sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun run migrate deploy"
 
 # --------------------------------------------------------------------------------
 # Create systemd service
@@ -95,19 +90,19 @@ SERVICE_FILE="/etc/systemd/system/free-sleep.service"
 
 echo "Creating systemd service file at $SERVICE_FILE..."
 
-cat > "$SERVICE_FILE" <<EOF
+cat >"$SERVICE_FILE" <<EOF
 [Unit]
 Description=Free Sleep Server
 After=network.target
 
 [Service]
-ExecStart=/home/$USERNAME/.volta/bin/npm run start
+ExecStart=/home/$USERNAME/.bun/bin/bun run dev
 WorkingDirectory=$SERVER_DIR
 Restart=always
 User=$USERNAME
 Environment=NODE_ENV=production
-Environment=VOLTA_HOME=/home/$USERNAME/.volta
-Environment=PATH=/home/$USERNAME/.volta/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
+Environment=BUN_INSTALL=/home/$USERNAME/.bun
+Environment=PATH=/home/$USERNAME/.bun/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
 
 [Install]
 WantedBy=multi-user.target
@@ -143,7 +138,7 @@ SUDOERS_RULE="$USERNAME ALL=(ALL) NOPASSWD: /sbin/reboot"
 if sudo grep -Fxq "$SUDOERS_RULE" "$SUDOERS_FILE" 2>/dev/null; then
   echo "Rule for '$USERNAME' reboot permissions already exists."
 else
-  echo "$SUDOERS_RULE" | sudo tee "$SUDOERS_FILE" > /dev/null
+  echo "$SUDOERS_RULE" | sudo tee "$SUDOERS_FILE" >/dev/null
   sudo chmod 440 "$SUDOERS_FILE"
   echo "Passwordless permission for reboot granted to '$USERNAME'."
 fi
@@ -169,4 +164,3 @@ cat /persistent/free-sleep-data/dac_sock_path.txt 2>/dev/null || echo "No dac.so
 
 echo -e "\033[0;32mInstallation complete! The Free Sleep server is running and will start automatically on boot.\033[0m"
 echo -e "\033[0;32mSee logs with: journalctl -u free-sleep --no-pager --output=cat\033[0m"
-

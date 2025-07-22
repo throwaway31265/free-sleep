@@ -2,10 +2,8 @@
 import _ from 'lodash';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
-
-import { Settings } from './settingsSchema.js';
 import config from '../config.js';
-
+import type { Settings } from './settingsSchema.js';
 
 const defaultData: Settings = {
   timeZone: null,
@@ -19,6 +17,7 @@ const defaultData: Settings = {
     name: 'Right',
     awayMode: false,
   },
+  lastPrime: undefined,
   primePodDaily: {
     enabled: false,
     time: '14:00',

@@ -1,5 +1,5 @@
+import express, { type Request, type Response } from 'express';
 import _ from 'lodash';
-import express, { Request, Response } from 'express';
 import logger from '../../logger.js';
 
 const router = express.Router();
@@ -12,9 +12,7 @@ router.get('/settings', async (req: Request, res: Response) => {
   res.json(settingsDB.data);
 });
 
-
 router.post('/settings', async (req: Request, res: Response) => {
-
   const { body } = req;
   const validationResult = SettingsSchema.deepPartial().safeParse(body);
   if (!validationResult.success) {
@@ -30,6 +28,5 @@ router.post('/settings', async (req: Request, res: Response) => {
   await settingsDB.write();
   res.status(200).json(settingsDB.data);
 });
-
 
 export default router;

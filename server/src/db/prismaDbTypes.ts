@@ -1,4 +1,4 @@
-import { Side } from './schedulesSchema.js';
+import type { Side } from './schedulesSchema.js';
 
 export interface VitalRecord {
   id: number;
@@ -8,7 +8,6 @@ export interface VitalRecord {
   hrv: number;
   breathing_rate: number;
 }
-
 
 export interface SleepRecord {
   id: number;
@@ -20,5 +19,3 @@ export interface SleepRecord {
   present_intervals: [string, string][];
   not_present_intervals: [string, string][];
 }
-
-

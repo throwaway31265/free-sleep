@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -10,7 +10,10 @@ interface ErrorBoundaryState {
   errorInfo: ErrorInfo | null;
 }
 
-export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export default class ErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -42,13 +45,13 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
       return (
         <div>
           <h1>Something went wrong.</h1>
-          { process.env.NODE_ENV === 'development' && (
-            <details style={ { whiteSpace: 'pre-wrap' } }>
+          {process.env.NODE_ENV === 'development' && (
+            <details style={{ whiteSpace: 'pre-wrap' }}>
               <summary>Error details</summary>
-              <p>{ this.state.error?.toString() }</p>
-              <pre>{ this.state.errorInfo?.componentStack }</pre>
+              <p>{this.state.error?.toString()}</p>
+              <pre>{this.state.errorInfo?.componentStack}</pre>
             </details>
-          ) }
+          )}
         </div>
       );
     }

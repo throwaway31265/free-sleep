@@ -5,22 +5,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "dotenv -e .env.pod -- node dist/server.js",
+    "start": "dotenv -e .env.pod -- bun run src/server.ts",
     "build": "tsc",
-    "dev": "dotenv -e .env.pod -- nodemon --watch src --ext ts --exec \"node --loader ts-node/esm\" src/server.ts",
-    "dev:local": "dotenv -e .env.local -- nodemon --watch src --ext ts --exec \"node --loader ts-node/esm\" src/server.ts",
-    "lint": "npx eslint src/ --ext .ts,.tsx",
-    "migrate": "dotenv -e .env.pod -- npx prisma migrate dev --name ",
-    "generate": "dotenv -e .env.pod -- npx prisma generate",
-    "migrate:local": "dotenv -e .env.local -- npx prisma migrate dev --name ",
-    "generate:local": "dotenv -e .env.local -- npx prisma generate"
+    "dev": "dotenv -e .env.pod -- bun --watch src/server.ts",
+    "dev:local": "dotenv -e .env.local -- bun --watch src/server.ts",
+    "lint": "bun x eslint src/ --ext .ts,.tsx",
+    "migrate": "dotenv -e .env.pod -- bun x prisma migrate dev --name ",
+    "generate": "dotenv -e .env.pod -- bun x prisma generate",
+    "migrate:local": "dotenv -e .env.local -- bun x prisma migrate dev --name ",
+    "generate:local": "dotenv -e .env.local -- bun x prisma generate"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "volta": {
-    "node": "22.13.0"
-  },
   "dependencies": {
     "@prisma/client": "^6.4.1",
     "bree": "^9.2.4",
@@ -37,6 +34,8 @@
     "zod": "^3.0.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.0.6",
+    "@types/bun": "latest",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.5",

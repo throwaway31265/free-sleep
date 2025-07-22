@@ -1,5 +1,5 @@
-import winston from 'winston';
 import moment from 'moment-timezone';
+import winston from 'winston';
 
 const logger = winston.createLogger({
   level: 'debug',
@@ -14,7 +14,7 @@ const logger = winston.createLogger({
     // Custom log formatter
     winston.format.printf(({ timestamp, level, message }) => {
       return `${timestamp} | ${level.padStart(8)} | ${message}`;
-    })
+    }),
   ),
   transports: [
     new winston.transports.Console({
@@ -22,7 +22,7 @@ const logger = winston.createLogger({
         winston.format.colorize(),
         winston.format.printf(({ timestamp, level, message }) => {
           return `${timestamp} | ${level.padStart(15)} | ${message}`;
-        })
+        }),
       ),
     }),
     new winston.transports.File({

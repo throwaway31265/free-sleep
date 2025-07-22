@@ -1,22 +1,24 @@
-import React from 'react';
-import { Container, ContainerProps } from '@mui/material';
-import { SxProps } from '@mui/material';
+import { Container, type ContainerProps, type SxProps } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-
+import type React from 'react';
 
 type PageContainerProps = {
   containerProps?: ContainerProps;
-  sx?: SxProps
-}
+  sx?: SxProps;
+};
 
-export default function PageContainer({ children, sx, containerProps }: React.PropsWithChildren<PageContainerProps>) {
+export default function PageContainer({
+  children,
+  sx,
+  containerProps,
+}: React.PropsWithChildren<PageContainerProps>) {
   const theme = useTheme();
 
   return (
     <Container
-      { ...containerProps }
-      id='PageContainer'
-      sx={ {
+      {...containerProps}
+      id="PageContainer"
+      sx={{
         display: 'flex',
         flexDirection: 'column',
         flexGrow: 1,
@@ -34,11 +36,18 @@ export default function PageContainer({ children, sx, containerProps }: React.Pr
         [theme.breakpoints.down('sm')]: {
           width: '100%',
           padding: 1,
+          paddingBottom: 12, // Add bottom padding for mobile navigation (80px + extra spacing)
+        },
+        [theme.breakpoints.between('sm', 'md')]: {
+          paddingBottom: 12, // Add bottom padding for mobile navigation on tablets
+        },
+        [theme.breakpoints.up('md')]: {
+          paddingBottom: 12, // Add bottom padding for desktop navigation
         },
         ...sx,
-      } }
+      }}
     >
-      { children }
+      {children}
     </Container>
   );
 }

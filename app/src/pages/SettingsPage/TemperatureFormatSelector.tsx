@@ -1,16 +1,14 @@
+import { type Settings, TEMPERATURES } from '@api/settingsSchema.ts';
 import Box from '@mui/material/Box';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { DeepPartial } from 'ts-essentials';
-
-import { Settings } from '@api/settingsSchema.ts';
 import { useAppStore } from '@state/appStore.tsx';
-import { TEMPERATURES } from '@api/settingsSchema.ts';
+import type { DeepPartial } from 'ts-essentials';
 
 type TemperatureFormatSelectorProps = {
-  settings?: Settings
-  updateSettings: (settings: DeepPartial<Settings>) => void
-}
+  settings?: Settings;
+  updateSettings: (settings: DeepPartial<Settings>) => void;
+};
 
 export default function TemperatureFormatSelector({
   settings,
@@ -20,7 +18,7 @@ export default function TemperatureFormatSelector({
 
   const handleChange = (
     _: React.MouseEvent<HTMLElement>,
-    newFormat: string
+    newFormat: string,
   ) => {
     if (newFormat !== null) {
       updateSettings({
@@ -30,19 +28,19 @@ export default function TemperatureFormatSelector({
   };
 
   return (
-    <Box sx={ { minWidth: 120 } }>
+    <Box sx={{ minWidth: 120 }}>
       <ToggleButtonGroup
-        disabled={ isUpdating }
-        color='primary'
-        value={ settings?.temperatureFormat || 'farenheit' }
+        disabled={isUpdating}
+        color="primary"
+        value={settings?.temperatureFormat || 'farenheit'}
         exclusive
-        onChange={ handleChange }
+        onChange={handleChange}
       >
-        { TEMPERATURES.map((format) => (
-          <ToggleButton value={ format } key={ format }>
-            { format }
+        {TEMPERATURES.map((format) => (
+          <ToggleButton value={format} key={format}>
+            {format}
           </ToggleButton>
-        )) }
+        ))}
       </ToggleButtonGroup>
     </Box>
   );

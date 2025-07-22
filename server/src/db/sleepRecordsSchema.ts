@@ -7,8 +7,12 @@ export const sleepRecordSchema = z.object({
   left_bed_at: z.string().datetime(),
   sleep_period_seconds: z.number().int(),
   times_exited_bed: z.number().int(),
-  present_intervals: z.array(z.tuple([z.string().datetime(), z.string().datetime()])),
-  not_present_intervals: z.array(z.tuple([z.string().datetime(), z.string().datetime()])),
+  present_intervals: z.array(
+    z.tuple([z.string().datetime(), z.string().datetime()]),
+  ),
+  not_present_intervals: z.array(
+    z.tuple([z.string().datetime(), z.string().datetime()]),
+  ),
 });
 
 // TypeScript type inference from Zod

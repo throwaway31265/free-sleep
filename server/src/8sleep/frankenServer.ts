@@ -1,17 +1,18 @@
-import { Socket } from 'net';
-
-import { SequentialQueue } from './sequentialQueue.js';
-import { MessageStream } from './messageStream.js';
-import { PromiseStream, PromiseStreams, PromiseWriteStream } from './promiseStream.js';
-import { FrankenCommand, frankenCommands } from './deviceApi.js';
-
-import { UnixSocketServer } from './unixSocketServer.js';
-import logger from '../logger.js';
-import { DeviceStatus } from '../routes/deviceStatus/deviceStatusSchema.js';
-import { loadDeviceStatus } from './loadDeviceStatus.js';
-import { wait } from './promises.js';
-
+import type { Socket } from 'net';
 import config from '../config.js';
+import logger from '../logger.js';
+import type { DeviceStatus } from '../routes/deviceStatus/deviceStatusSchema.js';
+import { type FrankenCommand, frankenCommands } from './deviceApi.js';
+import { loadDeviceStatus } from './loadDeviceStatus.js';
+import { MessageStream } from './messageStream.js';
+import {
+  type PromiseStream,
+  PromiseStreams,
+  type PromiseWriteStream,
+} from './promiseStream.js';
+import { wait } from './promises.js';
+import { SequentialQueue } from './sequentialQueue.js';
+import { UnixSocketServer } from './unixSocketServer.js';
 
 export class Franken {
   public constructor(
@@ -19,15 +20,19 @@ export class Franken {
     private readonly messageStream: MessageStream,
     private readonly sequentialQueue: SequentialQueue,
     private readonly socket: Socket,
-  ) {
-  }
+  ) {}
 
   static readonly separator = Buffer.from('\n\n');
 
   public async sendMessage(message: string) {
-    logger.debug(`Sending message to sock | message: ${message}`);
+    if (message !== `14`) {
+      logger.debug(`Sending message to sock | message: ${message}`);
+    }
     const responseBytes = await this.sequentialQueue.exec(async () => {
-      const requestBytes = Buffer.concat([Buffer.from(message), Franken.separator]);
+      const requestBytes = Buffer.concat([
+        Buffer.from(message),
+        Franken.separator,
+      ]);
       await this.writeStream.write(requestBytes);
       const resp = await this.messageStream.readMessage();
 
@@ -35,7 +40,9 @@ export class Franken {
       return resp;
     });
     const response = responseBytes.toString();
-    logger.debug(`Message sent successfully to sock | message: ${message}`);
+    if (message !== `14`) {
+      logger.debug(`Message sent successfully to sock | message: ${message}`);
+    }
 
     return response;
   }
@@ -53,6 +60,16 @@ export class Franken {
     logger.debug(`commandNumber: ${commandNumber}`);
     logger.debug(`cleanedArg: ${cleanedArg}`);
     await this.sendMessage(`${commandNumber}\n${cleanedArg}`);
+  }
+
+  public async getVariables() {
+    const command: FrankenCommand = 'DEVICE_STATUS';
+    const commandNumber = frankenCommands[command];
+    const varResp = await this.sendMessage(commandNumber);
+    const parsedVars = Object.fromEntries(
+      varResp.split('\n').map((l) => l.split(' = ')),
+    );
+    return parsedVars as { [k: string]: string };
   }
 
   public async getDeviceStatus(): Promise<DeviceStatus> {
@@ -76,8 +93,7 @@ export class Franken {
 }
 
 class FrankenServer {
-  public constructor(private readonly server: UnixSocketServer) {
-  }
+  public constructor(private readonly server: UnixSocketServer) {}
 
   public async close() {
     logger.debug('Closing FrankenServer socket...');
@@ -98,20 +114,38 @@ class FrankenServer {
 }
 
 let frankenServer: FrankenServer | undefined;
+let frankenServerPromise: Promise<FrankenServer> | undefined;
 
 export async function getFrankenServer(): Promise<FrankenServer> {
   // If we've already started it, reuse:
-  if (frankenServer) return frankenServer;
+  if (frankenServer) {
+    logger.debug('FrankenServer already started in getFrankenServer');
+    return frankenServer;
+  } else {
+    logger.debug('FrankenServer not started in getFrankenServer');
+  }
   // Otherwise, start a new instance once:
-  frankenServer = await FrankenServer.start(config.dacSockPath);
-  logger.debug('FrankenServer started');
-  return frankenServer;
+  if (!frankenServerPromise) {
+    logger.debug('FrankenServer not started in getFrankenServer');
+    frankenServerPromise = (async () => {
+      const server = await FrankenServer.start(config.dacSockPath);
+      logger.debug('FrankenServer started');
+      frankenServer = server;
+      return server;
+    })();
+  }
+  return frankenServerPromise;
 }
 
 let franken: Franken | undefined;
 
 export async function getFranken(): Promise<Franken> {
-  if (franken) return franken;
+  if (franken) {
+    logger.debug('Franken already started in getFranken');
+    return franken;
+  } else {
+    logger.debug('Franken not started in getFranken');
+  }
   const frankenServer = await getFrankenServer();
   franken = await frankenServer.waitForFranken();
   return franken;

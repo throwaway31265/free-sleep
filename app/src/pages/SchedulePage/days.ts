@@ -1,4 +1,4 @@
-import { DayOfWeek } from '@api/schedulesSchema.ts';
+import type { DayOfWeek } from '@api/schedulesSchema.ts';
 
 export const LOWERCASE_DAYS: DayOfWeek[] = [
   'sunday',
@@ -9,4 +9,3 @@ export const LOWERCASE_DAYS: DayOfWeek[] = [
   'friday',
   'saturday',
 ];
-

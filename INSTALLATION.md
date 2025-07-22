@@ -191,7 +191,7 @@ nmcli connection reload
 
 ## 13. Install the free-sleep app, this will set up a systemctl service that auto runs on boot
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/throwaway31265/free-sleep/main/scripts/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/nikita/free-sleep/main/scripts/install.sh)"
 ```
 
 ---
@@ -242,10 +242,8 @@ journalctl -u free-sleep --no-pager --output=cat -n 300
 journalctl -u free-sleep-stream --no-pager --output=cat -n 100
 ps aux
 find /home/dac/free-sleep/server -path /home/dac/free-sleep/server/node_modules -prune -o -type f -print
-which npm
-node -v
-which node
-node -v
+which bun
+bun -v
 iptables -L
 ```
 

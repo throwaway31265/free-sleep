@@ -1,14 +1,19 @@
-import schedule from 'node-schedule';
-import { Settings } from '../db/settingsSchema.js';
-import { DailySchedule, DayOfWeek, Side } from '../db/schedulesSchema.js';
-import { updateDeviceStatus } from '../routes/deviceStatus/updateDeviceStatus.js';
-import { getDayIndexForSchedule, getDayOfWeekIndex, logJob } from './utils.js';
-import { executeAnalyzeSleep } from './analyzeSleep.js';
-import { TimeZone } from '../db/timeZones.js';
 import moment from 'moment-timezone';
+import schedule from 'node-schedule';
+import type { DailySchedule, DayOfWeek, Side } from '../db/schedulesSchema.js';
+import type { Settings } from '../db/settingsSchema.js';
+import type { TimeZone } from '../db/timeZones.js';
+import logger from '../logger.js';
+import { updateDeviceStatus } from '../routes/deviceStatus/updateDeviceStatus.js';
+import { executeAnalyzeSleep } from './analyzeSleep.js';
+import { getDayIndexForSchedule, getDayOfWeekIndex, logJob } from './utils.js';
 
-
-export const schedulePowerOn = (settingsData: Settings, side: Side, day: DayOfWeek, power: DailySchedule['power']) => {
+export const schedulePowerOn = (
+  settingsData: Settings,
+  side: Side,
+  day: DayOfWeek,
+  power: DailySchedule['power'],
+) => {
   if (!power.enabled) return;
   if (settingsData[side].awayMode) return;
   if (settingsData.timeZone === null) return;
@@ -29,16 +34,20 @@ export const schedulePowerOn = (settingsData: Settings, side: Side, day: DayOfWe
     await updateDeviceStatus({
       [side]: {
         isOn: true,
-        targetTemperatureF: power.onTemperature
-      }
+        targetTemperatureF: power.onTemperature,
+      },
     });
   });
 };
 
-
-
-
-const scheduleAnalyzeSleep = (dayOfWeekIndex: number, offHour: number, offMinute: number, timeZone: TimeZone, side: Side, day: DayOfWeek) => {
+const scheduleAnalyzeSleep = (
+  dayOfWeekIndex: number,
+  offHour: number,
+  offMinute: number,
+  timeZone: TimeZone,
+  side: Side,
+  day: DayOfWeek,
+) => {
   const dailyRule = new schedule.RecurrenceRule();
   const adjustedOffMinute = offMinute;
   dailyRule.dayOfWeek = dayOfWeekIndex;
@@ -46,16 +55,33 @@ const scheduleAnalyzeSleep = (dayOfWeekIndex: number, offHour: number, offMinute
   dailyRule.minute = adjustedOffMinute;
   dailyRule.tz = timeZone;
   const time = `${String(offHour).padStart(2, '0')}:${String(adjustedOffMinute).padStart(2, '0')}`;
-  logJob('Scheduling daily sleep analyzer job', side, day, dayOfWeekIndex, time);
-  schedule.scheduleJob(`daily-analyze-sleep-${time}-${side}`, dailyRule, async () => {
-    logJob('Executing daily sleep analyzer job', side, day, dayOfWeekIndex, time);
-    // Subtract a fixed start time
-    executeAnalyzeSleep(side, moment().subtract(12, 'hours').toISOString(), moment().add(3, 'hours').toISOString());
-  });
+
+  logger.debug(
+    `Scheduling daily sleep analyzer job for ${side} side on ${day} at ${time}`,
+  );
+  schedule.scheduleJob(
+    `daily-analyze-sleep-${time}-${side}`,
+    dailyRule,
+    async () => {
+      logger.info(
+        `Executing scheduled calibration job for side ${side} on ${day} at ${time}`,
+      );
+      // Subtract a fixed start time
+      await executeAnalyzeSleep(
+        side,
+        moment().subtract(12, 'hours').toISOString(),
+        moment().add(3, 'hours').toISOString(),
+      );
+    },
+  );
 };
 
-
-export const schedulePowerOffAndSleepAnalysis = (settingsData: Settings, side: Side, day: DayOfWeek, power: DailySchedule['power']) => {
+export const schedulePowerOffAndSleepAnalysis = (
+  settingsData: Settings,
+  side: Side,
+  day: DayOfWeek,
+  power: DailySchedule['power'],
+) => {
   if (!power.enabled) return;
   if (settingsData[side].awayMode) return;
   if (settingsData.timeZone === null) return;
@@ -68,17 +94,26 @@ export const schedulePowerOffAndSleepAnalysis = (settingsData: Settings, side: S
   offRule.hour = offHour;
   offRule.minute = offMinute;
   offRule.tz = settingsData.timeZone;
-  scheduleAnalyzeSleep(dayOfWeekIndex, offHour, offMinute, settingsData.timeZone, side, day);
+  scheduleAnalyzeSleep(
+    dayOfWeekIndex,
+    offHour,
+    offMinute,
+    settingsData.timeZone,
+    side,
+    day,
+  );
   logJob('Scheduling power off job', side, day, dayOfWeekIndex, time);
 
-  schedule.scheduleJob(`${side}-${day}-${time}-power-off`, offRule, async () => {
-    logJob('Executing power off job', side, day, dayOfWeekIndex, time);
-    await updateDeviceStatus({
-      [side]: {
-        isOn: false,
-      }
-    });
-  });
+  schedule.scheduleJob(
+    `${side}-${day}-${time}-power-off`,
+    offRule,
+    async () => {
+      logJob('Executing power off job', side, day, dayOfWeekIndex, time);
+      await updateDeviceStatus({
+        [side]: {
+          isOn: false,
+        },
+      });
+    },
+  );
 };
-
-

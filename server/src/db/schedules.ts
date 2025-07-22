@@ -2,9 +2,12 @@
 import _ from 'lodash';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
-import { DailySchedule, Schedules, SideSchedule } from './schedulesSchema.js';
 import config from '../config.js';
-
+import type {
+  DailySchedule,
+  Schedules,
+  SideSchedule,
+} from './schedulesSchema.js';
 
 const defaultDailySchedule: DailySchedule = {
   temperatures: {},
@@ -21,7 +24,8 @@ const defaultDailySchedule: DailySchedule = {
     duration: 1,
     enabled: false,
     alarmTemperature: 82,
-  }
+  },
+  elevations: {},
 };
 
 const defaultSideSchedule: SideSchedule = {

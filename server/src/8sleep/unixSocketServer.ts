@@ -1,14 +1,12 @@
-import { createServer, Server, Socket } from 'net';
 import { unlink as unlinkCb } from 'fs';
+import { createServer, type Server, type Socket } from 'net';
 import logger from '../logger.js';
 import { toPromise } from './promises.js';
-
 
 async function unlink(path: string) {
   // @ts-ignore
   await toPromise((cb) => unlinkCb(path, cb));
 }
-
 
 export class UnixSocketServer {
   private lastConnection: Socket | undefined;
@@ -55,16 +53,20 @@ export class UnixSocketServer {
     }
 
     logger.debug('Waiting for future connection');
-    return new Promise<Socket>(resolve => this.resolveWaiting = resolve);
+    return new Promise<Socket>((resolve) => (this.resolveWaiting = resolve));
   }
 
   public static async start(path: string) {
     logger.debug('Creating socket connection...');
     await UnixSocketServer.tryCleanup(path);
     const unixSocketServer = createServer();
-    unixSocketServer.on('error', (error) => logger.error({ error: error, message: 'Unix socket server error' }));
+    unixSocketServer.on('error', (error) =>
+      logger.error({ error: error, message: 'Unix socket server error' }),
+    );
 
-    await new Promise<void>((resolve) => unixSocketServer.listen(path, resolve));
+    await new Promise<void>((resolve) =>
+      unixSocketServer.listen(path, resolve),
+    );
 
     const socket = new UnixSocketServer(unixSocketServer);
     logger.debug('Created socket connection!');

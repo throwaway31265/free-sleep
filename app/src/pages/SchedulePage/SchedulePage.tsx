@@ -1,27 +1,13 @@
-import _ from 'lodash';
-import { useEffect } from 'react';
-import { Box } from '@mui/material';
-import { DeepPartial } from 'ts-essentials';
-import moment from 'moment-timezone';
-
-import AlarmAccordion from './AlarmAccordion.tsx';
-import ApplyToOtherDaysAccordion from './ApplyToOtherDaysAccordion.tsx';
-import DayTabs from './DayTabs.tsx';
-import EnabledSwitch from './EnabledSwitch.tsx';
-import PowerOffTime from './PowerOffTime.tsx';
-import PageContainer from '../PageContainer.tsx';
-import SaveButton from './SaveButton.tsx';
-import SideControl from '../../components/SideControl.tsx';
-import StartTimeSection from './StartTimeSection.tsx';
-import TemperatureAdjustmentsAccordion from './TemperatureAdjustmentsAccordion.tsx';
-import { DayOfWeek, Schedules } from '@api/schedulesSchema.ts';
-import { postSchedules } from '@api/schedules';
-import { useAppStore } from '@state/appStore.tsx';
 import { useSchedules } from '@api/schedules';
-import { useScheduleStore } from './scheduleStore.tsx';
-import { useSettings } from '@api/settings';
+import type { DayOfWeek } from '@api/schedulesSchema.ts';
+import moment from 'moment-timezone';
+import { useEffect, useState } from 'react';
+import SideControl from '../../components/SideControl.tsx';
+import PageContainer from '../PageContainer.tsx';
 import { LOWERCASE_DAYS } from './days.ts';
-
+import ScheduleEditView from './ScheduleEditView.tsx';
+import ScheduleOverview from './ScheduleOverview.tsx';
+import { useScheduleStore } from './scheduleStore.tsx';
 
 const getAdjustedDayOfWeek = (): DayOfWeek => {
   // Get the current moment in the specified timezone
@@ -31,27 +17,20 @@ const getAdjustedDayOfWeek = (): DayOfWeek => {
 
   // Determine if it's before noon (12:00 PM)
   if (currentHour < 12) {
-    return now.subtract(1, 'day').format('dddd').toLocaleLowerCase() as DayOfWeek;
+    return now
+      .subtract(1, 'day')
+      .format('dddd')
+      .toLocaleLowerCase() as DayOfWeek;
   } else {
     return now.format('dddd').toLocaleLowerCase() as DayOfWeek;
   }
 };
 
-
 export default function SchedulePage() {
-  const { setIsUpdating, side } = useAppStore();
   const { data: schedules, refetch } = useSchedules();
-  const {
-    selectedSchedule,
-    setOriginalSchedules,
-    selectedDays,
-    selectedDay,
-    reloadScheduleData,
-    selectDay
-  } = useScheduleStore();
-  const { data: settings } = useSettings();
-  const displayCelsius = settings?.temperatureFormat === 'celsius';
-  // TODO: Add changes lost notification using changesPresent when user tries to switch tab before saving
+  const { setOriginalSchedules, selectDay, setSelectedDays } =
+    useScheduleStore();
+  const [viewMode, setViewMode] = useState<'overview' | 'edit'>('overview');
 
   useEffect(() => {
     const day = getAdjustedDayOfWeek();
@@ -61,67 +40,73 @@ export default function SchedulePage() {
   useEffect(() => {
     if (!schedules) return;
     setOriginalSchedules(schedules);
-    const day = getAdjustedDayOfWeek();
-    selectDay(LOWERCASE_DAYS.indexOf(day));
-    reloadScheduleData();
   }, [schedules]);
 
-  useEffect(() => {
-    reloadScheduleData();
-  }, [side]);
-
-  const handleSave = async () => {
-    setIsUpdating(true);
-
-    // @ts-ignore
-    const daysList: DayOfWeek[] = _.uniq(_.keys(_.pickBy(selectedDays, value => value)));
-    daysList.push(selectedDay);
-    const payload: DeepPartial<Schedules> = { [side]: {}, };
-    daysList.forEach(day => {
-      // @ts-ignore
-      payload[side][day] = selectedSchedule;
-    });
-
-    await postSchedules(payload)
-      .then(() => {
-        // Wait 1 second before refreshing the schedules
-        return new Promise((resolve) => setTimeout(resolve, 1_000));
-      })
-      .then(() => refetch())
-      .catch(error => {
-        console.error(error);
-      })
-      .finally(() => {
-        setIsUpdating(false);
-      });
+  const handleEditDay = (dayIndex: number) => {
+    selectDay(dayIndex);
+    setSelectedDays([]); // Clear any previous group selections
+    setViewMode('edit');
   };
+
+  const handleEditGroup = (dayIndices: number[]) => {
+    // For group editing, select the first day and pre-select all days in the group
+    selectDay(dayIndices[0]);
+
+    // Convert day indices to day names and pre-select ALL days in the group
+    const groupDays = dayIndices.map(
+      (index) => LOWERCASE_DAYS[index] as DayOfWeek,
+    );
+    // Include ALL days from the group in selectedDays for proper counting
+    const allGroupDays = groupDays;
+
+    setViewMode('edit');
+
+    // Set selected days AFTER switching to edit mode to prevent them from being cleared
+    setTimeout(() => {
+      setSelectedDays(allGroupDays);
+    }, 0);
+  };
+
+  const handleCreateNew = () => {
+    const day = getAdjustedDayOfWeek();
+    selectDay(LOWERCASE_DAYS.indexOf(day));
+    setSelectedDays([]); // Clear any previous group selections
+    setViewMode('edit');
+  };
+
+  const handleBackToOverview = () => {
+    setViewMode('overview');
+  };
+
+  if (!schedules) {
+    return null;
+  }
 
   return (
     <PageContainer
-      sx={ {
+      sx={{
         width: '100%',
-        maxWidth: { xs: '100%', sm: '800px' },
+        maxWidth: {
+          xs: '100%',
+          sm: viewMode === 'overview' ? '1200px' : '800px',
+        },
         mx: 'auto',
         mb: 15,
-      } }
+      }}
     >
-      <SideControl title={ 'Schedules' }/>
-      <DayTabs/>
-      <StartTimeSection displayCelsius={ displayCelsius }/>
-      <PowerOffTime/>
-      <Box sx={ { mt: 2, display: 'flex', justifyContent: 'space-between', width: '100%', mb: 2 } }>
-        <EnabledSwitch/>
-        <SaveButton onSave={ handleSave }/>
-      </Box>
-      {
-        selectedSchedule?.power.enabled && (
-          <>
-            <TemperatureAdjustmentsAccordion displayCelsius={ displayCelsius }/>
-            <AlarmAccordion/>
-            <ApplyToOtherDaysAccordion/>
-          </>
-        )
-      }
+      <SideControl title={'Schedules'} />
+
+      {viewMode === 'overview' ? (
+        <ScheduleOverview
+          schedules={schedules}
+          onEditDay={handleEditDay}
+          onEditGroup={handleEditGroup}
+          onCreateNew={handleCreateNew}
+          onRefresh={refetch}
+        />
+      ) : (
+        <ScheduleEditView onBack={handleBackToOverview} />
+      )}
     </PageContainer>
   );
 }

@@ -1,19 +1,22 @@
+import type { Settings } from '@api/settingsSchema.ts';
+import { Box, TextField, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import Switch from '@mui/material/Switch';
-import { Box, TextField, Typography } from '@mui/material';
-import { DeepPartial } from 'ts-essentials';
+import { type Side, useAppStore } from '@state/appStore.tsx';
 import { useEffect, useState } from 'react';
-
-import { Settings } from '@api/settingsSchema.ts';
-import { Side, useAppStore } from '@state/appStore.tsx';
+import type { DeepPartial } from 'ts-essentials';
 
 type AwayModeSwitchProps = {
   side: Side;
   settings?: Settings;
   updateSettings: (settings: DeepPartial<Settings>) => void;
-}
+};
 
-export default function SideSettings({ side, settings, updateSettings }: AwayModeSwitchProps) {
+export default function SideSettings({
+  side,
+  settings,
+  updateSettings,
+}: AwayModeSwitchProps) {
   const { isUpdating } = useAppStore();
   const title = side.charAt(0).toUpperCase() + side.slice(1);
 
@@ -32,25 +35,29 @@ export default function SideSettings({ side, settings, updateSettings }: AwayMod
   };
 
   return (
-    <Box sx={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
-      <Typography variant="h5">{ title } Side</Typography>
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+    >
+      <Typography variant="h5">{title} Side</Typography>
       <TextField
         label="Side Name"
         placeholder="Enter side name"
-        value={ sideName }
-        onChange={ (e) => setSideName(e.target.value) }
-        onBlur={ handleBlur }
-        disabled={ isUpdating }
-        sx={ { mt: 2 } }
-        inputProps={ { maxLength: 20 } }
+        value={sideName}
+        onChange={(e) => setSideName(e.target.value)}
+        onBlur={handleBlur}
+        disabled={isUpdating}
+        sx={{ mt: 2 }}
+        inputProps={{ maxLength: 20 }}
         fullWidth
       />
-      <Grid container spacing={ 0 }>
+      <Grid container spacing={0}>
         <Typography alignContent="center">Away mode</Typography>
         <Switch
-          disabled={ isUpdating }
-          checked={ settings?.[side]?.awayMode || false }
-          onChange={ (event) => updateSettings({ [side]: { awayMode: event.target.checked } }) }
+          disabled={isUpdating}
+          checked={settings?.[side]?.awayMode || false}
+          onChange={(event) =>
+            updateSettings({ [side]: { awayMode: event.target.checked } })
+          }
         />
       </Grid>
     </Box>

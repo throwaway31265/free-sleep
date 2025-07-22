@@ -1,7 +1,6 @@
 import { FormControlLabel, Switch } from '@mui/material';
-import { useScheduleStore } from './scheduleStore.tsx';
 import { useAppStore } from '@state/appStore.tsx';
-
+import { useScheduleStore } from './scheduleStore.tsx';
 
 export default function EnabledSwitch() {
   const { isUpdating } = useAppStore();
@@ -11,19 +10,18 @@ export default function EnabledSwitch() {
     <FormControlLabel
       control={
         <Switch
-          checked={ selectedSchedule?.power.enabled || false }
-          onChange={ () => {
+          checked={selectedSchedule?.power.enabled || false}
+          onChange={() => {
             updateSelectedSchedule({
               power: {
-                enabled: !selectedSchedule?.power.enabled
-              }
-            }
-            );
-          } }
-          disabled={ isUpdating }
+                enabled: !selectedSchedule?.power.enabled,
+              },
+            });
+          }}
+          disabled={isUpdating}
         />
       }
-      label="Enabled"
+      label={selectedSchedule?.power.enabled ? 'Enabled' : 'Disabled'}
     />
   );
 }

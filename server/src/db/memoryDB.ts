@@ -7,9 +7,18 @@ type SideState = {
   isAlarmVibrating: boolean;
 };
 
+type BaseStatus = {
+  head: number;
+  feet: number;
+  isMoving: boolean;
+  lastUpdate: string;
+  isConfigured: boolean;
+};
+
 type MemoryDB = {
   left: SideState;
   right: SideState;
+  baseStatus?: BaseStatus;
 };
 
 const defaultMemoryDB: MemoryDB = {
@@ -19,6 +28,7 @@ const defaultMemoryDB: MemoryDB = {
   right: {
     isAlarmVibrating: false,
   },
+  baseStatus: undefined,
 };
 
 const adapter = new Memory<MemoryDB>();

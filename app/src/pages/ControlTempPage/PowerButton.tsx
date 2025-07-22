@@ -1,15 +1,14 @@
-import Button from '@mui/material/Button';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
-import { DeviceStatus, SideStatus, } from '@api/deviceStatusSchema.ts';
-import { DeepPartial } from 'ts-essentials';
-import { useAppStore } from '@state/appStore.tsx';
+import type { DeviceStatus, SideStatus } from '@api/deviceStatusSchema.ts';
 import { useSettings } from '@api/settings.ts';
-
+import Button from '@mui/material/Button';
+import { useAppStore } from '@state/appStore.tsx';
+import type { DeepPartial } from 'ts-essentials';
 
 type PowerButtonProps = {
   isOn: boolean;
   refetch: any;
-}
+};
 
 export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
   const { isUpdating, setIsUpdating, side } = useAppStore();
@@ -30,7 +29,7 @@ export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
         return new Promise((resolve) => setTimeout(resolve, 1_000));
       })
       .then(() => refetch())
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
       })
       .finally(() => {
@@ -40,8 +39,8 @@ export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
   if (isInAwayMode) return null;
 
   return (
-    <Button variant="outlined" disabled={ disabled } onClick={ handleOnClick }>
-      { isOn ? 'Turn off' : 'Turn on' }
+    <Button variant="outlined" disabled={disabled} onClick={handleOnClick}>
+      {isOn ? 'Turn off' : 'Turn on'}
     </Button>
   );
 }

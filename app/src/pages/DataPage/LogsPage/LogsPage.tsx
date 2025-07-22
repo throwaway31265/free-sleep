@@ -1,12 +1,19 @@
-import { useEffect, useState, useRef } from 'react';
 import { baseURL } from '@api/api';
-import { Paper, Typography, Box, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
-import PageContainer from '../../PageContainer.tsx';
+import TextSnippetIcon from '@mui/icons-material/TextSnippet';
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  Typography,
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import axios from 'axios';
+import { useEffect, useRef, useState } from 'react';
+import PageContainer from '../../PageContainer.tsx';
 import Header from '../Header.tsx';
-import TextSnippetIcon from '@mui/icons-material/TextSnippet';
-
 
 export default function LogsPage() {
   const [logs, setLogs] = useState<string[]>([]);
@@ -21,7 +28,9 @@ export default function LogsPage() {
   useEffect(() => {
     const fetchLogFiles = async () => {
       try {
-        const response = await axios.get<{ logs: string[] }>(`${baseURL}/api/logs`);
+        const response = await axios.get<{ logs: string[] }>(
+          `${baseURL}/api/logs`,
+        );
         if (response.data.logs.length > 0) {
           setLogFiles(response.data.logs);
           setSelectedLog(response.data.logs[0]); // Default to the latest log file
@@ -71,7 +80,7 @@ export default function LogsPage() {
 
   return (
     <PageContainer
-      sx={ {
+      sx={{
         // height: '100%',
         // maxHeight: '100%',
         [theme.breakpoints.up('sm')]: {
@@ -82,13 +91,13 @@ export default function LogsPage() {
           maxWidth: '100%',
           height: '100%',
         },
-      } }
+      }}
     >
-      <Header title="Logs" icon={ <TextSnippetIcon /> }/>
+      <Header title="Logs" icon={<TextSnippetIcon />} />
 
       <Paper
-        elevation={ 3 }
-        sx={ {
+        elevation={3}
+        sx={{
           // height: '100%',
           // maxHeight: '100%',
           p: 2,
@@ -102,28 +111,30 @@ export default function LogsPage() {
           [theme.breakpoints.up('sm')]: {
             width: '100%',
           },
-        } }
+        }}
       >
-        <FormControl sx={ { minWidth: 200, mb: 1 } }>
-          <InputLabel sx={ { color: theme.palette.grey[100] } }>Log file</InputLabel>
+        <FormControl sx={{ minWidth: 200, mb: 1 }}>
+          <InputLabel sx={{ color: theme.palette.grey[100] }}>
+            Log file
+          </InputLabel>
           <Select
-            value={ selectedLog }
-            onChange={ (e) => {
+            value={selectedLog}
+            onChange={(e) => {
               setLogs([]);
               setSelectedLog(e.target.value);
-            } }
+            }}
           >
-            { logFiles.map((file) => (
-              <MenuItem key={ file } value={ file }>
-                { file }
+            {logFiles.map((file) => (
+              <MenuItem key={file} value={file}>
+                {file}
               </MenuItem>
-            )) }
+            ))}
           </Select>
         </FormControl>
 
         <Typography
           variant="h6"
-          sx={ {
+          sx={{
             fontWeight: 'bold',
             color: theme.palette.grey[100],
             pb: 1,
@@ -132,15 +143,15 @@ export default function LogsPage() {
             top: 0,
             zIndex: 1,
             paddingBottom: 1,
-          } }
+          }}
         >
           Live Server Logs
         </Typography>
 
         <Box
-          ref={ logsContainerRef }
-          onScroll={ handleScroll }
-          sx={ {
+          ref={logsContainerRef}
+          onScroll={handleScroll}
+          sx={{
             flex: 1,
             overflowY: 'auto',
             maxHeight: `${window.innerHeight - 300}px`,
@@ -162,12 +173,18 @@ export default function LogsPage() {
             '&::-webkit-scrollbar-thumb:hover': {
               background: theme.palette.grey[500],
             },
-          } }
+          }}
         >
-          <Typography sx={ { fontFamily: 'monospace', color: theme.palette.grey[200], fontSize: '12px' } }>
-            { logs.join('\n') }
+          <Typography
+            sx={{
+              fontFamily: 'monospace',
+              color: theme.palette.grey[200],
+              fontSize: '12px',
+            }}
+          >
+            {logs.join('\n')}
           </Typography>
-          <div ref={ logsEndRef } />
+          <div ref={logsEndRef} />
         </Box>
       </Paper>
     </PageContainer>

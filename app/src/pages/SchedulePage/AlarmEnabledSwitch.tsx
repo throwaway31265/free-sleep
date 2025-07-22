@@ -1,7 +1,6 @@
 import { FormControlLabel, Switch } from '@mui/material';
-import { useScheduleStore } from './scheduleStore.tsx';
 import { useAppStore } from '@state/appStore.tsx';
-
+import { useScheduleStore } from './scheduleStore.tsx';
 
 export default function AlarmEnabledSwitch() {
   const { isUpdating } = useAppStore();
@@ -11,19 +10,18 @@ export default function AlarmEnabledSwitch() {
     <FormControlLabel
       control={
         <Switch
-          checked={ selectedSchedule?.alarm.enabled || false }
-          onChange={ () => {
+          checked={selectedSchedule?.alarm.enabled || false}
+          onChange={() => {
             updateSelectedSchedule({
               alarm: {
-                enabled: !selectedSchedule?.alarm.enabled
-              }
-            }
-            );
-          } }
-          disabled={ isUpdating }
+                enabled: !selectedSchedule?.alarm.enabled,
+              },
+            });
+          }}
+          disabled={isUpdating}
         />
       }
-      label="Enabled"
+      label={selectedSchedule?.alarm.enabled ? 'Enabled' : 'Disabled'}
     />
   );
 }

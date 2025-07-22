@@ -1,13 +1,14 @@
-import _ from 'lodash';
-import { create } from 'zustand';
-import { DailySchedule, DayOfWeek, Schedules } from '@api/schedulesSchema.ts';
-import { DeepPartial } from 'ts-essentials';
-import { AccordionExpanded } from './SchedulePage.types.ts';
-import { DaysSelected } from './SchedulePage.types.ts';
+import type {
+  DailySchedule,
+  DayOfWeek,
+  Schedules,
+} from '@api/schedulesSchema.ts';
 import { useAppStore } from '@state/appStore.tsx';
+import _ from 'lodash';
+import type { DeepPartial } from 'ts-essentials';
+import { create } from 'zustand';
 import { LOWERCASE_DAYS } from './days';
-
-
+import type { AccordionExpanded, DaysSelected } from './SchedulePage.types.ts';
 
 type Validations = {
   powerOffTimeIsValid: boolean;
@@ -38,7 +39,7 @@ type ScheduleStore = {
   selectDay: (selectedDayIndex: number) => void;
   reloadScheduleData: () => void;
 
-  changesPresent: boolean,
+  changesPresent: boolean;
   checkForChanges: () => void;
   setAccordionExpanded: (accordion: AccordionExpanded) => void;
   accordionExpanded: AccordionExpanded;
@@ -49,7 +50,12 @@ type ScheduleStore = {
 
   selectedSchedule: DailySchedule | undefined;
   updateSelectedSchedule: (dailySchedule: DeepPartial<DailySchedule>) => void;
-  updateSelectedTemperatures: (temperatures: DailySchedule['temperatures']) => void;
+  updateSelectedTemperatures: (
+    temperatures: DailySchedule['temperatures'],
+  ) => void;
+  updateSelectedElevations: (
+    elevations: DailySchedule['elevations'],
+  ) => void;
 
   // Keep a copy of the original schedules
   originalSchedules: Schedules | undefined;
@@ -57,6 +63,7 @@ type ScheduleStore = {
 
   selectedDays: Record<DayOfWeek, boolean>;
   toggleSelectedDay: (day: DayOfWeek) => void;
+  setSelectedDays: (days: DayOfWeek[]) => void;
 };
 
 export const useScheduleStore = create<ScheduleStore>((set, get) => ({
@@ -70,8 +77,12 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
     if (!originalSchedules) return;
     const selectedSchedule = originalSchedules[side][selectedDay];
 
+    // Initialize with the current day selected by default
+    const initialSelectedDays = { ...DEFAULT_DAYS_SELECTED };
+    initialSelectedDays[selectedDay] = true;
+
     set({
-      selectedDays: { ...DEFAULT_DAYS_SELECTED },
+      selectedDays: initialSelectedDays,
       accordionExpanded: undefined,
       validations: { ...DEFAULT_VALIDATIONS },
       selectedSchedule,
@@ -90,7 +101,9 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
   accordionExpanded: undefined,
   setAccordionExpanded: (accordionExpanded) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    get().accordionExpanded === accordionExpanded ? set({ accordionExpanded: undefined }) : set({ accordionExpanded });
+    get().accordionExpanded === accordionExpanded
+      ? set({ accordionExpanded: undefined })
+      : set({ accordionExpanded });
   },
 
   validations: {
@@ -107,10 +120,13 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
   },
   changesPresent: false,
   checkForChanges: () => {
-    const { selectedDay, selectedSchedule, originalSchedules, selectedDays } = get();
+    const { selectedDay, selectedSchedule, originalSchedules, selectedDays } =
+      get();
     if (!originalSchedules) return;
     const { side } = useAppStore.getState();
-    const changesPresent = !_.isEqual(originalSchedules[side][selectedDay], selectedSchedule) || _.some(selectedDays, value => value === true);
+    const changesPresent =
+      !_.isEqual(originalSchedules[side][selectedDay], selectedSchedule) ||
+      _.some(selectedDays, (value) => value === true);
 
     set({ changesPresent });
   },
@@ -138,6 +154,20 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
     });
     checkForChanges();
   },
+  // Updating schedules - (Elevations) - needs to replace the entire elevations field instead of merging it
+  updateSelectedElevations: (elevations) => {
+    const { selectedSchedule, checkForChanges } = get();
+    const selectedScheduleCopy = _.cloneDeep(selectedSchedule);
+    if (!selectedSchedule) return;
+    set({
+      // @ts-ignore
+      selectedSchedule: {
+        ...selectedScheduleCopy,
+        elevations,
+      },
+    });
+    checkForChanges();
+  },
 
   selectedDays: { ...DEFAULT_DAYS_SELECTED },
   toggleSelectedDay: (day) => {
@@ -146,8 +176,17 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
       selectedDays: {
         ...selectedDays,
         [day]: !selectedDays[day],
-      }
+      },
     });
+    checkForChanges();
+  },
+  setSelectedDays: (days) => {
+    const { checkForChanges } = get();
+    const newSelectedDays = { ...DEFAULT_DAYS_SELECTED };
+    days.forEach((day) => {
+      newSelectedDays[day] = true;
+    });
+    set({ selectedDays: newSelectedDays });
     checkForChanges();
   },
 

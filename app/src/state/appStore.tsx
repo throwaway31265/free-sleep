@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
-import { create } from 'zustand';
+import { useSettings } from '@api/settings.ts';
 import { useIsFetching } from '@tanstack/react-query';
 import moment from 'moment-timezone';
-import { useSettings } from '@api/settings.ts';
+import type React from 'react';
+import { useEffect } from 'react';
+import { create } from 'zustand';
 import { getFieldFromIndexedDB, updateFieldInIndexedDB } from './indexedDB.ts';
 
 export type Side = 'left' | 'right';
@@ -14,7 +15,6 @@ type AppState = {
   setSide: (side: Side) => void;
 };
 
-
 // Create Zustand store
 export const useAppStore = create<AppState>((set) => ({
   isUpdating: false,
@@ -24,7 +24,7 @@ export const useAppStore = create<AppState>((set) => ({
     set({ side });
     updateFieldInIndexedDB('side', side)
       .then(() => {})
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
       });
   },
@@ -32,7 +32,10 @@ export const useAppStore = create<AppState>((set) => ({
 
 // AppStoreProvider to sync Zustand with react-query's isFetching
 export function AppStoreProvider({ children }: React.PropsWithChildren) {
-  const isFetching = useIsFetching() > 0;
+  // Exclude base status query from global fetching count since it's background polling
+  const totalFetching = useIsFetching();
+  const baseFetching = useIsFetching({ queryKey: ['baseStatus'] });
+  const isFetching = totalFetching - baseFetching > 0;
   const { data: settings } = useSettings();
 
   const { side, setSide } = useAppStore();
@@ -46,7 +49,6 @@ export function AppStoreProvider({ children }: React.PropsWithChildren) {
   useEffect(() => {
     useAppStore.setState({ isUpdating: isFetching });
   }, [isFetching]);
-
 
   useEffect(() => {
     getFieldFromIndexedDB('side')
@@ -63,6 +65,5 @@ export function AppStoreProvider({ children }: React.PropsWithChildren) {
       });
   }, []);
 
-
-  return <>{ children }</>;
+  return <>{children}</>;
 }

@@ -1,8 +1,7 @@
-import express, { Express } from 'express';
 import cors from 'cors';
-import logger from '../logger.js';
-
+import express, { type Express } from 'express';
 import os from 'os';
+import logger from '../logger.js';
 
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
 

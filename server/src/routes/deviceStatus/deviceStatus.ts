@@ -1,9 +1,9 @@
-import express, { Request, Response } from 'express';
+import express, { type Request, type Response } from 'express';
+import type { DeepPartial } from 'ts-essentials';
 import { getFranken } from '../../8sleep/frankenServer.js';
-import { DeviceStatus, DeviceStatusSchema } from './deviceStatusSchema.js';
 import logger from '../../logger.js';
+import { type DeviceStatus, DeviceStatusSchema } from './deviceStatusSchema.js';
 import { updateDeviceStatus } from './updateDeviceStatus.js';
-import { DeepPartial } from 'ts-essentials';
 
 const router = express.Router();
 
@@ -12,7 +12,6 @@ router.get('/deviceStatus', async (req: Request, res: Response) => {
   const resp = await franken.getDeviceStatus();
   res.json(resp);
 });
-
 
 router.post('/deviceStatus', async (req: Request, res: Response) => {
   const { body } = req;
@@ -34,6 +33,5 @@ router.post('/deviceStatus', async (req: Request, res: Response) => {
     res.status(500).json({ error });
   }
 });
-
 
 export default router;

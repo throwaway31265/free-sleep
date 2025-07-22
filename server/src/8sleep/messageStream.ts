@@ -1,13 +1,12 @@
-import { PromiseReadStream } from './promiseStream.js';
+import type { PromiseReadStream } from './promiseStream.js';
 
 export class MessageStream {
   private buffer = Buffer.alloc(0);
 
   public constructor(
     private readonly stream: PromiseReadStream<Buffer>,
-    private readonly separator = Buffer.from('\n\n')
-  ) {
-  }
+    private readonly separator = Buffer.from('\n\n'),
+  ) {}
 
   public async readMessage() {
     // eslint-disable-next-line no-constant-condition

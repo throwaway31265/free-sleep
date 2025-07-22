@@ -1,0 +1,6 @@
+<svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Flat position - head: 0°, feet: 0° (completely horizontal) -->
+  <path d="M 10 24 L 90 24" stroke="#ffffff" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.9"/>
+  <!-- Pillow -->
+  <ellipse cx="22" cy="24" rx="8" ry="4" fill="#ffffff"/>
+</svg>

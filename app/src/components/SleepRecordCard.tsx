@@ -1,27 +1,25 @@
-import { useEffect, useState } from 'react';
+import { deleteSleepRecord, updateSleepRecord } from '@api/sleep.ts'; // Assuming you have this function
+import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
+import BedtimeIcon from '@mui/icons-material/Bedtime';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
+import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
 import {
   Box,
-  Card,
-  Typography,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
+  Card,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { SleepRecord } from '../../../server/src/db/sleepRecordsSchema.ts';
 import moment from 'moment-timezone';
-import { deleteSleepRecord } from '@api/sleep.ts';
-import { updateSleepRecord } from '@api/sleep.ts'; // Assuming you have this function
-import BedtimeIcon from '@mui/icons-material/Bedtime';
-import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
-import EditIcon from '@mui/icons-material/Edit';
-import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
-import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
-import DeleteIcon from '@mui/icons-material/Delete';
-
+import { useEffect, useState } from 'react';
+import type { SleepRecord } from '../../../server/src/db/sleepRecordsSchema.ts';
 
 // Helper to format time
 const formatTime = (date: string) => moment(date).local().format('h:mm A');
@@ -46,9 +44,14 @@ function formatDayLabel(dateString: string): string {
     : localTime.format('dddd');
 }
 
-export default function SleepRecordCard({ sleepRecord, refetch }: SleepRecordProps) {
+export default function SleepRecordCard({
+  sleepRecord,
+  refetch,
+}: SleepRecordProps) {
   const [editOpen, setEditOpen] = useState(false);
-  const [enteredBedAt, setEnteredBedAt] = useState(moment(sleepRecord?.entered_bed_at));
+  const [enteredBedAt, setEnteredBedAt] = useState(
+    moment(sleepRecord?.entered_bed_at),
+  );
   const [leftBedAt, setLeftBedAt] = useState(moment(sleepRecord?.left_bed_at));
 
   useEffect(() => {
@@ -63,7 +66,7 @@ export default function SleepRecordCard({ sleepRecord, refetch }: SleepRecordPro
   const wakeTime = formatTime(sleepRecord.left_bed_at);
   const sleepDuration = calculateSleepDuration(
     sleepRecord.entered_bed_at,
-    sleepRecord.left_bed_at
+    sleepRecord.left_bed_at,
   );
 
   const startDay = formatDayLabel(sleepRecord.entered_bed_at);
@@ -96,13 +99,17 @@ export default function SleepRecordCard({ sleepRecord, refetch }: SleepRecordPro
   };
 
   return (
-    <Card sx={ { p: 2, backgroundColor: 'background.paper', position: 'relative' } }>
-      { /* Actions: Edit & Delete */ }
-      <Box sx={ { position: 'absolute', top: 8, right: 8, display: 'flex', gap: 1 } }>
-        <IconButton onClick={ () => setEditOpen(true) } aria-label="edit">
+    <Card
+      sx={{ p: 2, backgroundColor: 'background.paper', position: 'relative' }}
+    >
+      {/* Actions: Edit & Delete */}
+      <Box
+        sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 1 }}
+      >
+        <IconButton onClick={() => setEditOpen(true)} aria-label="edit">
           <EditIcon color="primary" />
         </IconButton>
-        <IconButton onClick={ handleDelete } aria-label="delete">
+        <IconButton onClick={handleDelete} aria-label="delete">
           <DeleteIcon color="error" />
         </IconButton>
       </Box>
@@ -111,52 +118,73 @@ export default function SleepRecordCard({ sleepRecord, refetch }: SleepRecordPro
         Sleep Summary
       </Typography>
 
-      <Box display="flex" flexDirection="column" gap={ 1 }>
-        { [
+      <Box display="flex" flexDirection="column" gap={1}>
+        {[
           { label: 'Period', value: `${startDay} - ${endDay}` },
-          { label: 'Bedtime', value: bedtime, icon: <BedtimeIcon fontSize="small" /> },
-          { label: 'Wake time', value: wakeTime, icon: <AccessAlarmIcon fontSize="small" /> },
-          { label: 'Duration', value: sleepDuration, icon: <HourglassBottomIcon fontSize="small" /> },
+          {
+            label: 'Bedtime',
+            value: bedtime,
+            icon: <BedtimeIcon fontSize="small" />,
+          },
+          {
+            label: 'Wake time',
+            value: wakeTime,
+            icon: <AccessAlarmIcon fontSize="small" />,
+          },
+          {
+            label: 'Duration',
+            value: sleepDuration,
+            icon: <HourglassBottomIcon fontSize="small" />,
+          },
           {
             label: 'Times exited bed',
             icon: <TransferWithinAStationIcon fontSize="small" />,
             value: `${sleepRecord.times_exited_bed} ${sleepRecord.times_exited_bed === 1 ? 'time' : 'times'}`,
           },
         ].map(({ label, value, icon }) => (
-          <Box key={ label } display="flex" justifyContent="space-between" alignItems="center">
-            <Box display="flex" alignItems="center" gap={ 2 }>
-              { icon && <Box display="flex" alignItems="center">{ icon }</Box> }
-              <Typography sx={ { fontWeight: 'bold' } }>{ label }</Typography>
+          <Box
+            key={label}
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Box display="flex" alignItems="center" gap={2}>
+              {icon && (
+                <Box display="flex" alignItems="center">
+                  {icon}
+                </Box>
+              )}
+              <Typography sx={{ fontWeight: 'bold' }}>{label}</Typography>
             </Box>
-            <Typography>{ value }</Typography>
+            <Typography>{value}</Typography>
           </Box>
-        )) }
+        ))}
       </Box>
 
-      { /* Edit Modal */ }
-      <Dialog open={ editOpen } onClose={ () => setEditOpen(false) } fullWidth>
+      {/* Edit Modal */}
+      <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth>
         <DialogTitle>Edit Sleep Record</DialogTitle>
         <DialogContent>
-          <Box display="flex" flexDirection="column" gap={ 2 } mt={ 1 }>
+          <Box display="flex" flexDirection="column" gap={2} mt={1}>
             <DateTimePicker
               label="Entered Bed At"
-              value={ enteredBedAt }
-              onChange={ (newValue) => newValue && setEnteredBedAt(newValue) }
+              value={enteredBedAt}
+              onChange={(newValue) => newValue && setEnteredBedAt(newValue)}
               ampm
             />
             <DateTimePicker
               label="Left Bed At"
-              value={ leftBedAt }
-              onChange={ (newValue) => newValue && setLeftBedAt(newValue) }
+              value={leftBedAt}
+              onChange={(newValue) => newValue && setLeftBedAt(newValue)}
               ampm
             />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={ () => setEditOpen(false) } color="secondary">
+          <Button onClick={() => setEditOpen(false)} color="secondary">
             Cancel
           </Button>
-          <Button onClick={ handleSave } variant="contained" color="primary">
+          <Button onClick={handleSave} variant="contained" color="primary">
             Save
           </Button>
         </DialogActions>
