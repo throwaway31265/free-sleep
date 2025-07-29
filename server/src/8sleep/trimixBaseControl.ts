@@ -243,10 +243,8 @@ export class TriMixBaseControl {
       const macForPath = this.baseAddress.replace(/:/g, '_');
       this.notifyCharacteristicPath = `/org/bluez/hci0/dev_${macForPath}/service0008/char0009`;
       this.writeCharacteristicPath = `/org/bluez/hci0/dev_${macForPath}/service0008/char000f`;
-      logger.info('Loaded base configuration:', { address: this.baseAddress });
       return true;
     } catch (error) {
-      logger.error('Failed to load base configuration:', error);
       return false;
     }
   }
