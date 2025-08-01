@@ -4,7 +4,7 @@ set -euo pipefail
 
 # --------------------------------------------------------------------------------
 # Variables
-REPO_URL="https://github.com/geczy/free-sleep/archive/refs/heads/main.zip"
+REPO_URL="https://github.com/nikita/free-sleep/archive/refs/heads/main.zip"
 ZIP_FILE="free-sleep.zip"
 REPO_DIR="/home/dac/free-sleep"
 SERVER_DIR="$REPO_DIR/server"

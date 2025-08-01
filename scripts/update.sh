@@ -19,7 +19,7 @@ if [ -d /home/dac/free-sleep ]; then
 fi
 
 echo "Attempting to reinstall free-sleep..."
-if /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/geczy/free-sleep/main/scripts/install.sh)"; then
+if /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/nikita/free-sleep/main/scripts/install.sh)"; then
   echo "Reinstall successful."
   rm -rf "/home/dac/$BACKUP_NAME"
 else
