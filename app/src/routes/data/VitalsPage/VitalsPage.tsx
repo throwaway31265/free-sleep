@@ -1,5 +1,5 @@
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import PageContainer from '../../PageContainer.tsx';
+import PageContainer from '@/components/shared/PageContainer.tsx';
 import Header from '../Header.tsx';
 
 export default function VitalsPage() {

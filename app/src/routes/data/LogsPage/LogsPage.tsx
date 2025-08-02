@@ -12,7 +12,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
-import PageContainer from '../../PageContainer.tsx';
+import PageContainer from '@/components/shared/PageContainer.tsx';
 import Header from '../Header.tsx';
 
 export default function LogsPage() {

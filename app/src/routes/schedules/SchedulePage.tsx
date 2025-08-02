@@ -3,7 +3,7 @@ import type { DayOfWeek } from '@api/schedulesSchema';
 import moment from 'moment-timezone';
 import { useEffect, useState } from 'react';
 import SideControl from '../../components/SideControl.tsx';
-import PageContainer from '../PageContainer.tsx';
+import PageContainer from '@/components/shared/PageContainer.tsx';
 import { LOWERCASE_DAYS } from './days.ts';
 import ScheduleEditView from './ScheduleEditView.tsx';
 import ScheduleOverview from './ScheduleOverview.tsx';

@@ -2,7 +2,7 @@ import { postSettings, useSettings } from '@api/settings.ts';
 import type { Settings } from '@api/settingsSchema.ts';
 import { useAppStore } from '@state/appStore.tsx';
 import type { DeepPartial } from 'ts-essentials';
-import PageContainer from '../PageContainer.tsx';
+import PageContainer from '@/components/shared/PageContainer.tsx';
 import DailyPriming from './DailyPriming.tsx';
 import DailyReboot from './DailyReboot.tsx';
 import DiscordLink from './DiscordLink.tsx';

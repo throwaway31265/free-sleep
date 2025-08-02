@@ -14,7 +14,7 @@ import moment from 'moment-timezone';
 import { useEffect, useState } from 'react';
 import { useResizeDetector } from 'react-resize-detector';
 import type { SleepRecord } from '../../../../../server/src/db/sleepRecordsSchema.ts';
-import PageContainer from '../../PageContainer.tsx';
+import PageContainer from '@/components/shared/PageContainer.tsx';
 import Header from '../Header';
 
 const NoData = () => {

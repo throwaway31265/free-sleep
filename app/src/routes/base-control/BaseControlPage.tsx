@@ -18,7 +18,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { useAppStore } from '@state/appStore';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import PageContainer from '../PageContainer';
+import PageContainer from '@/components/shared/PageContainer';
 
 interface BasePosition {
   head: number;

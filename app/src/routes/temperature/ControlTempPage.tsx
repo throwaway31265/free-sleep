@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles';
 import { useAppStore } from '@state/appStore.tsx';
 import { useEffect } from 'react';
 import SideControl from '../../components/SideControl.tsx';
-import PageContainer from '../PageContainer.tsx';
+import PageContainer from '@/components/shared/PageContainer.tsx';
 import AlarmDismissal from './AlarmDismissal.tsx';
 import AwayNotification from './AwayNotification.tsx';
 import { useControlTempStore } from './controlTempStore.tsx';
