@@ -1,3 +1,4 @@
+import { createFileRoute } from '@tanstack/react-router'
 import { useSleepRecords } from '@api/sleep.ts';
 import { useVitalsRecords } from '@api/vitals.ts';
 import SleepBarChart from '@components/SleepBarChart.tsx';
@@ -13,9 +14,13 @@ import { useAppStore } from '@state/appStore.tsx';
 import moment from 'moment-timezone';
 import { useEffect, useState } from 'react';
 import { useResizeDetector } from 'react-resize-detector';
-import type { SleepRecord } from '../../../../../server/src/db/sleepRecordsSchema.ts';
+import type { SleepRecord } from '../../../../server/src/db/sleepRecordsSchema.ts';
 import PageContainer from '@/components/shared/PageContainer.tsx';
-import Header from '../Header';
+import Header from '@/components/data/Header.tsx';
+
+export const Route = createFileRoute('/data/sleep')({
+  component: SleepPage,
+})
 
 const NoData = () => {
   return (
@@ -24,7 +29,7 @@ const NoData = () => {
 };
 
 // eslint-disable-next-line react/no-multi-comp
-export default function SleepPage() {
+function SleepPage() {
   const { width = 300, ref } = useResizeDetector();
   const { side } = useAppStore();
   const [startTime, setStartTime] = useState(moment().subtract(7, 'days'));

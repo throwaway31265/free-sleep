@@ -1,6 +1,6 @@
 import { Box, Slider, TextField, Typography } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
-import { formatTemperature } from '../ControlTempPage/TemperatureLabel';
+import { formatTemperature } from '@/components/temperature/TemperatureLabel';
 import { useScheduleStore } from './scheduleStore.tsx';
 
 export default function StartTimeSection({

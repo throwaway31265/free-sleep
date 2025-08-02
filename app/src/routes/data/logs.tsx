@@ -1,3 +1,4 @@
+import { createFileRoute } from '@tanstack/react-router'
 import { baseURL } from '@api/api';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import {
@@ -13,9 +14,13 @@ import { useTheme } from '@mui/material/styles';
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 import PageContainer from '@/components/shared/PageContainer.tsx';
-import Header from '../Header.tsx';
+import Header from '@/components/data/Header.tsx';
 
-export default function LogsPage() {
+export const Route = createFileRoute('/data/logs')({
+  component: LogsPage,
+})
+
+function LogsPage() {
   const [logs, setLogs] = useState<string[]>([]);
   const [logFiles, setLogFiles] = useState<string[]>([]);
   const [selectedLog, setSelectedLog] = useState<string>('');

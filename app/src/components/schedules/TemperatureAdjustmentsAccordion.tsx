@@ -17,7 +17,7 @@ import { useAppStore } from '@state/appStore.tsx';
 import _ from 'lodash';
 import moment from 'moment-timezone';
 // There's probably a better way to share this function - I just don't know what it is
-import { formatTemperature } from '../ControlTempPage/TemperatureLabel';
+import { formatTemperature } from '@/components/temperature/TemperatureLabel';
 import { useScheduleStore } from './scheduleStore';
 
 const ACCORDION_NAME = 'temperatureAdjustments';
