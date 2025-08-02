@@ -1,6 +1,6 @@
 import type { Settings } from '@api/settingsSchema.ts';
 import { Box, TextField, Typography } from '@mui/material';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import Switch from '@mui/material/Switch';
 import { type Side, useAppStore } from '@state/appStore.tsx';
 import { useEffect, useState } from 'react';

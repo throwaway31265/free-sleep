@@ -1,7 +1,6 @@
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import { Grid, Typography } from '@mui/material';
 import type { ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 type HeaderProps = {
   title: string;
@@ -9,19 +8,18 @@ type HeaderProps = {
 };
 
 export default function Header({ title, icon }: HeaderProps) {
-  const navigate = useNavigate();
 
   return (
     <Grid container alignItems="center">
       {/* Back Icon - Left Aligned & Vertically Centered */}
-      <Grid item xs={2} display="flex" alignItems="center">
+      <Grid size={2} display="flex" alignItems="center">
         <NavigateBeforeIcon
-          onClick={() => navigate(-1)}
+          onClick={() => window.history.back()}
           sx={{ cursor: 'pointer', fontSize: 28 }}
         />
       </Grid>
       {/* Title - Centered */}
-      <Grid item xs={8} display="flex" justifyContent="center">
+      <Grid size={8} display="flex" justifyContent="center">
         <Typography variant="h6" display="flex" alignItems="center" gap={1}>
           {icon}
           {title}

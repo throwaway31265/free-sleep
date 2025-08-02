@@ -7,7 +7,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 // import FavoriteIcon from '@mui/icons-material/Favorite';
 import Typography from '@mui/material/Typography';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 import PageContainer from '../PageContainer.tsx';
 
 const SettingsList = () => {

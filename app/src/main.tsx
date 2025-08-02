@@ -1,22 +1,89 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-
-import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
+import { CssBaseline, GlobalStyles } from '@mui/material'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AppStoreProvider } from '@state/appStore.tsx'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import ErrorBoundary from './components/ErrorBoundary.tsx'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
-import './styles.css'
-import reportWebVitals from './reportWebVitals.ts'
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    background: {
+      default: '#000000',
+      paper: '#000000',
+    },
+    primary: {
+      main: '#ffffff',
+      contrastText: '#000000',
+    },
+    secondary: {
+      main: 'rgba(255, 255, 255, 0.7)',
+    },
+    text: {
+      primary: '#ffffff',
+      secondary: 'rgba(255, 255, 255, 0.8)',
+    },
+    grey: {
+      100: '#e8eaed',
+      300: '#a6adbe',
+      400: '#88878c',
+      500: '#606060',
+      700: '#272727',
+      800: '#262626',
+      900: '#242424',
+    },
+    divider: 'rgba(255, 255, 255, 0.1)',
+  },
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    h4: {
+      fontWeight: 400,
+      color: '#ffffff',
+    },
+    h5: {
+      fontWeight: 400,
+      color: '#ffffff',
+    },
+    h6: {
+      fontWeight: 400,
+      color: '#ffffff',
+    },
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          height: '100vh',
+          maxHeight: '100vh',
+          width: '100vw',
+          position: 'fixed',
+          overscrollBehavior: 'none',
+        },
+      },
+    },
+  },
+})
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+    },
+  },
+})
 
 // Create a new router instance
-
-const TanStackQueryProviderContext = TanStackQueryProvider.getContext()
 const router = createRouter({
   routeTree,
   context: {
-    ...TanStackQueryProviderContext,
+    queryClient,
   },
   defaultPreload: 'intent',
   scrollRestoration: true,
@@ -37,14 +104,26 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-        <RouterProvider router={router} />
-      </TanStackQueryProvider.Provider>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider theme={darkTheme}>
+            <LocalizationProvider dateAdapter={AdapterMoment}>
+              <AppStoreProvider>
+                <CssBaseline />
+                <GlobalStyles
+                  styles={{
+                    'html, body': {
+                      overscrollBehavior: 'none', // Prevent rubber-banding
+                    },
+                  }}
+                />
+                <RouterProvider router={router} />
+              </AppStoreProvider>
+            </LocalizationProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
     </StrictMode>,
   )
 }
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals()
