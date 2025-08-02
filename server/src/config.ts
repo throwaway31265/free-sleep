@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, mkdirSync } from 'fs';
 import logger from './logger.js';
 
 function checkIfDacSockPathConfigured(): string | undefined {
@@ -56,6 +56,9 @@ class Config {
     this.dacSockPath = this.detectSockPath();
     this.dbFolder = process.env.DATA_FOLDER;
     this.lowDbFolder = `${this.dbFolder}lowdb/`;
+    
+    // Ensure required directories exist
+    this.ensureDirectoriesExist();
   }
 
   private detectSockPath(): string {
@@ -71,6 +74,25 @@ class Config {
       return FIRMWARE_MAP.remoteDevMode.dacLocation;
     } else {
       throw new Error('Error - Did not detect device firmware');
+    }
+  }
+
+  private ensureDirectoriesExist(): void {
+    try {
+      // Create the main data folder if it doesn't exist
+      if (!existsSync(this.dbFolder)) {
+        mkdirSync(this.dbFolder, { recursive: true });
+        logger.debug(`Created data directory: ${this.dbFolder}`);
+      }
+
+      // Create the lowdb folder if it doesn't exist
+      if (!existsSync(this.lowDbFolder)) {
+        mkdirSync(this.lowDbFolder, { recursive: true });
+        logger.debug(`Created lowdb directory: ${this.lowDbFolder}`);
+      }
+    } catch (error) {
+      logger.error(`Failed to create required directories: ${error}`);
+      throw error;
     }
   }
 
