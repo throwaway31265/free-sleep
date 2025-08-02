@@ -1,4 +1,4 @@
-import { DayOfWeek } from '@api/schedulesSchema.ts';
+import type { DayOfWeek } from '@api/schedulesSchema';
 import { Delete, Edit, Schedule as ScheduleIcon } from '@mui/icons-material';
 import {
   Box,
@@ -8,7 +8,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { formatGroupedDays, ScheduleGroup } from './scheduleGrouping.ts';
+import { formatGroupedDays, type ScheduleGroup } from './scheduleGrouping.ts';
 
 type GroupedScheduleCardProps = {
   group: ScheduleGroup;

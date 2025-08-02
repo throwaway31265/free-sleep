@@ -1,5 +1,5 @@
 import Box from '@mui/material/Box';
-import { Outlet } from 'react-router-dom';
+import { Outlet } from '@tanstack/react-router';
 import Navbar from './Navbar';
 
 export default function Layout() {

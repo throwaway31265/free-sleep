@@ -1,4 +1,4 @@
-import type { DailySchedule } from '@api/schedulesSchema.ts';
+import type { DailySchedule } from '@api/schedulesSchema';
 import { Add, ExpandMore, Remove } from '@mui/icons-material';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 import {

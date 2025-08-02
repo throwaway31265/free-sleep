@@ -1,4 +1,4 @@
-import { DayOfWeek } from '@api/schedulesSchema.ts';
+import type { DayOfWeek } from '@api/schedulesSchema';
 import {
   Box,
   Button,
@@ -8,7 +8,7 @@ import {
   MenuItem,
   OutlinedInput,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
   Typography,
 } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';

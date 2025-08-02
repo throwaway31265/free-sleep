@@ -1,4 +1,4 @@
-import type { BaseElevation, DailySchedule } from '@api/schedulesSchema.ts';
+import type { BaseElevation, DailySchedule } from '@api/schedulesSchema';
 import { Add, ExpandMore, Remove } from '@mui/icons-material';
 import AirlineSeatFlatAngledIcon from '@mui/icons-material/AirlineSeatFlatAngled';
 import {

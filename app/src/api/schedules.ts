@@ -1,4 +1,4 @@
-import type { Schedules } from '@api/schedulesSchema.ts';
+import type { Schedules } from '@api/schedulesSchema';
 import { useQuery } from '@tanstack/react-query';
 import type { DeepPartial } from 'ts-essentials';
 import axios from './api';

@@ -1,5 +1,5 @@
 import { useSchedules } from '@api/schedules';
-import type { DayOfWeek } from '@api/schedulesSchema.ts';
+import type { DayOfWeek } from '@api/schedulesSchema';
 import moment from 'moment-timezone';
 import { useEffect, useState } from 'react';
 import SideControl from '../../components/SideControl.tsx';

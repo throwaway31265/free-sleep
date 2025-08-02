@@ -1,4 +1,4 @@
-import { DailySchedule, DayOfWeek } from '@api/schedulesSchema.ts';
+import { type DailySchedule, type DayOfWeek } from '@api/schedulesSchema';
 import _ from 'lodash';
 
 export interface ScheduleGroup {

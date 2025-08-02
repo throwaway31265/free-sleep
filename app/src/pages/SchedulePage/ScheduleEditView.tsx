@@ -1,5 +1,5 @@
 import { postSchedules, useSchedules } from '@api/schedules';
-import type { DayOfWeek, Schedules } from '@api/schedulesSchema.ts';
+import type { DayOfWeek, Schedules } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings';
 import { ArrowBack } from '@mui/icons-material';
 import { Box, Button, Chip, Typography } from '@mui/material';

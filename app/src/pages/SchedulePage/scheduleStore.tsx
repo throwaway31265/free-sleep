@@ -2,7 +2,7 @@ import type {
   DailySchedule,
   DayOfWeek,
   Schedules,
-} from '@api/schedulesSchema.ts';
+} from '@api/schedulesSchema';
 import { useAppStore } from '@state/appStore.tsx';
 import _ from 'lodash';
 import type { DeepPartial } from 'ts-essentials';

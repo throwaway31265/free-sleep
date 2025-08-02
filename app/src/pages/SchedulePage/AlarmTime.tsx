@@ -1,4 +1,4 @@
-import type { Time } from '@api/schedulesSchema.ts';
+import type { Time } from '@api/schedulesSchema';
 import { TextField } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import moment from 'moment-timezone';

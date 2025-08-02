@@ -1,4 +1,4 @@
-import type { DayOfWeek } from '@api/schedulesSchema.ts';
+import type { DayOfWeek } from '@api/schedulesSchema';
 import EventRepeatIcon from '@mui/icons-material/EventRepeat';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {

@@ -1,4 +1,4 @@
-import type { DayOfWeek } from '@api/schedulesSchema.ts';
+import type { DayOfWeek } from '@api/schedulesSchema';
 
 export type DaysSelected = Record<DayOfWeek, boolean>;
 
