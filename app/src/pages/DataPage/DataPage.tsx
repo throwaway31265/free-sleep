@@ -31,21 +31,21 @@ const SettingsList = () => {
       <Divider />
 
       {/* Sleep */}
-      <ListItem onClick={() => navigate('/data/sleep')}>
+      <ListItem onClick={() => navigate({ to: '/data/sleep' })}>
         <ListItemIcon>
           <BedIcon />
         </ListItemIcon>
         <ListItemText primary="Sleep" />
         <ArrowForwardIosIcon fontSize="small" sx={{ color: 'gray' }} />
       </ListItem>
-      <ListItem onClick={() => navigate('/data/logs')}>
+      <ListItem onClick={() => navigate({ to: '/data/logs' })}>
         <ListItemIcon>
           <TextSnippetIcon />
         </ListItemIcon>
         <ListItemText primary="Logs" />
         <ArrowForwardIosIcon fontSize="small" sx={{ color: 'gray' }} />
       </ListItem>
-      {/*<ListItem onClick={ () => navigate('/data/vitals') }>*/}
+      {/*<ListItem onClick={ () => navigate({ to: '/data/vitals' }) }>*/}
       {/*  <ListItemIcon>*/}
       {/*    <FavoriteIcon/>*/}
       {/*  </ListItemIcon>*/}
