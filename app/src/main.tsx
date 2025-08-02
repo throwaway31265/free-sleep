@@ -8,6 +8,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AppStoreProvider } from '@state/appStore.tsx'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
+import RouteErrorComponent from './components/RouteErrorComponent.tsx'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -89,6 +90,7 @@ const router = createRouter({
   scrollRestoration: true,
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
+  defaultErrorComponent: RouteErrorComponent,
 })
 
 // Register the router instance for type safety
