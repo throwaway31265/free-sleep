@@ -1,6 +1,6 @@
 import { useDeviceStatus } from '@api/deviceStatus';
 import { useSettings } from '@api/settings.ts';
-import Button from '@mui/material/Button';
+import { Box } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useTheme } from '@mui/material/styles';
 import { useAppStore } from '@state/appStore.tsx';
@@ -15,9 +15,9 @@ import Slider from './Slider.tsx';
 import WaterNotification from './WaterNotification.tsx';
 
 export default function ControlTempPage() {
-  const { data: deviceStatusOriginal, isError, refetch } = useDeviceStatus();
+  const { data: deviceStatusOriginal, refetch, isLoading: isLoadingDevice } = useDeviceStatus();
   const { setOriginalDeviceStatus, deviceStatus } = useControlTempStore();
-  const { data: settings } = useSettings();
+  const { data: settings, isLoading: isLoadingSettings } = useSettings();
   const { isUpdating, side } = useAppStore();
   const theme = useTheme();
 
@@ -32,6 +32,35 @@ export default function ControlTempPage() {
   useEffect(() => {
     refetch();
   }, [side]);
+
+  // Show loading state while data is being fetched
+  if (isLoadingDevice || isLoadingSettings) {
+    return (
+      <PageContainer
+        sx={{
+          maxWidth: '500px',
+          [theme.breakpoints.up('md')]: {
+            maxWidth: '400px',
+          },
+        }}
+      >
+        <SideControl title={'Temperature'} />
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '50vh'
+        }}>
+          <CircularProgress sx={{ color: '#fff' }} />
+        </Box>
+      </PageContainer>
+    );
+  }
+
+  // Don't render until we have both device status and settings
+  if (!deviceStatus || !settings) {
+    return null;
+  }
 
   return (
     <PageContainer
@@ -50,22 +79,16 @@ export default function ControlTempPage() {
         currentTemperatureF={sideStatus?.currentTemperatureF || 55}
         displayCelsius={settings?.temperatureFormat === 'celsius' || false}
       />
-      {isError ? (
-        <Button
-          variant="contained"
-          onClick={() => refetch()}
-          disabled={isUpdating}
-        >
-          Try again
-        </Button>
-      ) : (
-        <PowerButton isOn={sideStatus?.isOn || false} refetch={refetch} />
-      )}
+      <PowerButton isOn={sideStatus?.isOn || false} refetch={refetch} />
 
       <AwayNotification settings={settings} />
       <WaterNotification deviceStatus={deviceStatus} />
       <AlarmDismissal deviceStatus={deviceStatus} refetch={refetch} />
-      {isUpdating && <CircularProgress />}
+      {isUpdating && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <CircularProgress />
+        </Box>
+      )}
     </PageContainer>
   );
 }

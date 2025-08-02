@@ -80,7 +80,7 @@ export default function BaseControlPage() {
     useState<number | null>(null);
   const [movingToPreset, setMovingToPreset] = useState<string | null>(null);
 
-  const { data: baseStatus, isLoading } = useBaseStatus();
+  const { data: baseStatus } = useBaseStatus();
   const setBasePositionMutation = useSetBasePosition();
   const setBasePresetMutation = useSetBasePreset();
   const stopBaseMutation = useStopBase();
@@ -249,7 +249,11 @@ export default function BaseControlPage() {
 
   const activePreset = getActivePreset();
 
-  const isMoving = baseStatus?.isMoving || false;
+  if (!baseStatus) {
+    return null; // Will be caught by error boundary if data fails to load
+  }
+
+  const isMoving = baseStatus.isMoving || false;
   const isActuallyMoving = isOptimisticallyMoving || isMoving;
   const isMutating =
     setBasePositionMutation.isPending ||

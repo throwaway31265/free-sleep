@@ -36,7 +36,7 @@ export default function Slider({
   const { deviceStatus, setDeviceStatus } = useControlTempStore();
   const { isUpdating, setIsUpdating, side } = useAppStore();
   const { data: settings } = useSettings();
-  const isInAwayMode = settings?.[side].awayMode;
+  const isInAwayMode = settings?.[side]?.awayMode;
   const disabled = isUpdating || isInAwayMode || !isOn;
   const { width, ref } = useResizeDetector();
   const theme = useTheme();

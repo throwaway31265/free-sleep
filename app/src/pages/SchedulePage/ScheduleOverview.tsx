@@ -35,12 +35,30 @@ export default function ScheduleOverview({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const sideSchedules = schedules[side];
+  const sideSchedules = schedules?.[side];
+
+  // Add defensive check for undefined schedules
+  if (!sideSchedules) {
+    return (
+      <Box sx={{ 
+        textAlign: 'center', 
+        py: 6,
+        color: '#fff'
+      }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          No schedules available
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          Unable to load schedule data. Please try refreshing the page.
+        </Typography>
+      </Box>
+    );
+  }
 
   // Filter to only enabled schedules before grouping
   const enabledSchedules = Object.fromEntries(
     Object.entries(sideSchedules).filter(
-      ([_, schedule]) => schedule.power.enabled,
+      ([_, schedule]) => schedule?.power?.enabled,
     ),
   ) as Record<DayOfWeek, any>;
 

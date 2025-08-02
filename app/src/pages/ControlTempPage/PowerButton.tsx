@@ -13,7 +13,7 @@ type PowerButtonProps = {
 export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
   const { isUpdating, setIsUpdating, side } = useAppStore();
   const { data: settings } = useSettings();
-  const isInAwayMode = settings?.[side].awayMode;
+  const isInAwayMode = settings?.[side]?.awayMode;
   const disabled = isUpdating || isInAwayMode;
 
   const handleOnClick = () => {

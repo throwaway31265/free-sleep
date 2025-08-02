@@ -36,6 +36,10 @@ export default function SettingsPage() {
       .finally(() => setIsUpdating(false));
   };
 
+  if (!settings) {
+    return null; // Will be caught by error boundary if data fails to load
+  }
+
   return (
     <PageContainer sx={{ mb: 15, mt: 2 }}>
       <TimeZoneSelector settings={settings} updateSettings={updateSettings} />

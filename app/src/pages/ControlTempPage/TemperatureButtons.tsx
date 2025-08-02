@@ -18,7 +18,7 @@ export default function TemperatureButtons({
   const { deviceStatus, setDeviceStatus, originalDeviceStatus } =
     useControlTempStore();
   const { data: settings } = useSettings();
-  const isInAwayMode = settings?.[side].awayMode;
+  const isInAwayMode = settings?.[side]?.awayMode;
   const disabled = isUpdating || isInAwayMode;
   const theme = useTheme();
   const borderColor = theme.palette.grey[800];
