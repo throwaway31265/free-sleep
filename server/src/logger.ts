@@ -26,7 +26,7 @@ const logger = winston.createLogger({
       ),
     }),
     new winston.transports.File({
-      filename: '/persistent/free-sleep-data/logs/free-sleep.log',
+      filename: `${process.env.DATA_FOLDER}/logs/free-sleep.log`,
       maxsize: 7 * 1024 * 1024,
       maxFiles: 1,
       tailable: true,

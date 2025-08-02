@@ -5,7 +5,7 @@ import readline from 'readline';
 
 const router = express.Router();
 
-const LOGS_DIRS = ['/persistent/free-sleep-data/logs', '/var/log'];
+const LOGS_DIRS = [`${process.env.DATA_FOLDER}/logs`, '/var/log'];
 
 // Endpoint to list all log files as clickable links
 router.get('/', (req, res) => {

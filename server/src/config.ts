@@ -4,7 +4,7 @@ import logger from './logger.js';
 function checkIfDacSockPathConfigured(): string | undefined {
   try {
     // Check if the file exists
-    const filePath = '/persistent/free-sleep-data/dac_sock_path.txt';
+    const filePath = `${process.env.DATA_FOLDER}/dac_sock_path.txt`;
     if (!existsSync(filePath)) {
       logger.debug(`dac.sock path not configured, defaulting to pod 3 path...`);
       return;
