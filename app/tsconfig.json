@@ -25,7 +25,7 @@
       "@/*": ["./src/*"],
       "@api/*": ["src/api/*"],
       "@state/*": ["src/state/*"],
-      "@components/*": ["src/components/*"],
+      "@components/*": ["src/components/*"]
     }
   }
 }

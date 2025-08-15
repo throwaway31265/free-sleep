@@ -1,4 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { useSleepRecords } from '@api/sleep.ts';
 import { useVitalsRecords } from '@api/vitals.ts';
 import SleepBarChart from '@components/SleepBarChart.tsx';
@@ -11,16 +10,17 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Alert, Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useAppStore } from '@state/appStore.tsx';
+import { createFileRoute } from '@tanstack/react-router';
 import moment from 'moment-timezone';
 import { useEffect, useState } from 'react';
 import { useResizeDetector } from 'react-resize-detector';
-import type { SleepRecord } from '../../../../server/src/db/sleepRecordsSchema.ts';
-import PageContainer from '@/components/shared/PageContainer.tsx';
 import Header from '@/components/data/Header.tsx';
+import PageContainer from '@/components/shared/PageContainer.tsx';
+import type { SleepRecord } from '../../../../server/src/db/sleepRecordsSchema.ts';
 
 export const Route = createFileRoute('/data/sleep')({
   component: SleepPage,
-})
+});
 
 const NoData = () => {
   return (

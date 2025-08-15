@@ -1,3 +1,4 @@
+import { useVersion } from '@api/version';
 import AppBar from '@mui/material/AppBar';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
@@ -7,10 +8,9 @@ import { useTheme } from '@mui/material/styles';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { useAppStore } from '@state/appStore.tsx';
-import React from 'react';
 import { useLocation, useNavigate } from '@tanstack/react-router';
+import React from 'react';
 import { PAGES } from './pages';
-import { useVersion } from '@api/version';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -88,11 +88,12 @@ export default function Navbar() {
                   ml: 1,
                   px: 1,
                   py: 0.25,
-                  backgroundColor: version.branch === 'main' ? 'success.main' : 'warning.main',
+                  backgroundColor:
+                    version.branch === 'main' ? 'success.main' : 'warning.main',
                   color: 'black',
                   borderRadius: 1,
                   fontSize: '0.65rem',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
                 }}
               >
                 {version.branch}

@@ -40,11 +40,13 @@ export default function ScheduleOverview({
   // Add defensive check for undefined schedules
   if (!sideSchedules) {
     return (
-      <Box sx={{ 
-        textAlign: 'center', 
-        py: 6,
-        color: '#fff'
-      }}>
+      <Box
+        sx={{
+          textAlign: 'center',
+          py: 6,
+          color: '#fff',
+        }}
+      >
         <Typography variant="h6" sx={{ mb: 2 }}>
           No schedules available
         </Typography>

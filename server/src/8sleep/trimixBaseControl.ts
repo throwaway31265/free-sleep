@@ -289,43 +289,61 @@ export class TriMixBaseControl {
    */
   private handleBleOutput(output: string): void {
     // Handle pairing requests
-    if (output.includes('Request passkey') || output.includes('Enter passkey')) {
+    if (
+      output.includes('Request passkey') ||
+      output.includes('Enter passkey')
+    ) {
       logger.info('Pairing request detected, sending PIN 123456');
       this.sendCommandToProcess('123456');
     }
 
-    if (output.includes('[agent] Confirm passkey') && output.includes('123456')) {
+    if (
+      output.includes('[agent] Confirm passkey') &&
+      output.includes('123456')
+    ) {
       logger.info('Confirming passkey 123456');
       this.sendCommandToProcess('yes');
     }
 
     // Handle info command response to check existing connection
-    if ( this.baseAddress && output.includes('Connected: yes') && output.includes(this.baseAddress)) {
+    if (
+      this.baseAddress &&
+      output.includes('Connected: yes') &&
+      output.includes(this.baseAddress)
+    ) {
       if (!this.isConnected) {
         this.isConnected = true;
-        logger.info('Device already connected. Trusting device and enabling notifications...');
+        logger.info(
+          'Device already connected. Trusting device and enabling notifications...',
+        );
         this.trustAndEnableNotifications();
       }
     }
 
     // Enhanced connection detection
-    if (!this.isConnected && (
-      output.includes('Connection successful') ||
-      output.includes('Already connected') ||
-      output.includes('Device connected') ||
-      (output.includes('Menu gatt:') && this.baseAddress && output.includes(this.baseAddress))
-    )) {
+    if (
+      !this.isConnected &&
+      (output.includes('Connection successful') ||
+        output.includes('Already connected') ||
+        output.includes('Device connected') ||
+        (output.includes('Menu gatt:') &&
+          this.baseAddress &&
+          output.includes(this.baseAddress)))
+    ) {
       this.isConnected = true;
-      logger.info('Base connected. Trusting device and enabling notifications...');
+      logger.info(
+        'Base connected. Trusting device and enabling notifications...',
+      );
       this.trustAndEnableNotifications();
     }
 
     // Handle disconnection
-    if (this.isConnected && (
-      output.includes('Disconnected') ||
-      output.includes('Connection lost') ||
-      output.includes('Device disconnected')
-    )) {
+    if (
+      this.isConnected &&
+      (output.includes('Disconnected') ||
+        output.includes('Connection lost') ||
+        output.includes('Device disconnected'))
+    ) {
       this.isConnected = false;
       this.inGattMenu = false;
       logger.warn('Base disconnected. Will attempt to reconnect...');

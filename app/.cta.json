@@ -7,8 +7,5 @@
   "git": true,
   "version": 1,
   "framework": "react-cra",
-  "chosenAddOns": [
-    "biome",
-    "tanstack-query"
-  ]
+  "chosenAddOns": ["biome", "tanstack-query"]
 }

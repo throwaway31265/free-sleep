@@ -1,17 +1,17 @@
-import { StrictMode } from 'react'
-import ReactDOM from 'react-dom/client'
-import { RouterProvider, createRouter } from '@tanstack/react-router'
-import { CssBaseline, GlobalStyles } from '@mui/material'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { AppStoreProvider } from '@state/appStore.tsx'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import ErrorBoundary from './components/ErrorBoundary.tsx'
-import RouteErrorComponent from './components/RouteErrorComponent.tsx'
+import { CssBaseline, GlobalStyles } from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AppStoreProvider } from '@state/appStore.tsx';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createRouter, RouterProvider } from '@tanstack/react-router';
+import { StrictMode } from 'react';
+import ReactDOM from 'react-dom/client';
+import ErrorBoundary from './components/ErrorBoundary.tsx';
+import RouteErrorComponent from './components/RouteErrorComponent.tsx';
 
 // Import the generated route tree
-import { routeTree } from './routeTree.gen'
+import { routeTree } from './routeTree.gen';
 
 const darkTheme = createTheme({
   palette: {
@@ -69,7 +69,7 @@ const darkTheme = createTheme({
       },
     },
   },
-})
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -77,7 +77,7 @@ const queryClient = new QueryClient({
       retry: 3,
     },
   },
-})
+});
 
 // Create a new router instance
 const router = createRouter({
@@ -90,19 +90,19 @@ const router = createRouter({
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
   defaultErrorComponent: RouteErrorComponent,
-})
+});
 
 // Register the router instance for type safety
 declare module '@tanstack/react-router' {
   interface Register {
-    router: typeof router
+    router: typeof router;
   }
 }
 
 // Render the app
-const rootElement = document.getElementById('app')
+const rootElement = document.getElementById('app');
 if (rootElement && !rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
+  const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
       <ErrorBoundary>
@@ -125,6 +125,5 @@ if (rootElement && !rootElement.innerHTML) {
         </QueryClientProvider>
       </ErrorBoundary>
     </StrictMode>,
-  )
+  );
 }
-

@@ -1,4 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import {
   Box,
@@ -10,14 +9,15 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { createFileRoute } from '@tanstack/react-router';
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
-import PageContainer from '@/components/shared/PageContainer.tsx';
 import Header from '@/components/data/Header.tsx';
+import PageContainer from '@/components/shared/PageContainer.tsx';
 
 export const Route = createFileRoute('/data/logs')({
   component: LogsPage,
-})
+});
 
 function LogsPage() {
   const [logs, setLogs] = useState<string[]>([]);

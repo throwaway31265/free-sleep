@@ -115,20 +115,20 @@ export default function ElevationAdjustmentsAccordion() {
   };
 
   // Component for elevation input (preset or custom)
-  const ElevationInput = ({ 
-    time, 
-    elevation 
-  }: { 
-    time: string; 
-    elevation: BaseElevation 
+  const ElevationInput = ({
+    time,
+    elevation,
+  }: {
+    time: string;
+    elevation: BaseElevation;
   }) => {
     const [inputMode, setInputMode] = useState<'preset' | 'custom'>(
-      'preset' in elevation ? 'preset' : 'custom'
+      'preset' in elevation ? 'preset' : 'custom',
     );
 
     const handleModeChange = (
       _event: React.MouseEvent<HTMLElement>,
-      newMode: 'preset' | 'custom'
+      newMode: 'preset' | 'custom',
     ) => {
       if (newMode !== null) {
         setInputMode(newMode);
@@ -144,7 +144,10 @@ export default function ElevationAdjustmentsAccordion() {
       handleUpdateElevation(time, { preset });
     };
 
-    const handleCustomChange = (field: 'head' | 'feet' | 'feedRate', value: number) => {
+    const handleCustomChange = (
+      field: 'head' | 'feet' | 'feedRate',
+      value: number,
+    ) => {
       if ('preset' in elevation) return;
       handleUpdateElevation(time, {
         ...elevation,
@@ -169,12 +172,15 @@ export default function ElevationAdjustmentsAccordion() {
             <InputLabel>Preset</InputLabel>
             <Select
               value={'preset' in elevation ? elevation.preset : 'flat'}
-              onChange={(event) => handlePresetChange(event.target.value as PresetKey)}
+              onChange={(event) =>
+                handlePresetChange(event.target.value as PresetKey)
+              }
               disabled={isUpdating}
             >
               {Object.entries(BASE_PRESETS).map(([preset, position]) => (
                 <MenuItem key={preset} value={preset}>
-                  {preset.charAt(0).toUpperCase() + preset.slice(1)} ({position.head}° • {position.feet}°)
+                  {preset.charAt(0).toUpperCase() + preset.slice(1)} (
+                  {position.head}° • {position.feet}°)
                 </MenuItem>
               ))}
             </Select>
@@ -185,7 +191,7 @@ export default function ElevationAdjustmentsAccordion() {
               label="Head (°)"
               type="number"
               value={'preset' in elevation ? 0 : elevation.head}
-              onChange={(event) => 
+              onChange={(event) =>
                 handleCustomChange('head', Number(event.target.value))
               }
               inputProps={{ min: 0, max: 60 }}
@@ -196,7 +202,7 @@ export default function ElevationAdjustmentsAccordion() {
               label="Feet (°)"
               type="number"
               value={'preset' in elevation ? 0 : elevation.feet}
-              onChange={(event) => 
+              onChange={(event) =>
                 handleCustomChange('feet', Number(event.target.value))
               }
               inputProps={{ min: 0, max: 45 }}
@@ -207,7 +213,7 @@ export default function ElevationAdjustmentsAccordion() {
               label="Speed"
               type="number"
               value={'preset' in elevation ? 50 : elevation.feedRate || 50}
-              onChange={(event) => 
+              onChange={(event) =>
                 handleCustomChange('feedRate', Number(event.target.value))
               }
               inputProps={{ min: 30, max: 100 }}

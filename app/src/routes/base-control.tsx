@@ -1,28 +1,22 @@
-import { createFileRoute } from '@tanstack/react-router'
 import {
   useBaseStatus,
   useSetBasePosition,
   useSetBasePreset,
   useStopBase,
-} from '@api/baseControl'
-import BedVisualization from '@components/BedVisualization'
-import AddIcon from '@mui/icons-material/Add'
-import RemoveIcon from '@mui/icons-material/Remove'
-import {
-  Box,
-  Button,
-  IconButton,
-  Stack,
-  Typography,
-} from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import { useAppStore } from '@state/appStore'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import PageContainer from '@/components/shared/PageContainer'
+} from '@api/baseControl';
+import BedVisualization from '@components/BedVisualization';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import { Box, Button, IconButton, Stack, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { useAppStore } from '@state/appStore';
+import { createFileRoute } from '@tanstack/react-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import PageContainer from '@/components/shared/PageContainer';
 
 interface BasePosition {
-  head: number
-  feet: number
+  head: number;
+  feet: number;
 }
 
 const presets = {
@@ -30,14 +24,14 @@ const presets = {
   sleep: { head: 1, feet: 5 },
   relax: { head: 30, feet: 15 },
   read: { head: 40, feet: 0 },
-}
+};
 
 const presetTimes = {
   flat: '0 • 0',
   sleep: '1 • 5',
   relax: '25 • 10',
   read: '40 • 0',
-}
+};
 
 const presetIcons = {
   flat: (isActive: boolean) => (
@@ -68,22 +62,22 @@ const presetIcons = {
       style={{ width: 24, height: 24, opacity: isActive ? 1 : 0.5 }}
     />
   ),
-}
+};
 
 function BaseControlPage() {
-  const theme = useTheme()
-  const { isUpdating } = useAppStore()
-  const [position, setPosition] = useState<BasePosition>({ head: 0, feet: 0 })
-  const [isOptimisticallyMoving, setIsOptimisticallyMoving] = useState(false)
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const theme = useTheme();
+  const { isUpdating } = useAppStore();
+  const [position, setPosition] = useState<BasePosition>({ head: 0, feet: 0 });
+  const [isOptimisticallyMoving, setIsOptimisticallyMoving] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [optimisticMovementStartTime, setOptimisticMovementStartTime] =
-    useState<number | null>(null)
-  const [movingToPreset, setMovingToPreset] = useState<string | null>(null)
+    useState<number | null>(null);
+  const [movingToPreset, setMovingToPreset] = useState<string | null>(null);
 
-  const { data: baseStatus } = useBaseStatus()
-  const setBasePositionMutation = useSetBasePosition()
-  const setBasePresetMutation = useSetBasePreset()
-  const stopBaseMutation = useStopBase()
+  const { data: baseStatus } = useBaseStatus();
+  const setBasePositionMutation = useSetBasePosition();
+  const setBasePresetMutation = useSetBasePreset();
+  const stopBaseMutation = useStopBase();
 
   // Update local state when base status changes - always sync with backend
   useEffect(() => {
@@ -91,12 +85,12 @@ function BaseControlPage() {
       setPosition((prev) => {
         // Only update if the position has actually changed
         if (prev.head !== baseStatus.head || prev.feet !== baseStatus.feet) {
-          return { head: baseStatus.head, feet: baseStatus.feet }
+          return { head: baseStatus.head, feet: baseStatus.feet };
         }
-        return prev
-      })
+        return prev;
+      });
     }
-  }, [baseStatus?.head, baseStatus?.feet])
+  }, [baseStatus?.head, baseStatus?.feet]);
 
   // Stop optimistic movement when backend reports movement has stopped
   useEffect(() => {
@@ -107,52 +101,52 @@ function BaseControlPage() {
         optimisticMovementStartTime &&
         Date.now() - optimisticMovementStartTime > 2000
       ) {
-        setIsOptimisticallyMoving(false)
-        setOptimisticMovementStartTime(null)
-        setMovingToPreset(null)
+        setIsOptimisticallyMoving(false);
+        setOptimisticMovementStartTime(null);
+        setMovingToPreset(null);
       }
     }
   }, [
     baseStatus?.isMoving,
     isOptimisticallyMoving,
     optimisticMovementStartTime,
-  ])
+  ]);
 
   const debouncedApplyPosition = useCallback(
     async (newPosition: BasePosition) => {
-      setIsOptimisticallyMoving(true)
-      setOptimisticMovementStartTime(Date.now())
+      setIsOptimisticallyMoving(true);
+      setOptimisticMovementStartTime(Date.now());
 
       try {
         await setBasePositionMutation.mutateAsync({
           ...newPosition,
           feedRate: 50,
-        })
+        });
       } catch (error) {
-        setIsOptimisticallyMoving(false)
-        setOptimisticMovementStartTime(null)
-        throw error
+        setIsOptimisticallyMoving(false);
+        setOptimisticMovementStartTime(null);
+        throw error;
       }
     },
     [setBasePositionMutation],
-  )
+  );
 
   const updatePosition = useCallback(
     (newPosition: BasePosition) => {
-      setPosition(newPosition)
+      setPosition(newPosition);
 
       // Clear existing timer
       if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
+        clearTimeout(debounceTimerRef.current);
       }
 
       // Set new debounced timer
       debounceTimerRef.current = setTimeout(() => {
-        debouncedApplyPosition(newPosition)
-      }, 500)
+        debouncedApplyPosition(newPosition);
+      }, 500);
     },
     [debouncedApplyPosition],
-  )
+  );
 
   const pillButtonStyle = {
     color: '#fff',
@@ -168,7 +162,7 @@ function BaseControlPage() {
       backgroundColor: 'rgba(255, 255, 255, 0.05)',
       color: 'rgba(255, 255, 255, 0.3)',
     },
-  }
+  };
 
   const presetButtonStyle = {
     color: '#fff',
@@ -190,52 +184,52 @@ function BaseControlPage() {
       backgroundColor: 'rgba(255, 255, 255, 0.05)',
       color: 'rgba(255, 255, 255, 0.5)',
     },
-  }
+  };
 
   const handleHeadIncrement = () =>
-    updatePosition({ ...position, head: Math.min(45, position.head + 1) })
+    updatePosition({ ...position, head: Math.min(45, position.head + 1) });
 
   const handleHeadDecrement = () =>
-    updatePosition({ ...position, head: Math.max(0, position.head - 1) })
+    updatePosition({ ...position, head: Math.max(0, position.head - 1) });
 
   const handleFeetIncrement = () =>
-    updatePosition({ ...position, feet: Math.min(30, position.feet + 1) })
+    updatePosition({ ...position, feet: Math.min(30, position.feet + 1) });
 
   const handleFeetDecrement = () =>
-    updatePosition({ ...position, feet: Math.max(0, position.feet - 1) })
+    updatePosition({ ...position, feet: Math.max(0, position.feet - 1) });
 
   const handlePresetClick = async (preset: keyof typeof presets) => {
     // If clicking on the preset we're currently moving to, stop movement
     if (movingToPreset === preset && isActuallyMoving) {
-      await handleStop()
-      return
+      await handleStop();
+      return;
     }
 
     // Start optimistic movement state
-    setIsOptimisticallyMoving(true)
-    setOptimisticMovementStartTime(Date.now())
-    setMovingToPreset(preset)
+    setIsOptimisticallyMoving(true);
+    setOptimisticMovementStartTime(Date.now());
+    setMovingToPreset(preset);
 
     try {
       // Don't optimistically update local state - let backend report the changes
-      await setBasePresetMutation.mutateAsync(preset)
+      await setBasePresetMutation.mutateAsync(preset);
     } catch (error) {
       // If command fails, stop optimistic movement
-      setIsOptimisticallyMoving(false)
-      setOptimisticMovementStartTime(null)
-      setMovingToPreset(null)
-      throw error
+      setIsOptimisticallyMoving(false);
+      setOptimisticMovementStartTime(null);
+      setMovingToPreset(null);
+      throw error;
     }
-  }
+  };
 
   const handleStop = async () => {
     // Stop optimistic movement immediately when stop is requested
-    setIsOptimisticallyMoving(false)
-    setOptimisticMovementStartTime(null)
-    setMovingToPreset(null)
+    setIsOptimisticallyMoving(false);
+    setOptimisticMovementStartTime(null);
+    setMovingToPreset(null);
 
-    await stopBaseMutation.mutateAsync()
-  }
+    await stopBaseMutation.mutateAsync();
+  };
 
   // Determine which preset matches current position
   const getActivePreset = () => {
@@ -244,21 +238,21 @@ function BaseControlPage() {
         ([_, preset]) =>
           preset.head === position.head && preset.feet === position.feet,
       )?.[0] || null
-    )
-  }
+    );
+  };
 
-  const activePreset = getActivePreset()
+  const activePreset = getActivePreset();
 
   if (!baseStatus) {
-    return null // Will be caught by error boundary if data fails to load
+    return null; // Will be caught by error boundary if data fails to load
   }
 
-  const isMoving = baseStatus.isMoving || false
-  const isActuallyMoving = isOptimisticallyMoving || isMoving
+  const isMoving = baseStatus.isMoving || false;
+  const isActuallyMoving = isOptimisticallyMoving || isMoving;
   const isMutating =
     setBasePositionMutation.isPending ||
     setBasePresetMutation.isPending ||
-    stopBaseMutation.isPending
+    stopBaseMutation.isPending;
 
   return (
     <PageContainer
@@ -383,9 +377,9 @@ function BaseControlPage() {
       {/* Preset Buttons */}
       <Stack spacing={2} sx={{ mb: 4 }}>
         {Object.entries(presetTimes).map(([preset, time]) => {
-          const IconComponent = presetIcons[preset as keyof typeof presetIcons]
-          const isActive = activePreset === preset
-          const canStop = movingToPreset === preset && isActuallyMoving
+          const IconComponent = presetIcons[preset as keyof typeof presetIcons];
+          const isActive = activePreset === preset;
+          const canStop = movingToPreset === preset && isActuallyMoving;
 
           return (
             <Button
@@ -426,7 +420,7 @@ function BaseControlPage() {
                 {canStop ? 'Moving...' : time}
               </Typography>
             </Button>
-          )
+          );
         })}
       </Stack>
 
@@ -465,9 +459,9 @@ function BaseControlPage() {
         </Box>
       )}
     </PageContainer>
-  )
+  );
 }
 
 export const Route = createFileRoute('/base-control')({
   component: BaseControlPage,
-})
+});

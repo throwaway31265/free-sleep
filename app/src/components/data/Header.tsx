@@ -8,7 +8,6 @@ type HeaderProps = {
 };
 
 export default function Header({ title, icon }: HeaderProps) {
-
   return (
     <Grid container alignItems="center">
       {/* Back Icon - Left Aligned & Vertically Centered */}

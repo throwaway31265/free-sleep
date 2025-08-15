@@ -1,8 +1,11 @@
-import { ErrorComponent, type ErrorComponentProps } from '@tanstack/react-router';
-import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { Box, Button, Typography } from '@mui/material';
+import { useQueryErrorResetBoundary } from '@tanstack/react-query';
+import {
+  ErrorComponent,
+  type ErrorComponentProps,
+  useRouter,
+} from '@tanstack/react-router';
 import { useEffect } from 'react';
-import { useRouter } from '@tanstack/react-router';
 
 export default function RouteErrorComponent({ error }: ErrorComponentProps) {
   const router = useRouter();
@@ -15,10 +18,11 @@ export default function RouteErrorComponent({ error }: ErrorComponentProps) {
 
   // Check if it's a network/API error
   const errorAny = error as any;
-  const isNetworkError = error?.message?.includes('Network') ||
-                        error?.message?.includes('fetch') ||
-                        errorAny?.response?.status >= 500 ||
-                        errorAny?.code === 'ECONNREFUSED';
+  const isNetworkError =
+    error?.message?.includes('Network') ||
+    error?.message?.includes('fetch') ||
+    errorAny?.response?.status >= 500 ||
+    errorAny?.code === 'ECONNREFUSED';
 
   const title = isNetworkError
     ? 'Unable to Connect to Server'
@@ -35,21 +39,26 @@ export default function RouteErrorComponent({ error }: ErrorComponentProps) {
 
   // Production-friendly error display
   return (
-    <Box sx={{
-      textAlign: 'center',
-      py: 6,
-      px: 3,
-      color: '#fff',
-      minHeight: '50vh',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center'
-    }}>
+    <Box
+      sx={{
+        textAlign: 'center',
+        py: 6,
+        px: 3,
+        color: '#fff',
+        minHeight: '50vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <Typography variant="h5" sx={{ mb: 2, color: 'error.main' }}>
         {title}
       </Typography>
-      <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', maxWidth: 600 }}>
+      <Typography
+        variant="body1"
+        sx={{ mb: 4, color: 'text.secondary', maxWidth: 600 }}
+      >
         {message}
       </Typography>
       <Button
@@ -61,7 +70,7 @@ export default function RouteErrorComponent({ error }: ErrorComponentProps) {
         size="large"
         sx={{
           backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
+          '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.2)' },
         }}
       >
         Try Again

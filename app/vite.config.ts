@@ -1,15 +1,12 @@
-import { defineConfig } from 'vite'
-import viteReact from '@vitejs/plugin-react'
-import { tanstackRouter } from '@tanstack/router-plugin/vite'
-import { resolve } from 'node:path'
+import { resolve } from 'node:path';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
+import viteReact from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
 export default defineConfig(() => {
   return {
-    plugins: [
-      tanstackRouter({ autoCodeSplitting: false }),
-      viteReact(),
-    ],
+    plugins: [tanstackRouter({ autoCodeSplitting: false }), viteReact()],
     server: {
       host: '0.0.0.0', // This makes the server accessible to other devices on the network
       port: 3000,
@@ -38,5 +35,5 @@ export default defineConfig(() => {
         '@components': resolve(__dirname, './src/components'),
       },
     },
-  }
-})
+  };
+});

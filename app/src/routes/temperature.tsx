@@ -1,38 +1,42 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useDeviceStatus } from '@api/deviceStatus'
-import { useSettings } from '@api/settings.ts'
-import { Box } from '@mui/material'
-import CircularProgress from '@mui/material/CircularProgress'
-import { useTheme } from '@mui/material/styles'
-import { useAppStore } from '@state/appStore.tsx'
-import { useEffect } from 'react'
-import SideControl from '../components/SideControl.tsx'
-import PageContainer from '@/components/shared/PageContainer.tsx'
-import AlarmDismissal from '@components/temperature/AlarmDismissal.tsx'
-import AwayNotification from '@components/temperature/AwayNotification.tsx'
-import { useControlTempStore } from '@components/temperature/controlTempStore.tsx'
-import PowerButton from '@components/temperature/PowerButton.tsx'
-import Slider from '@components/temperature/Slider.tsx'
-import WaterNotification from '@components/temperature/WaterNotification.tsx'
+import { useDeviceStatus } from '@api/deviceStatus';
+import { useSettings } from '@api/settings.ts';
+import AlarmDismissal from '@components/temperature/AlarmDismissal.tsx';
+import AwayNotification from '@components/temperature/AwayNotification.tsx';
+import { useControlTempStore } from '@components/temperature/controlTempStore.tsx';
+import PowerButton from '@components/temperature/PowerButton.tsx';
+import Slider from '@components/temperature/Slider.tsx';
+import WaterNotification from '@components/temperature/WaterNotification.tsx';
+import { Box } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useTheme } from '@mui/material/styles';
+import { useAppStore } from '@state/appStore.tsx';
+import { createFileRoute } from '@tanstack/react-router';
+import { useEffect } from 'react';
+import PageContainer from '@/components/shared/PageContainer.tsx';
+import SideControl from '../components/SideControl.tsx';
 
 function ControlTempPage() {
-  const { data: deviceStatusOriginal, refetch, isLoading: isLoadingDevice } = useDeviceStatus()
-  const { setOriginalDeviceStatus, deviceStatus } = useControlTempStore()
-  const { data: settings, isLoading: isLoadingSettings } = useSettings()
-  const { isUpdating, side } = useAppStore()
-  const theme = useTheme()
+  const {
+    data: deviceStatusOriginal,
+    refetch,
+    isLoading: isLoadingDevice,
+  } = useDeviceStatus();
+  const { setOriginalDeviceStatus, deviceStatus } = useControlTempStore();
+  const { data: settings, isLoading: isLoadingSettings } = useSettings();
+  const { isUpdating, side } = useAppStore();
+  const theme = useTheme();
 
   useEffect(() => {
-    if (!deviceStatusOriginal) return
-    setOriginalDeviceStatus(deviceStatusOriginal)
-  }, [deviceStatusOriginal])
+    if (!deviceStatusOriginal) return;
+    setOriginalDeviceStatus(deviceStatusOriginal);
+  }, [deviceStatusOriginal]);
 
-  const sideStatus = deviceStatus?.[side]
-  const isOn = sideStatus?.isOn || false
+  const sideStatus = deviceStatus?.[side];
+  const isOn = sideStatus?.isOn || false;
 
   useEffect(() => {
-    refetch()
-  }, [side])
+    refetch();
+  }, [side]);
 
   // Show loading state while data is being fetched
   if (isLoadingDevice || isLoadingSettings) {
@@ -46,21 +50,23 @@ function ControlTempPage() {
         }}
       >
         <SideControl title={'Temperature'} />
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          minHeight: '50vh'
-        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '50vh',
+          }}
+        >
           <CircularProgress sx={{ color: '#fff' }} />
         </Box>
       </PageContainer>
-    )
+    );
   }
 
   // Don't render until we have both device status and settings
   if (!deviceStatus || !settings) {
-    return null
+    return null;
   }
 
   return (
@@ -91,9 +97,9 @@ function ControlTempPage() {
         </Box>
       )}
     </PageContainer>
-  )
+  );
 }
 
 export const Route = createFileRoute('/temperature')({
   component: ControlTempPage,
-})
+});

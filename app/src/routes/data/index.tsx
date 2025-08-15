@@ -1,4 +1,3 @@
-import { createFileRoute, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import BedIcon from '@mui/icons-material/Bed';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
@@ -8,11 +7,17 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 // import FavoriteIcon from '@mui/icons-material/Favorite';
 import Typography from '@mui/material/Typography';
+import {
+  createFileRoute,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from '@tanstack/react-router';
 import PageContainer from '@/components/shared/PageContainer.tsx';
 
 export const Route = createFileRoute('/data/')({
   component: DataPage,
-})
+});
 
 const SettingsList = () => {
   const navigate = useNavigate();

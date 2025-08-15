@@ -1,8 +1,4 @@
-import type {
-  DailySchedule,
-  DayOfWeek,
-  Schedules,
-} from '@api/schedulesSchema';
+import type { DailySchedule, DayOfWeek, Schedules } from '@api/schedulesSchema';
 import { useAppStore } from '@state/appStore.tsx';
 import _ from 'lodash';
 import type { DeepPartial } from 'ts-essentials';
@@ -53,9 +49,7 @@ type ScheduleStore = {
   updateSelectedTemperatures: (
     temperatures: DailySchedule['temperatures'],
   ) => void;
-  updateSelectedElevations: (
-    elevations: DailySchedule['elevations'],
-  ) => void;
+  updateSelectedElevations: (elevations: DailySchedule['elevations']) => void;
 
   // Keep a copy of the original schedules
   originalSchedules: Schedules | undefined;
