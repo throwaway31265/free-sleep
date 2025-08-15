@@ -101,16 +101,38 @@ if [ "$NEEDS_UPDATE" = "true" ]; then
     echo "Fetching latest commit information from GitHub..."
     GITHUB_API_URL="https://api.github.com/repos/throwaway31265/free-sleep/commits/${BRANCH}"
 
-    # Fetch commit info with timeout
-    if COMMIT_DATA=$(timeout 10s curl -s "$GITHUB_API_URL" 2>/dev/null); then
-      # Parse JSON response using basic tools (no jq dependency)
-      # Use || true to prevent grep from causing script exit on no match
-      COMMIT_HASH=$(echo "$COMMIT_DATA" | grep -o '"sha":"[^"]*"' | cut -d'"' -f4 | head -c 8 || true)
-      COMMIT_TITLE=$(echo "$COMMIT_DATA" | grep -o '"message":"[^"]*"' | cut -d'"' -f4 | head -c 100 || true)
+    # Fetch commit info with timeout and better error handling
+    if COMMIT_DATA=$(timeout 10s curl -s -w "HTTP_CODE:%{http_code}" "$GITHUB_API_URL" 2>/dev/null); then
+      HTTP_CODE=$(echo "$COMMIT_DATA" | grep -o 'HTTP_CODE:[0-9]*' | cut -d':' -f2)
+      COMMIT_DATA=$(echo "$COMMIT_DATA" | sed 's/HTTP_CODE:[0-9]*$//')
+
+      if [ "$HTTP_CODE" = "200" ]; then
+        # Parse JSON response using basic tools (no jq dependency)
+        # Use || true to prevent grep from causing script exit on no match
+        COMMIT_HASH=$(echo "$COMMIT_DATA" | grep -o '"sha":"[^"]*"' | cut -d'"' -f4 | head -c 8 || true)
+        COMMIT_TITLE=$(echo "$COMMIT_DATA" | grep -o '"message":"[^"]*"' | cut -d'"' -f4 | head -c 100 || true)
+
+        # Clean up commit title (remove escaped characters)
+        COMMIT_TITLE=$(echo "$COMMIT_TITLE" | sed 's/\\n/ /g' | sed 's/\\"/"/g' || true)
+      else
+        echo "GitHub API returned HTTP $HTTP_CODE, using fallback values"
+      fi
+    else
+      echo "Failed to fetch commit info from GitHub API (network/timeout), using fallback values"
     fi
   fi
 
-  # Fallback values if API call failed
+  # Alternative: Try to get commit info from package.json if it exists
+  if [ -z "$COMMIT_HASH" ] && [ -f "$REPO_DIR/server/package.json" ]; then
+    echo "Trying to extract version info from package.json..."
+    PACKAGE_VERSION=$(grep -o '"version":[[:space:]]*"[^"]*"' "$REPO_DIR/server/package.json" 2>/dev/null | cut -d'"' -f4 || true)
+    if [ -n "$PACKAGE_VERSION" ]; then
+      COMMIT_HASH="${PACKAGE_VERSION:0:8}"
+      COMMIT_TITLE="Version $PACKAGE_VERSION from ${BRANCH} branch"
+    fi
+  fi
+
+  # Fallback values if all methods failed
   if [ -z "$COMMIT_HASH" ]; then
     COMMIT_HASH="unknown"
   fi

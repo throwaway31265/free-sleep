@@ -53,12 +53,8 @@ router.get(
   },
 );
 
-router.put<
-  { id: string },
-  any,
-  SleepRecord
-  // @ts-ignore
->('/sleep/:id', async (req, res) => {
+// @ts-ignore
+router.put<{ id: string }, any, SleepRecord>('/sleep/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const parsedId = parseInt(id, 10);
