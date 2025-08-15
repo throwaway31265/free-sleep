@@ -1,9 +1,17 @@
 .Slider {
+  /* Create a container that limits the height and clips overflow */
+  height: 70%;
+  overflow: hidden;
+
   svg {
     &:hover {
       cursor: pointer;
     }
     color: #87868b;
+    /* Prevent stray clicks from bleeding through to the dial when pressing overlay controls */
+    pointer-events: auto;
+    /* Limit clickable area to just the visible arc portion to prevent interfering with buttons below */
+    clip-path: polygon(0% 0%, 100% 0%, 100% 70%, 0% 70%);
   }
   &.Disabled {
     circle {

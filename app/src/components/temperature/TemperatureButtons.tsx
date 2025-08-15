@@ -27,8 +27,8 @@ export default function TemperatureButtons({
   const buttonStyle = {
     borderWidth: '2px',
     borderColor,
-    width: 50,
-    height: 50,
+    width: 70,
+    height: 70,
     borderRadius: '50%',
     minWidth: 0,
     padding: 0,
@@ -84,7 +84,7 @@ export default function TemperatureButtons({
   return (
     <Box
       sx={{
-        top: '75%',
+        top: '80%',
         position: 'absolute',
         display: 'flex',
         justifyContent: 'center',
