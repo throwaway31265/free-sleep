@@ -15,6 +15,11 @@ set -euo pipefail
 echo "==================================================================="
 echo "           Free Sleep Installation Script"
 echo "==================================================================="
+
+# --------------------------------------------------------------------------------
+# Variables
+BRANCH=${BRANCH:-main}
+
 echo "Branch: ${BRANCH}"
 echo ""
 echo "This script will check and update the following components:"
@@ -31,10 +36,6 @@ echo "  BRANCH=beta ./install.sh        # Install/switch to beta branch"
 echo "  FORCE_UPDATE=true ./install.sh  # Force repository update"
 echo "==================================================================="
 echo ""
-
-# --------------------------------------------------------------------------------
-# Variables
-BRANCH=${BRANCH:-main}
 REPO_URL="https://github.com/throwaway31265/free-sleep/archive/refs/heads/${BRANCH}.zip"
 ZIP_FILE="free-sleep-${BRANCH}.zip"
 REPO_DIR="/home/dac/free-sleep"
