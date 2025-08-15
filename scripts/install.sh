@@ -76,9 +76,34 @@ chmod 770 /persistent/free-sleep-data/
 chmod g+s /persistent/free-sleep-data/
 
 # --------------------------------------------------------------------------------
-# Install server dependencies
+# Install server dependencies (with IPv6 hang workaround)
 echo "Installing dependencies in $SERVER_DIR ..."
-sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun install"
+
+if command -v timeout >/dev/null 2>&1; then
+  echo "Running bun install with a 180s timeout to detect hangs..."
+  if ! sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && timeout 180s /home/$USERNAME/.bun/bin/bun install"; then
+    echo "bun install failed or timed out. Applying IPv6 workaround and retrying..."
+    # Disable IPv6 (runtime)
+    sysctl -w net.ipv6.conf.all.disable_ipv6=1 || true
+    sysctl -w net.ipv6.conf.default.disable_ipv6=1 || true
+    sysctl -w net.ipv6.conf.lo.disable_ipv6=1 || true
+    # Persist IPv6 disable across reboots
+    if [ -f /etc/sysctl.conf ]; then
+      sed -i '/net.ipv6.conf.all.disable_ipv6/d' /etc/sysctl.conf || true
+      sed -i '/net.ipv6.conf.default.disable_ipv6/d' /etc/sysctl.conf || true
+      sed -i '/net.ipv6.conf.lo.disable_ipv6/d' /etc/sysctl.conf || true
+      echo 'net.ipv6.conf.all.disable_ipv6=1' >> /etc/sysctl.conf
+      echo 'net.ipv6.conf.default.disable_ipv6=1' >> /etc/sysctl.conf
+      echo 'net.ipv6.conf.lo.disable_ipv6=1' >> /etc/sysctl.conf
+      sysctl -p || true
+    fi
+    # Retry bun install
+    sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun install"
+  fi
+else
+  echo "'timeout' command not found. Running bun install normally. If it hangs at 'Resolving...', run /home/dac/free-sleep/scripts/disable_ipv6.sh and re-run the installer."
+  sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun install"
+fi
 
 echo "Running Prisma migrations..."
 sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun run migrate deploy"
