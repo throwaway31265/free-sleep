@@ -384,7 +384,8 @@ else
 fi
 
 echo "Running Prisma migrations..."
-sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun run migrate deploy"
+# Ensure Bun is in PATH for nested spawns inside the npm script (dotenv -> bun x ...)
+sudo -u "$USERNAME" bash -lc "export BUN_INSTALL=/home/$USERNAME/.bun; export PATH=/home/$USERNAME/.bun/bin:$PATH; cd '$SERVER_DIR' && bun run migrate deploy"
 
 # --------------------------------------------------------------------------------
 # Create systemd service
