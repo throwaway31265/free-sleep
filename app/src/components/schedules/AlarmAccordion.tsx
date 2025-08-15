@@ -42,7 +42,7 @@ export default function AlarmAccordion() {
 
   return (
     <Accordion
-      sx={{ width: '100%', mt: -2 }}
+      sx={{ width: '100%' }}
       expanded={accordionExpanded === ACCORDION_NAME}
       onChange={() => setAccordionExpanded(ACCORDION_NAME)}
     >
