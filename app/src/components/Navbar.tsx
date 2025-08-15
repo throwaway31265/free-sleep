@@ -10,12 +10,14 @@ import { useAppStore } from '@state/appStore.tsx';
 import React from 'react';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { PAGES } from './pages';
+import { useVersion } from '@api/version';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { isUpdating } = useAppStore();
   const theme = useTheme(); // Access the Material-UI theme
+  const { data: version } = useVersion();
   const currentTitle = PAGES.find((page) => page.route === pathname)?.title;
   const [mobileNavValue, setMobileNavValue] = React.useState(
     PAGES.findIndex((page) => page.route === pathname),
@@ -78,6 +80,24 @@ export default function Navbar() {
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             {currentTitle || 'Free sleep'}
+            {version?.branch && (
+              <Typography
+                component="span"
+                variant="caption"
+                sx={{
+                  ml: 1,
+                  px: 1,
+                  py: 0.25,
+                  backgroundColor: version.branch === 'main' ? 'success.main' : 'warning.main',
+                  color: 'black',
+                  borderRadius: 1,
+                  fontSize: '0.65rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                {version.branch}
+              </Typography>
+            )}
           </Typography>
           <Box sx={{ display: 'flex', gap: 2 }}>
             {PAGES.map(({ title, route }) => (
@@ -102,11 +122,13 @@ export default function Navbar() {
           width: '100%',
           position: 'fixed',
           bottom: 0,
+          left: 0,
+          right: 0,
           height: '80px',
           justifyContent: 'space-between',
           borderTop: `1px solid ${theme.palette.grey[700]}`,
           backgroundColor: theme.palette.background.default,
-          zIndex: 10,
+          zIndex: 1200,
         }}
       >
         <BottomNavigation

@@ -15,6 +15,7 @@ import PrimeControl from '@components/settings/PrimeControl.tsx'
 import SideSettings from '@components/settings/SideSettings.tsx'
 import TemperatureFormatSelector from '@components/settings/TemperatureFormatSelector.tsx'
 import TimeZoneSelector from '@components/settings/TimeZoneSelector.tsx'
+import VersionInfo from '@components/settings/VersionInfo.tsx'
 
 function SettingsPage() {
   const { data: settings, refetch } = useSettings()
@@ -72,6 +73,8 @@ function SettingsPage() {
       <DiscordLink />
       <Divider />
       <Donate />
+      <Divider />
+      <VersionInfo />
       <Divider />
       <LicenseModal />
     </PageContainer>

@@ -88,8 +88,50 @@ if [ "$NEEDS_UPDATE" = "true" ]; then
   # Store branch information for future detection
   echo "$BRANCH" > "$REPO_DIR/.git-branch-info"
 
+  # Create comprehensive git info file for the server API
+  echo "Creating git information file..."
+
+  # Get the latest commit info from the downloaded repository
+  COMMIT_HASH=""
+  COMMIT_TITLE=""
+
+  # Try to get commit info from GitHub API (works without git being installed)
+  if command -v curl >/dev/null 2>&1; then
+    echo "Fetching latest commit information from GitHub..."
+    GITHUB_API_URL="https://api.github.com/repos/nikita/free-sleep/commits/${BRANCH}"
+
+    # Fetch commit info with timeout
+    if COMMIT_DATA=$(timeout 10s curl -s "$GITHUB_API_URL" 2>/dev/null); then
+      # Parse JSON response using basic tools (no jq dependency)
+      COMMIT_HASH=$(echo "$COMMIT_DATA" | grep -o '"sha":"[^"]*"' | cut -d'"' -f4 | head -c 8)
+      COMMIT_TITLE=$(echo "$COMMIT_DATA" | grep -o '"message":"[^"]*"' | cut -d'"' -f4 | head -c 100)
+    fi
+  fi
+
+  # Fallback values if API call failed
+  if [ -z "$COMMIT_HASH" ]; then
+    COMMIT_HASH="unknown"
+  fi
+  if [ -z "$COMMIT_TITLE" ]; then
+    COMMIT_TITLE="Latest commit from ${BRANCH} branch"
+  fi
+
+  # Create git info JSON file
+  cat > "$REPO_DIR/.git-info" <<EOF
+{
+  "branch": "${BRANCH}",
+  "commitHash": "${COMMIT_HASH}",
+  "commitTitle": "${COMMIT_TITLE}",
+  "buildDate": "$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")"
+}
+EOF
+
+  # Also create git info in server directory for API access
+  cp "$REPO_DIR/.git-info" "$SERVER_DIR/.git-info" 2>/dev/null || true
+
   chown -R "$USERNAME":"$USERNAME" "$REPO_DIR"
   echo "Repository updated successfully from branch '${BRANCH}'."
+  echo "Commit: ${COMMIT_HASH} - ${COMMIT_TITLE}"
 else
   echo "Repository already exists and is on the correct branch '${BRANCH}'. Skipping download."
   echo "Set FORCE_UPDATE=true to force repository update."
