@@ -93,7 +93,7 @@ export default function VersionInfo() {
   return (
     <Box sx={{ textAlign: 'center', py: 2 }}>
       {isOutOfDate && (
-        <Alert severity="warning" sx={{ mb: 2, textAlign: 'left' }}>
+        <Alert severity="warning" sx={{ mb: 2, textAlign: 'left'}}>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
             Update available
           </Typography>
@@ -102,12 +102,12 @@ export default function VersionInfo() {
             <b> {version.branch}</b> is {remoteCommit}. To update, run the
             installer on your Free Sleep box:
           </Typography>
-          <Box component="pre" sx={{ p: 1, bgcolor: 'background.default', borderRadius: 1, overflow: 'auto' }}>
-            {`# Main branch:
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/throwaway31265/free-sleep/main/scripts/install.sh)"
+          <Box sx={{ p: 1, bgcolor: 'background.default', borderRadius: 1, overflow: 'auto' }}>
+              <p>Main branch:</p>
+              <p>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/throwaway31265/free-sleep/main/scripts/install.sh)"</p>
 
-# Beta branch (not recommended):
-BRANCH=beta /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/throwaway31265/free-sleep/beta/scripts/install.sh)"`}
+              <p># Beta branch (not recommended):</p>
+              <p>BRANCH=beta /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/throwaway31265/free-sleep/beta/scripts/install.sh)"</p>
           </Box>
         </Alert>
       )}
