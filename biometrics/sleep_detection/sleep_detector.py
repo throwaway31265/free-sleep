@@ -47,6 +47,9 @@ def _get_presence_intervals(df: pd.DataFrame, side: Side, presence_duration_thre
     present_intervals = []
     not_present_intervals = []
     current_status = None
+    if df is None or df.empty:
+        logger.warning('Presence intervals requested on empty dataframe; returning no intervals.')
+        return [], []
     start_time = df.index[0]
 
     # Iterate over DataFrame to find state changes
@@ -206,7 +209,13 @@ def detect_sleep(side: Side, start_time: datetime, end_time: datetime, folder_pa
     data = load_raw_files(folder_path, start_time, end_time, side, sensor_count=1, raw_data_types=['capSense', 'piezo-dual'])
 
     piezo_df = load_piezo_df(data, side, expected_row_count=expected_row_count)
+    if piezo_df is None or piezo_df.empty:
+        logger.warning('No piezo data found; aborting sleep detection.')
+        return []
     cap_df = load_cap_df(data, side, expected_row_count=expected_row_count)
+    if cap_df is None or cap_df.empty:
+        logger.warning('No capacitance data found; aborting sleep detection.')
+        return []
     # Cleanup data
     del data
     gc.collect()
@@ -222,6 +231,9 @@ def detect_sleep(side: Side, start_time: datetime, end_time: datetime, folder_pa
     )
 
     merged_df = piezo_df.merge(cap_df, on='ts', how='inner')
+    if merged_df.empty:
+        logger.warning('Merged dataframe is empty; aborting sleep detection.')
+        return []
     merged_df.drop_duplicates(inplace=True)
 
     # Free up memory from old dfs
@@ -232,6 +244,9 @@ def detect_sleep(side: Side, start_time: datetime, end_time: datetime, folder_pa
     gc.collect()
 
     cap_baseline = load_baseline(side)
+    if cap_baseline is None:
+        logger.warning('Cap baseline not found; aborting sleep detection.')
+        return []
 
     detect_presence_cap(
         merged_df,

@@ -19,9 +19,16 @@ def _calculate_avg(arr: np.ndarray):
 def load_piezo_df(data: Data, side: Side, lower_percentile=2, upper_percentile=98, expected_row_count=None) -> pd.DataFrame:
     logger.debug('Loading piezo df...')
     df = pd.DataFrame(data['piezo_dual'])
+    if df.empty:
+        logger.warning('No piezo rows loaded for the requested range.')
+        return df
     df.sort_values(by='ts', inplace=True)
     df['ts'] = pd.to_datetime(df['ts'])
     df.set_index('ts', inplace=True)
+
+    if f'{side}1' not in df.columns:
+        logger.warning(f"Piezo column '{side}1' missing; returning empty dataframe.")
+        return pd.DataFrame()
 
     df[f'{side}1_avg'] = df[f'{side}1'].apply(_calculate_avg)
 
@@ -29,14 +36,17 @@ def load_piezo_df(data: Data, side: Side, lower_percentile=2, upper_percentile=9
     upper_bound = np.percentile(df[f'{side}1_avg'], upper_percentile)
     df = df[(df[f'{side}1_avg'] >= lower_bound) & (df[f'{side}1_avg'] <= upper_bound)]
 
-    df.drop(columns=[f'{side}1', 'type', 'freq', 'adc', 'gain'], inplace=True)
+    cols_to_drop = [c for c in [f'{side}1', 'type', 'freq', 'adc', 'gain'] if c in df.columns]
+    if cols_to_drop:
+        df.drop(columns=cols_to_drop, inplace=True)
     logger.debug(f'Piezo rows loaded: {df.shape[0]:,}')
     if expected_row_count is not None:
         row_count = df.shape[0]
-        if row_count / expected_row_count < 0.80:
+        if expected_row_count > 0 and row_count / expected_row_count < 0.80:
             logger.warning(f'Potentially missing piezo rows! Expected: {expected_row_count:,} Loaded: {row_count:,} ({row_count / expected_row_count * 100:0.0f}%)')
 
-    logger.debug(f'Loaded piezo df time range: {df.index[0]} -> {df.index[-1]}')
+    if not df.empty:
+        logger.debug(f'Loaded piezo df time range: {df.index[0]} -> {df.index[-1]}')
     return df
 
 
@@ -64,6 +74,9 @@ def detect_presence_piezo(df: pd.DataFrame, side: Side, rolling_seconds=10, thre
              indicating presence (1) or absence (0) based on the rolling threshold.
      """
     logger.debug('Detecting piezo presence...')
+    if df is None or df.empty:
+        logger.warning('Empty piezo dataframe; skipping piezo presence detection.')
+        return df
 
     # Compute min/max range
     df[f'{side}1_min'] = df[f'{side}1_avg'].rolling(window=range_rolling_seconds, center=True).min()
@@ -98,10 +111,20 @@ def detect_presence_piezo(df: pd.DataFrame, side: Side, rolling_seconds=10, thre
 
 def identify_baseline_period(merged_df: pd.DataFrame, side: str, threshold_range: int = 10_000, empty_minutes: int = 5):
     logger.debug('Finding baseline period...')
+    if merged_df is None or merged_df.empty:
+        logger.warning('Merged dataframe is empty; cannot identify baseline period.')
+        return None, None
     merged_df = merged_df.sort_index()  # Ensure the index is sorted
 
     range_column = f'{side.lower()}1_range'
     stability_columns = [f'{side.lower()}_out', f'{side.lower()}_cen', f'{side.lower()}_in']
+
+    # Validate required columns exist
+    required_columns = [range_column] + stability_columns
+    for col in required_columns:
+        if col not in merged_df.columns:
+            logger.warning(f"Required column missing for baseline detection: {col}")
+            return None, None
 
     # Iterate over time chunks (efficient early exit)
     window_size = pd.Timedelta(f'{empty_minutes}min')

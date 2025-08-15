@@ -33,10 +33,16 @@ pd.set_option('display.max_columns', 50)
 
 def create_cap_baseline_from_cap_df(merged_df: pd.DataFrame, start_time: datetime, end_time: datetime, side: Side, min_std: int = 5) -> CapBaseline:
     logger.debug(f'Creating baseline for capacitance sensors...')
+    if merged_df is None or merged_df.empty:
+        raise ValueError('Cannot create cap baseline: merged_df is empty')
     filtered_df = merged_df[start_time:end_time]
+    if filtered_df.empty:
+        raise ValueError('Cannot create cap baseline: filtered_df is empty for the given interval')
     logger.debug(f'filtered_df: \n{filtered_df.describe()}')
     cap_baseline = {}
     for sensor in [f'{side}_out', f'{side}_cen', f'{side}_in']:
+        if sensor not in filtered_df.columns:
+            raise KeyError(f'Missing required cap sensor column: {sensor}')
         cap_baseline[sensor] = {
             "mean": filtered_df[sensor].mean(),
             "std": max(filtered_df[sensor].std(), min_std)
@@ -78,6 +84,9 @@ Run `python3 calibrate_sensor_thresholds.py --side=right --start_time="2025-02-0
 def load_cap_df(data: Data, side: Side, expected_row_count=None) -> pd.DataFrame:
     logger.debug('Loading cap df...')
     df = pd.DataFrame(data['cap_senses'], columns=['ts', side])
+    if df.empty:
+        logger.warning('No capacitance rows loaded for the requested range.')
+        return df
 
     df[f'{side}_out'] = df[side].str['out']
     df[f'{side}_cen'] = df[side].str['cen']
@@ -92,10 +101,10 @@ def load_cap_df(data: Data, side: Side, expected_row_count=None) -> pd.DataFrame
     logger.debug(f'Capacitance rows loaded: {df.shape[0]:,}')
     if expected_row_count is not None:
         row_count = df.shape[0]
-        if row_count / expected_row_count < 0.80:
+        if expected_row_count > 0 and row_count / expected_row_count < 0.80:
             logger.warning(f'Potentially missing cap rows! Expected: {expected_row_count:,} Loaded: {row_count:,} ({row_count / expected_row_count * 100:0.0f}%)')
-
-    logger.debug(f'Loaded cap df time range: {df.index[0]} -> {df.index[-1]}')
+    if not df.empty:
+        logger.debug(f'Loaded cap df time range: {df.index[0]} -> {df.index[-1]}')
     return df
 
 
@@ -109,6 +118,11 @@ def detect_presence_cap(
         clean=True
 ) -> pd.DataFrame:
     logger.debug('Detecting cap presence...')
+    if merged_df is None or merged_df.empty:
+        logger.warning('Empty merged dataframe; skipping cap presence detection.')
+        return merged_df
+    if cap_baseline is None:
+        raise ValueError('cap_baseline is None; cannot detect cap presence')
     # Vectorized sensor deltas (removes the need for _sensor_delta row-wise function):
     merged_df[f'{side}_combined'] = (
             (merged_df[f'{side}_out'] - cap_baseline[f'{side}_out']['mean']) / cap_baseline[f'{side}_out']['std']

@@ -91,6 +91,8 @@ def calibrate_sensor_thresholds(side: Side, start_time: datetime, end_time: date
     )
 
     piezo_df = load_piezo_df(data, side, expected_row_count=expected_row_count)
+    if piezo_df is None or piezo_df.empty:
+        raise ValueError('No piezo data available for calibration; aborting')
     detect_presence_piezo(
         piezo_df,
         side,
@@ -102,11 +104,15 @@ def calibrate_sensor_thresholds(side: Side, start_time: datetime, end_time: date
     )
 
     cap_df = load_cap_df(data, side, expected_row_count=expected_row_count)
+    if cap_df is None or cap_df.empty:
+        raise ValueError('No capacitance data available for calibration; aborting')
     # Cleanup data
     del data
     gc.collect()
 
     merged_df = piezo_df.merge(cap_df, on='ts', how='inner')
+    if merged_df.empty:
+        raise ValueError('Merged dataframe is empty; cannot calibrate')
     # Free up memory from old dfs
     piezo_df.drop(piezo_df.index, inplace=True)
     cap_df.drop(cap_df.index, inplace=True)
@@ -116,6 +122,8 @@ def calibrate_sensor_thresholds(side: Side, start_time: datetime, end_time: date
 
     # Create baseline
     baseline_start_time, baseline_end_time = identify_baseline_period(merged_df, side, threshold_range=10_000, empty_minutes=5)
+    if baseline_start_time is None or baseline_end_time is None:
+        raise ValueError('Unable to find a valid baseline period for calibration')
     cap_baseline = create_cap_baseline_from_cap_df(merged_df, baseline_start_time, baseline_end_time, side, min_std=5)
     save_baseline(side, cap_baseline)
 
