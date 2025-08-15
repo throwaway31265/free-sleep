@@ -9,16 +9,14 @@ export default function Layout() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        flexGrow: 1,
-        alignItems: 'center',
-        gap: 2,
-        // padding: 0,
-        margin: 0,
-        justifyContent: 'center',
+        minHeight: '100vh',
+        position: 'relative',
       }}
     >
       {/* Renders current route */}
-      <Outlet />
+      <Box sx={{ flexGrow: 1, paddingBottom: { xs: '80px', md: '80px' } }}>
+        <Outlet />
+      </Box>
       <Navbar />
     </Box>
   );

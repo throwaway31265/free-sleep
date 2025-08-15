@@ -61,11 +61,10 @@ const darkTheme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          height: '100vh',
-          maxHeight: '100vh',
-          width: '100vw',
-          position: 'fixed',
+          minHeight: '100vh',
+          width: '100%',
           overscrollBehavior: 'none',
+          overflowX: 'hidden',
         },
       },
     },
