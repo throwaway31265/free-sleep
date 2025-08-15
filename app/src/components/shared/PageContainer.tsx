@@ -21,6 +21,7 @@ export default function PageContainer({
       sx={{
         display: 'flex',
         flexDirection: 'column',
+        justifySelf: 'center',
         flexGrow: 1,
         alignItems: 'center',
         gap: 2,
