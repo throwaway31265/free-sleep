@@ -53,18 +53,20 @@ async function setupJobs() {
         day as DayOfWeek,
         schedule.power,
       );
-      scheduleTemperatures(
-        settingsData,
-        side as Side,
-        day as DayOfWeek,
-        schedule.temperatures,
-      );
-      scheduleElevations(
-        settingsData,
-        side as Side,
-        day as DayOfWeek,
-        schedule.elevations,
-      );
+      if (schedule.power.enabled) {
+        scheduleTemperatures(
+          settingsData,
+          side as Side,
+          day as DayOfWeek,
+          schedule.temperatures,
+        );
+        scheduleElevations(
+          settingsData,
+          side as Side,
+          day as DayOfWeek,
+          schedule.elevations,
+        );
+      }
       scheduleAlarm(settingsData, side as Side, day as DayOfWeek, schedule);
     });
   });
