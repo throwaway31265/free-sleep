@@ -104,8 +104,9 @@ if [ "$NEEDS_UPDATE" = "true" ]; then
     # Fetch commit info with timeout
     if COMMIT_DATA=$(timeout 10s curl -s "$GITHUB_API_URL" 2>/dev/null); then
       # Parse JSON response using basic tools (no jq dependency)
-      COMMIT_HASH=$(echo "$COMMIT_DATA" | grep -o '"sha":"[^"]*"' | cut -d'"' -f4 | head -c 8)
-      COMMIT_TITLE=$(echo "$COMMIT_DATA" | grep -o '"message":"[^"]*"' | cut -d'"' -f4 | head -c 100)
+      # Use || true to prevent grep from causing script exit on no match
+      COMMIT_HASH=$(echo "$COMMIT_DATA" | grep -o '"sha":"[^"]*"' | cut -d'"' -f4 | head -c 8 || true)
+      COMMIT_TITLE=$(echo "$COMMIT_DATA" | grep -o '"message":"[^"]*"' | cut -d'"' -f4 | head -c 100 || true)
     fi
   fi
 
@@ -155,19 +156,32 @@ else
 fi
 
 # --------------------------------------------------------------------------------
-# Update system Node.js to version 22
+# Update Node.js to version 22 (with Volta support)
 echo "Checking Node.js version..."
 NODE_VERSION="22.18.0"
 CURRENT_NODE_VERSION=""
+VOLTA_DETECTED=false
 
-if command -v node >/dev/null 2>&1; then
-  CURRENT_NODE_VERSION=$(node -v | sed 's/v//')
+# Check if Volta is managing Node.js for the user
+if sudo -u "$USERNAME" bash -c 'command -v volta' >/dev/null 2>&1; then
+  VOLTA_DETECTED=true
+  echo "Volta detected for user '$USERNAME'."
+  CURRENT_NODE_VERSION=$(sudo -u "$USERNAME" bash -c 'node -v 2>/dev/null | sed "s/v//"' || echo "")
+else
+  # Check system Node.js
+  if command -v node >/dev/null 2>&1; then
+    CURRENT_NODE_VERSION=$(node -v | sed 's/v//')
+  fi
 fi
 
 if [ "$CURRENT_NODE_VERSION" = "$NODE_VERSION" ]; then
   echo "Node.js v$NODE_VERSION is already installed. Skipping update."
+elif [ "$VOLTA_DETECTED" = true ]; then
+  echo "Using Volta to install Node.js v$NODE_VERSION for user '$USERNAME'..."
+  sudo -u "$USERNAME" bash -c "volta install node@$NODE_VERSION"
+  echo "Node.js updated successfully via Volta."
 else
-  echo "Updating system Node.js to version $NODE_VERSION..."
+  echo "Installing system Node.js to version $NODE_VERSION..."
   NODE_TARBALL="node-v${NODE_VERSION}-linux-arm64.tar.gz"
   NODE_URL="https://nodejs.org/dist/v${NODE_VERSION}/${NODE_TARBALL}"
 
@@ -185,7 +199,11 @@ fi
 
 # Verify installation
 echo "Current Node.js version:"
-node -v
+if [ "$VOLTA_DETECTED" = true ]; then
+  sudo -u "$USERNAME" bash -c 'node -v' || echo "Node.js not found"
+else
+  node -v || echo "Node.js not found"
+fi
 
 # --------------------------------------------------------------------------------
 # Setup /persistent/free-sleep-data (migrate old configs, logs, etc.)
@@ -230,6 +248,12 @@ echo "Checking server dependencies..."
 # Check if node_modules exists and has contents
 if [ -d "$SERVER_DIR/node_modules" ] && [ "$(ls -A $SERVER_DIR/node_modules)" ]; then
   echo "Dependencies appear to be installed. Checking if update is needed..."
+
+  # Ensure bun directory has correct ownership
+  if [ -d "/home/$USERNAME/.bun" ]; then
+    chown -R "$USERNAME":"$USERNAME" "/home/$USERNAME/.bun" || true
+  fi
+
   # Run bun install anyway to update/verify dependencies, but with shorter timeout
   if command -v timeout >/dev/null 2>&1; then
     echo "Running bun install to verify/update dependencies..."
@@ -240,10 +264,21 @@ if [ -d "$SERVER_DIR/node_modules" ] && [ "$(ls -A $SERVER_DIR/node_modules)" ];
 else
   echo "Installing dependencies in $SERVER_DIR ..."
 
+  # Fix potential permission issues with bun cache directory
+  echo "Ensuring bun cache directory has correct ownership..."
+  if [ -d "/home/$USERNAME/.bun" ]; then
+    chown -R "$USERNAME":"$USERNAME" "/home/$USERNAME/.bun" || true
+  fi
+
   if command -v timeout >/dev/null 2>&1; then
     echo "Running bun install with a 180s timeout to detect hangs..."
     if ! sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && timeout 180s /home/$USERNAME/.bun/bin/bun install"; then
-      echo "bun install failed or timed out. Applying IPv6 workaround and retrying..."
+      echo "bun install failed or timed out. Clearing cache and applying workarounds..."
+
+      # Clear bun cache to resolve permission issues
+      echo "Clearing bun cache..."
+      sudo -u "$USERNAME" bash -c "/home/$USERNAME/.bun/bin/bun pm cache rm" || true
+
       # Disable IPv6 (runtime)
       sysctl -w net.ipv6.conf.all.disable_ipv6=1 || true
       sysctl -w net.ipv6.conf.default.disable_ipv6=1 || true
@@ -258,11 +293,33 @@ else
         echo 'net.ipv6.conf.lo.disable_ipv6=1' >> /etc/sysctl.conf
         sysctl -p || true
       fi
+
+      # Ensure ownership is correct again after cache clear
+      chown -R "$USERNAME":"$USERNAME" "/home/$USERNAME/.bun" || true
+
       # Retry bun install
-      sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun install"
+      echo "Retrying bun install..."
+      if ! sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun install"; then
+        echo "ERROR: bun install failed after applying workarounds."
+        echo "This could be due to:"
+        echo "  1. Network connectivity issues"
+        echo "  2. Disk space issues"
+        echo "  3. ARM64 architecture compatibility issues"
+        echo "  4. File system permission issues"
+        echo ""
+        echo "You can try the following manual steps:"
+        echo "  1. Check disk space: df -h"
+        echo "  2. Clear all bun cache: sudo -u $USERNAME /home/$USERNAME/.bun/bin/bun pm cache clear"
+        echo "  3. Remove node_modules: rm -rf '$SERVER_DIR/node_modules'"
+        echo "  4. Try installing manually: cd '$SERVER_DIR' && sudo -u $USERNAME /home/$USERNAME/.bun/bin/bun install"
+        echo ""
+        exit 1
+      fi
     fi
   else
     echo "'timeout' command not found. Running bun install normally. If it hangs at 'Resolving...', run /home/dac/free-sleep/scripts/disable_ipv6.sh and re-run the installer."
+    # Still fix permissions even without timeout
+    chown -R "$USERNAME":"$USERNAME" "/home/$USERNAME/.bun" || true
     sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun install"
   fi
 fi
@@ -280,6 +337,13 @@ if systemctl is-enabled free-sleep.service >/dev/null 2>&1; then
 
   # Always update the service file in case there are changes
   echo "Updating systemd service file at $SERVICE_FILE..."
+
+  # Build PATH with Volta support if detected
+  SERVICE_PATH="/home/$USERNAME/.bun/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
+  if [ "$VOLTA_DETECTED" = true ]; then
+    SERVICE_PATH="/home/$USERNAME/.volta/bin:$SERVICE_PATH"
+  fi
+
   cat >"$SERVICE_FILE" <<EOF
 [Unit]
 Description=Free Sleep Server
@@ -292,7 +356,7 @@ Restart=always
 User=$USERNAME
 Environment=NODE_ENV=production
 Environment=BUN_INSTALL=/home/$USERNAME/.bun
-Environment=PATH=/home/$USERNAME/.bun/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
+Environment=PATH=$SERVICE_PATH
 
 [Install]
 WantedBy=multi-user.target
@@ -311,6 +375,12 @@ EOF
 else
   echo "Creating systemd service file at $SERVICE_FILE..."
 
+  # Build PATH with Volta support if detected
+  SERVICE_PATH="/home/$USERNAME/.bun/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
+  if [ "$VOLTA_DETECTED" = true ]; then
+    SERVICE_PATH="/home/$USERNAME/.volta/bin:$SERVICE_PATH"
+  fi
+
   cat >"$SERVICE_FILE" <<EOF
 [Unit]
 Description=Free Sleep Server
@@ -323,7 +393,7 @@ Restart=always
 User=$USERNAME
 Environment=NODE_ENV=production
 Environment=BUN_INSTALL=/home/$USERNAME/.bun
-Environment=PATH=/home/$USERNAME/.bun/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
+Environment=PATH=$SERVICE_PATH
 
 [Install]
 WantedBy=multi-user.target
@@ -398,7 +468,11 @@ cat /persistent/free-sleep-data/dac_sock_path.txt 2>/dev/null || echo "No dac.so
 
 echo ""
 echo "Current versions:"
-echo "  - Node.js: $(node -v 2>/dev/null || echo 'Not found')"
+if [ "$VOLTA_DETECTED" = true ]; then
+  echo "  - Node.js: $(sudo -u "$USERNAME" bash -c 'node -v' 2>/dev/null || echo 'Not found') (managed by Volta)"
+else
+  echo "  - Node.js: $(node -v 2>/dev/null || echo 'Not found') (system)"
+fi
 echo "  - Bun: $(sudo -u "$USERNAME" bash -c '/home/dac/.bun/bin/bun --version' 2>/dev/null || echo 'Not found')"
 
 echo ""
