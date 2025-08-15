@@ -1,10 +1,48 @@
 import { useVersion } from '@api/version';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { Box, Chip, Typography } from '@mui/material';
+import Alert from '@mui/material/Alert';
+import { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 
 export default function VersionInfo() {
   const { data: version, isLoading, error } = useVersion();
+  const [remoteCommit, setRemoteCommit] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [checkError, setCheckError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const run = async () => {
+      if (!version?.branch) return;
+      setChecking(true);
+      setCheckError(null);
+      setRemoteCommit(null);
+      try {
+        const res = await fetch(
+          `https://api.github.com/repos/throwaway31265/free-sleep/commits/${version.branch}`,
+          { signal: controller.signal }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        // Trim to 8 chars to match server's stored format
+        const sha: string | undefined = data?.sha;
+        if (sha) setRemoteCommit(sha.substring(0, 8));
+      } catch (e: any) {
+        // Network restrictions or rate limits shouldn't break the page
+        setCheckError(e?.message || 'Unable to check for updates');
+      } finally {
+        setChecking(false);
+      }
+    };
+    run();
+    return () => controller.abort();
+  }, [version?.branch]);
+
+  const isOutOfDate = useMemo(() => {
+    if (!version?.commitHash || !remoteCommit) return false;
+    return version.commitHash !== remoteCommit;
+  }, [version?.commitHash, remoteCommit]);
 
   if (isLoading) {
     return (
@@ -54,6 +92,25 @@ export default function VersionInfo() {
 
   return (
     <Box sx={{ textAlign: 'center', py: 2 }}>
+      {isOutOfDate && (
+        <Alert severity="warning" sx={{ mb: 2, textAlign: 'left' }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Update available
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Your device is running commit {version.commitHash} but the latest on
+            <b> {version.branch}</b> is {remoteCommit}. To update, run the
+            installer on your Free Sleep box:
+          </Typography>
+          <Box component="pre" sx={{ p: 1, bgcolor: 'background.default', borderRadius: 1, overflow: 'auto' }}>
+            {`# Main branch:
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/throwaway31265/free-sleep/main/scripts/install.sh)"
+
+# Beta branch (not recommended):
+BRANCH=beta /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/throwaway31265/free-sleep/beta/scripts/install.sh)"`}
+          </Box>
+        </Alert>
+      )}
       <Box
         sx={{
           display: 'flex',
@@ -111,6 +168,16 @@ export default function VersionInfo() {
           Built:{' '}
           {formatBuildDate(version.buildDate || new Date().toISOString())}
         </Typography>
+
+        {!isOutOfDate && (
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+            {checking
+              ? 'Checking for updates...'
+              : checkError
+                ? 'Unable to check for updates'
+                : 'You are up to date'}
+          </Typography>
+        )}
       </Box>
     </Box>
   );
