@@ -15,6 +15,7 @@ import {
   useNavigate,
 } from '@tanstack/react-router';
 import moment from 'moment-timezone';
+import { useMemo } from 'react';
 import { useSleepRecords } from '@api/sleep.ts';
 import { useVitalsSummary } from '@api/vitals.ts';
 import { useAppStore } from '@state/appStore.tsx';
@@ -28,13 +29,20 @@ export const Route = createFileRoute('/data/')({
 const RecentSleepCard = () => {
   const navigate = useNavigate();
   const { side } = useAppStore();
-  const endTime = moment();
-  const startTime = moment().subtract(7, 'days');
+
+  const { startTime, endTime } = useMemo(() => {
+    const end = moment();
+    const start = moment().subtract(7, 'days');
+    return {
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+    };
+  }, []); // Empty dependency array since we want this to be calculated once
 
   const { data: sleepRecords, isLoading } = useSleepRecords({
     side,
-    startTime: startTime.toISOString(),
-    endTime: endTime.toISOString(),
+    startTime,
+    endTime,
   });
 
   const lastNight = sleepRecords && sleepRecords.length > 0 ? sleepRecords[sleepRecords.length - 1] : null;
@@ -114,8 +122,15 @@ const RecentSleepCard = () => {
 const RecentVitalsCard = () => {
   const navigate = useNavigate();
   const { side } = useAppStore();
-  const endTime = moment().toISOString();
-  const startTime = moment().subtract(1, 'day').toISOString();
+
+  const { startTime, endTime } = useMemo(() => {
+    const end = moment();
+    const start = moment().subtract(1, 'day');
+    return {
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+    };
+  }, []); // Empty dependency array since we want this to be calculated once
 
   const { data: vitalsSummary, isLoading } = useVitalsSummary({
     startTime,
