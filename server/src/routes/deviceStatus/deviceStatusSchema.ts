@@ -32,3 +32,23 @@ export const DeviceStatusSchema = z
 
 export type SideStatus = z.infer<typeof SideStatusSchema>;
 export type DeviceStatus = z.infer<typeof DeviceStatusSchema>;
+
+// For update payloads, accept deep partials explicitly
+const SideStatusUpdateSchema = SideStatusSchema.partial();
+
+export const DeviceStatusUpdateSchema = z
+  .object({
+    left: SideStatusUpdateSchema.optional(),
+    right: SideStatusUpdateSchema.optional(),
+    waterLevel: z.string().optional(),
+    isPriming: z.boolean().optional(),
+    settings: z
+      .object({
+        v: z.number().optional(),
+        gainLeft: z.number().optional(),
+        gainRight: z.number().optional(),
+        ledBrightness: z.number().optional(),
+      })
+      .optional(),
+  })
+  .strict();

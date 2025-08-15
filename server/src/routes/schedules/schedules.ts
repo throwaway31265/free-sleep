@@ -6,7 +6,7 @@ import {
   type DailySchedule,
   type DayOfWeek,
   type Schedules,
-  SchedulesSchema,
+  SchedulesUpdateSchema,
   type Side,
   type SideSchedule,
 } from '../../db/schedulesSchema.js';
@@ -21,7 +21,7 @@ router.get('/schedules', async (req: Request, res: Response) => {
 
 router.post('/schedules', async (req: Request, res: Response) => {
   const body = req.body;
-  const validationResult = SchedulesSchema.partial().safeParse(body);
+  const validationResult = SchedulesUpdateSchema.safeParse(body);
   if (!validationResult.success) {
     logger.error('Invalid schedules update:', validationResult.error);
     res.status(400).json({

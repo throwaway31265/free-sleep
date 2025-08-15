@@ -30,3 +30,23 @@ export const SettingsSchema = z
 
 export type SideSettings = z.infer<typeof SideSettingsSchema>;
 export type Settings = z.infer<typeof SettingsSchema>;
+
+// Update schema (deep partial for patch routes)
+export const SettingsUpdateSchema = z
+  .object({
+    timeZone: z.enum(TIME_ZONES).nullable().optional(),
+    left: SideSettingsSchema.partial().optional(),
+    right: SideSettingsSchema.partial().optional(),
+    lastPrime: z.string().datetime().optional(),
+    primePodDaily: z
+      .object({
+        enabled: z.boolean().optional(),
+        time: TimeSchema.optional(),
+      })
+      .optional(),
+    temperatureFormat: Temperatures.optional(),
+    rebootDaily: z.boolean().optional(),
+  })
+  .strict();
+
+export type SettingsUpdate = z.infer<typeof SettingsUpdateSchema>;

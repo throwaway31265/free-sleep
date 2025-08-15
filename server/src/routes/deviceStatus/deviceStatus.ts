@@ -2,7 +2,10 @@ import express, { type Request, type Response } from 'express';
 import type { DeepPartial } from 'ts-essentials';
 import { getFranken } from '../../8sleep/frankenServer.js';
 import logger from '../../logger.js';
-import { type DeviceStatus, DeviceStatusSchema } from './deviceStatusSchema.js';
+import {
+  type DeviceStatus,
+  DeviceStatusUpdateSchema,
+} from './deviceStatusSchema.js';
 import { updateDeviceStatus } from './updateDeviceStatus.js';
 
 const router = express.Router();
@@ -15,7 +18,8 @@ router.get('/deviceStatus', async (req: Request, res: Response) => {
 
 router.post('/deviceStatus', async (req: Request, res: Response) => {
   const { body } = req;
-  const validationResult = DeviceStatusSchema.partial().safeParse(body);
+  // Validate against dedicated update schema allowing nested partials
+  const validationResult = DeviceStatusUpdateSchema.safeParse(body);
   if (!validationResult.success) {
     logger.error('Invalid device status update:', validationResult.error);
     res.status(400).json({

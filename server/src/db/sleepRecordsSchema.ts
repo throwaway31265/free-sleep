@@ -17,3 +17,6 @@ export const sleepRecordSchema = z.object({
 
 // TypeScript type inference from Zod
 export type SleepRecord = z.infer<typeof sleepRecordSchema>;
+
+// Update schema for partial record updates
+export const sleepRecordUpdateSchema = sleepRecordSchema.partial();

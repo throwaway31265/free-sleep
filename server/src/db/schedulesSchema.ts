@@ -83,3 +83,43 @@ export type BasePreset = z.infer<typeof BasePresetSchema>;
 export type DayOfWeek = keyof SideSchedule;
 // eslint-disable-next-line @typescript-eslint/no-type-alias
 export type Side = keyof Schedules;
+
+// Update schemas (deep partial for patch routes)
+export const DailyScheduleUpdateSchema = z
+  .object({
+    temperatures: z.record(TimeSchema, TemperatureSchema).optional(),
+    alarm: AlarmSchema.partial().optional(),
+    power: z
+      .object({
+        on: TimeSchema.optional(),
+        off: TimeSchema.optional(),
+        onTemperature: TemperatureSchema.optional(),
+        enabled: z.boolean().optional(),
+      })
+      .optional(),
+    elevations: z.record(TimeSchema, BaseElevationSchema).optional(),
+  })
+  .strict();
+
+export const SideScheduleUpdateSchema = z
+  .object({
+    sunday: DailyScheduleUpdateSchema.optional(),
+    monday: DailyScheduleUpdateSchema.optional(),
+    tuesday: DailyScheduleUpdateSchema.optional(),
+    wednesday: DailyScheduleUpdateSchema.optional(),
+    thursday: DailyScheduleUpdateSchema.optional(),
+    friday: DailyScheduleUpdateSchema.optional(),
+    saturday: DailyScheduleUpdateSchema.optional(),
+  })
+  .strict();
+
+export const SchedulesUpdateSchema = z
+  .object({
+    left: SideScheduleUpdateSchema.optional(),
+    right: SideScheduleUpdateSchema.optional(),
+  })
+  .strict();
+
+export type DailyScheduleUpdate = z.infer<typeof DailyScheduleUpdateSchema>;
+export type SideScheduleUpdate = z.infer<typeof SideScheduleUpdateSchema>;
+export type SchedulesUpdate = z.infer<typeof SchedulesUpdateSchema>;

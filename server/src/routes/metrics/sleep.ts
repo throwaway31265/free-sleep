@@ -5,7 +5,7 @@ import { loadSleepRecords } from '../../db/loadSleepRecords.js';
 import prisma from '../../db/prisma.js';
 import {
   type SleepRecord,
-  sleepRecordSchema,
+  sleepRecordUpdateSchema,
 } from '../../db/sleepRecordsSchema.js';
 
 const router = express.Router();
@@ -74,7 +74,7 @@ router.put<{ id: string }, any, SleepRecord>('/sleep/:id', async (req, res) => {
     existingRecord = loadedRecords[0];
 
     // Validate the request body
-    const parsedData = sleepRecordSchema.partial().safeParse(req.body);
+    const parsedData = sleepRecordUpdateSchema.safeParse(req.body);
     if (!parsedData.success) {
       return res.status(400).json({
         error: 'Invalid request body',

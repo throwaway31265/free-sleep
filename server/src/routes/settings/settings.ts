@@ -5,7 +5,7 @@ import logger from '../../logger.js';
 const router = express.Router();
 
 import settingsDB from '../../db/settings.js';
-import { SettingsSchema } from '../../db/settingsSchema.js';
+import { SettingsUpdateSchema } from '../../db/settingsSchema.js';
 
 router.get('/settings', async (req: Request, res: Response) => {
   await settingsDB.read();
@@ -14,7 +14,7 @@ router.get('/settings', async (req: Request, res: Response) => {
 
 router.post('/settings', async (req: Request, res: Response) => {
   const { body } = req;
-  const validationResult = SettingsSchema.partial().safeParse(body);
+  const validationResult = SettingsUpdateSchema.safeParse(body);
   if (!validationResult.success) {
     logger.error('Invalid settings update:', validationResult.error);
     res.status(400).json({
