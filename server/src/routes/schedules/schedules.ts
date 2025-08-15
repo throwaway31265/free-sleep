@@ -21,12 +21,12 @@ router.get('/schedules', async (req: Request, res: Response) => {
 
 router.post('/schedules', async (req: Request, res: Response) => {
   const body = req.body;
-  const validationResult = SchedulesSchema.deepPartial().safeParse(body);
+  const validationResult = SchedulesSchema.partial().safeParse(body);
   if (!validationResult.success) {
     logger.error('Invalid schedules update:', validationResult.error);
     res.status(400).json({
       error: 'Invalid request data',
-      details: validationResult?.error?.errors,
+      details: validationResult?.error?.message,
     });
     return;
   }

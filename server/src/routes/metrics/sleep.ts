@@ -78,7 +78,7 @@ router.put<{ id: string }, any, SleepRecord>('/sleep/:id', async (req, res) => {
     if (!parsedData.success) {
       return res.status(400).json({
         error: 'Invalid request body',
-        details: parsedData.error.format(),
+        details: parsedData.error.message,
       });
     }
     // Convert entered_bed_at and exited_bed_at to epoch timestamps

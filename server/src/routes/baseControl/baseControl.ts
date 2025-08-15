@@ -86,7 +86,7 @@ router.post('/base-control', async (req, res) => {
     if (error instanceof z.ZodError) {
       res.status(400).json({
         error: 'Validation error',
-        details: error.errors,
+        details: error.message,
       });
     } else {
       logger.error('Error setting base position:', error);

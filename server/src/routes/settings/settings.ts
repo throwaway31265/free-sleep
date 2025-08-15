@@ -14,12 +14,12 @@ router.get('/settings', async (req: Request, res: Response) => {
 
 router.post('/settings', async (req: Request, res: Response) => {
   const { body } = req;
-  const validationResult = SettingsSchema.deepPartial().safeParse(body);
+  const validationResult = SettingsSchema.partial().safeParse(body);
   if (!validationResult.success) {
     logger.error('Invalid settings update:', validationResult.error);
     res.status(400).json({
       error: 'Invalid request data',
-      details: validationResult?.error?.errors,
+      details: validationResult?.error?.message,
     });
     return;
   }

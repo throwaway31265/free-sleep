@@ -15,12 +15,12 @@ router.get('/deviceStatus', async (req: Request, res: Response) => {
 
 router.post('/deviceStatus', async (req: Request, res: Response) => {
   const { body } = req;
-  const validationResult = DeviceStatusSchema.deepPartial().safeParse(body);
+  const validationResult = DeviceStatusSchema.partial().safeParse(body);
   if (!validationResult.success) {
     logger.error('Invalid device status update:', validationResult.error);
     res.status(400).json({
       error: 'Invalid request data',
-      details: validationResult?.error?.errors,
+      details: validationResult?.error?.message,
     });
     return;
   }
