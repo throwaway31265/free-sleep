@@ -35,7 +35,7 @@ echo ""
 # --------------------------------------------------------------------------------
 # Variables
 BRANCH=${BRANCH:-main}
-REPO_URL="https://github.com/nikita/free-sleep/archive/refs/heads/${BRANCH}.zip"
+REPO_URL="https://github.com/throwaway31265/free-sleep/archive/refs/heads/${BRANCH}.zip"
 ZIP_FILE="free-sleep-${BRANCH}.zip"
 REPO_DIR="/home/dac/free-sleep"
 SERVER_DIR="$REPO_DIR/server"
@@ -98,7 +98,7 @@ if [ "$NEEDS_UPDATE" = "true" ]; then
   # Try to get commit info from GitHub API (works without git being installed)
   if command -v curl >/dev/null 2>&1; then
     echo "Fetching latest commit information from GitHub..."
-    GITHUB_API_URL="https://api.github.com/repos/nikita/free-sleep/commits/${BRANCH}"
+    GITHUB_API_URL="https://api.github.com/repos/throwaway31265/free-sleep/commits/${BRANCH}"
 
     # Fetch commit info with timeout
     if COMMIT_DATA=$(timeout 10s curl -s "$GITHUB_API_URL" 2>/dev/null); then
