@@ -1,5 +1,5 @@
 import type { Settings } from '@api/settingsSchema.ts';
-import { Box, FormControlLabel, TextField } from '@mui/material';
+import { Box, FormControlLabel, TextField, Typography } from '@mui/material';
 import Switch from '@mui/material/Switch';
 import { useAppStore } from '@state/appStore.tsx';
 import type { DeepPartial } from 'ts-essentials';
@@ -16,7 +16,7 @@ export default function DailyPriming({
   const { isUpdating } = useAppStore();
 
   return (
-    <Box sx={{ mt: 2, display: 'flex', mb: 2, alignItems: 'center', gap: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <FormControlLabel
         control={
           <Switch
@@ -29,18 +29,24 @@ export default function DailyPriming({
             }
           />
         }
-        label="Prime daily?"
+        label="Automatic Daily Priming"
       />
-      <TextField
-        label="Prime time"
-        type="time"
-        value={settings?.primePodDaily?.time || '12:00'}
-        onChange={(e) =>
-          updateSettings({ primePodDaily: { time: e.target.value } })
-        }
-        disabled={isUpdating || settings?.primePodDaily?.enabled === false}
-        sx={{ mt: 2 }}
-      />
+      <Typography variant="caption" color="text.secondary" sx={{ ml: 4, mt: -1 }}>
+        Automatically prime the system daily to prevent air bubbles and maintain water flow
+      </Typography>
+      {settings?.primePodDaily?.enabled && (
+        <TextField
+          label="Priming Time"
+          type="time"
+          value={settings?.primePodDaily?.time || '12:00'}
+          onChange={(e) =>
+            updateSettings({ primePodDaily: { time: e.target.value } })
+          }
+          disabled={isUpdating}
+          sx={{ ml: 4, maxWidth: '200px' }}
+          helperText="Choose when to run daily priming cycle"
+        />
+      )}
     </Box>
   );
 }

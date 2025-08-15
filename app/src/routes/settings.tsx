@@ -17,6 +17,9 @@ import { useAppStore } from '@state/appStore.tsx';
 import { createFileRoute } from '@tanstack/react-router';
 import type { DeepPartial } from 'ts-essentials';
 import PageContainer from '@/components/shared/PageContainer.tsx';
+import SectionCard from '@/components/shared/SectionCard.tsx';
+import Box from '@mui/material/Box';
+
 
 function SettingsPage() {
   const { data: settings, refetch } = useSettings();
@@ -58,39 +61,84 @@ function SettingsPage() {
           Elevation controls are disabled because no compatible elevation base was detected on your 8 Sleep. If you add one later, restart the server and the Elevation page will appear.
         </div>
       )}
-      <TimeZoneSelector settings={settings} updateSettings={updateSettings} />
-      <TemperatureFormatSelector
-        settings={settings}
-        updateSettings={updateSettings}
-      />
-      <DailyReboot settings={settings} updateSettings={updateSettings} />
-      <Divider />
-      <DailyPriming settings={settings} updateSettings={updateSettings} />
-      <PrimeControl />
 
-      <Divider />
-      <SideSettings
-        side="left"
-        settings={settings}
-        updateSettings={updateSettings}
-      />
-      <br />
-      <SideSettings
-        side="right"
-        settings={settings}
-        updateSettings={updateSettings}
-      />
-      <Divider />
-      <LedBrightnessSlider />
+      <Box
+        sx={{
+          width: '100%',
+          display: 'grid',
+          gap: 3,
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          alignItems: 'start',
+        }}
+      >
+        <SectionCard
+          title="Display & Regional"
+          subheader="Configure display preferences and regional settings"
+        >
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <TimeZoneSelector settings={settings} updateSettings={updateSettings} />
+            <TemperatureFormatSelector
+              settings={settings}
+              updateSettings={updateSettings}
+            />
+          </Box>
+          <LedBrightnessSlider />
+        </SectionCard>
 
-      <Divider />
-      <DiscordLink />
-      <Divider />
-      <Donate />
-      <Divider />
-      <VersionInfo />
-      <Divider />
-      <LicenseModal />
+        <SectionCard
+          title="Bed Configuration"
+          subheader="Customize names and control settings for each side"
+        >
+          <SideSettings
+            side="left"
+            settings={settings}
+            updateSettings={updateSettings}
+          />
+          <Divider />
+          <SideSettings
+            side="right"
+            settings={settings}
+            updateSettings={updateSettings}
+          />
+        </SectionCard>
+
+        <SectionCard
+          title="System & Maintenance"
+          subheader="System health and maintenance automation"
+        >
+          <DailyReboot settings={settings} updateSettings={updateSettings} />
+          <DailyPriming settings={settings} updateSettings={updateSettings} />
+          <PrimeControl />
+        </SectionCard>
+
+        <SectionCard
+          title="System Information"
+          subheader="Version details and update status"
+        >
+          <VersionInfo />
+        </SectionCard>
+
+        <SectionCard
+          title="Community & Support"
+          subheader="Get help and connect with other users"
+        >
+          <DiscordLink />
+        </SectionCard>
+
+        <SectionCard
+          title="Support Development"
+          subheader="Help fund continued development"
+        >
+          <Donate />
+        </SectionCard>
+
+        <SectionCard
+          title="Legal Information"
+          subheader="View open source licenses"
+        >
+          <LicenseModal />
+        </SectionCard>
+      </Box>
     </PageContainer>
   );
 }

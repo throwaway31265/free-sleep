@@ -40,9 +40,12 @@ export default function LedBrightnessSlider() {
       });
   };
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      <Typography sx={{ mb: -1, textAlign: 'center' }}>
-        LED Brightness
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+        LED Brightness Control
+      </Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ mt: -1 }}>
+        Adjust the brightness of status LEDs on your device
       </Typography>
       <Slider
         value={settingsCopy?.ledBrightness || 0}
@@ -54,13 +57,16 @@ export default function LedBrightnessSlider() {
         }}
         min={0}
         max={100}
-        step={1}
+        step={5}
         marks={[
           { value: 0, label: 'Off' },
+          { value: 50, label: '50%' },
           { value: 100, label: '100%' },
         ]}
         disabled={isUpdating}
-        sx={{ width: '100%' }}
+        sx={{ width: '100%', mt: 1 }}
+        valueLabelDisplay="auto"
+        valueLabelFormat={(value) => `${value}%`}
       />
     </Box>
   );

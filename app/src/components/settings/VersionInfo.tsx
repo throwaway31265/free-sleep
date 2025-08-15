@@ -121,8 +121,8 @@ export default function VersionInfo() {
         }}
       >
         <GitHubIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
-        <Typography variant="h6" color="text.primary">
-          Version Information
+        <Typography variant="h6" color="text.primary" sx={{ fontWeight: 500 }}>
+          Software Version
         </Typography>
       </Box>
 

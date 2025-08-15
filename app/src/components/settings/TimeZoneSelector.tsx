@@ -1,5 +1,6 @@
 import type { Settings } from '@api/settingsSchema.ts';
 import { TIME_ZONES } from '@api/timeZones.ts';
+import { Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
@@ -26,14 +27,17 @@ export default function TimeZoneSelector({
   };
 
   return (
-    <Box sx={{ minWidth: 120, width: 300 }}>
+    <Box sx={{ minWidth: 200, width: { xs: '100%', sm: 320 } }}>
+      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 500 }}>
+        Time Zone
+      </Typography>
       <FormControl fullWidth>
-        <InputLabel>Time Zone</InputLabel>
+        <InputLabel>Select your time zone</InputLabel>
         <Select
           error={settings?.timeZone === null}
           disabled={isUpdating}
           value={settings?.timeZone || ''}
-          label="Time Zone"
+          label="Select your time zone"
           onChange={handleChange}
         >
           {TIME_ZONES.map((zone) => (
@@ -43,6 +47,11 @@ export default function TimeZoneSelector({
           ))}
         </Select>
       </FormControl>
+      {settings?.timeZone === null && (
+        <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
+          Please select a time zone for accurate scheduling
+        </Typography>
+      )}
     </Box>
   );
 }

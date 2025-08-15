@@ -20,7 +20,13 @@ export default function PrimeControl() {
     : '';
 
   return (
-    <Box sx={{ mt: -2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+        Manual Priming Control
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
+        Manually prime the system to clear air bubbles and ensure proper water circulation
+      </Typography>
       {deviceStatus?.isPriming ? (
         <PrimingNotification />
       ) : (
@@ -29,10 +35,11 @@ export default function PrimeControl() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            mt: 1,
           }}
         >
           <PrimeButton refetch={refetch} />
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
             Last primed: {formattedLastPrime}
             {timeAgo && (
               <Typography

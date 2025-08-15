@@ -11,10 +11,12 @@ const LicenseModal: React.FC = () => {
   const handleClose = () => setOpen(false);
 
   return (
-    <div>
-      {/* Button to Open Modal */}
-      <Button variant="contained" onClick={handleOpen}>
-        View License and Disclaimer
+    <Box sx={{ textAlign: 'center', py: 2 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        This project is open source and provided under the MIT License
+      </Typography>
+      <Button variant="outlined" onClick={handleOpen} fullWidth>
+        View License & Legal Disclaimer
       </Button>
 
       {/* Modal Component */}
@@ -118,12 +120,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.`}
           </Typography>
-          <Button variant="outlined" onClick={handleClose} sx={{ mt: 2 }}>
+          <Button variant="contained" onClick={handleClose} sx={{ mt: 2 }} fullWidth>
             Close
           </Button>
         </Box>
       </Modal>
-    </div>
+    </Box>
   );
 };
 

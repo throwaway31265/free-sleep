@@ -1,5 +1,5 @@
 import type { Settings } from '@api/settingsSchema.ts';
-import { Box, FormControlLabel } from '@mui/material';
+import { Box, FormControlLabel, Typography } from '@mui/material';
 import Switch from '@mui/material/Switch';
 import { useAppStore } from '@state/appStore.tsx';
 import type { DeepPartial } from 'ts-essentials';
@@ -15,7 +15,7 @@ export default function DailyReboot({
 }: DailyRebootProps) {
   const { isUpdating } = useAppStore();
   return (
-    <Box sx={{ mt: 2, display: 'flex', mb: 2, alignItems: 'center', gap: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
       <FormControlLabel
         control={
           <Switch
@@ -26,8 +26,11 @@ export default function DailyReboot({
             }
           />
         }
-        label="Reboot once a day"
+        label="Automatic Daily Restart"
       />
+      <Typography variant="caption" color="text.secondary" sx={{ ml: 4 }}>
+        Automatically restart the system daily to maintain optimal performance
+      </Typography>
     </Box>
   );
 }

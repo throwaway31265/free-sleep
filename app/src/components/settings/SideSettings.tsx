@@ -35,23 +35,26 @@ export default function SideSettings({
   };
 
   return (
-    <Box
-      sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-    >
-      <Typography variant="h5">{title} Side</Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Typography variant="h6" color="primary">{title} Side</Typography>
       <TextField
-        label="Side Name"
-        placeholder="Enter side name"
+        label="Custom Name"
+        placeholder={`Enter name for ${side} side`}
         value={sideName}
         onChange={(e) => setSideName(e.target.value)}
         onBlur={handleBlur}
         disabled={isUpdating}
-        sx={{ mt: 2 }}
         inputProps={{ maxLength: 20 }}
         fullWidth
+        helperText="Give this side a personalized name (e.g., 'Sarah's Side')"
       />
-      <Grid container spacing={0}>
-        <Typography alignContent="center">Away mode</Typography>
+      <Grid container alignItems="center" justifyContent="space-between">
+        <Box>
+          <Typography>Away Mode</Typography>
+          <Typography variant="caption" color="text.secondary">
+            Disable temperature control when away
+          </Typography>
+        </Box>
         <Switch
           disabled={isUpdating}
           checked={settings?.[side]?.awayMode || false}
