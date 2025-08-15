@@ -454,8 +454,6 @@ echo "Running Prisma migrations..."
 # Ensure Bun is in PATH for nested spawns inside the npm script (dotenv -> bun x ...)
 sudo -u "$USERNAME" bash -lc "export BUN_INSTALL=/home/$USERNAME/.bun; export PATH=/home/$USERNAME/.bun/bin:$PATH; cd '$SERVER_DIR' && bun run migrate deploy"
 
-echo "Note: Frontend application will be built automatically via postinstall script."
-
 # --------------------------------------------------------------------------------
 # Create systemd service
 
