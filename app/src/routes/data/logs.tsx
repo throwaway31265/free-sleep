@@ -1,5 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { baseURL } from '@api/api';
+import { createFileRoute } from '@tanstack/react-router';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import {
   Box,
@@ -33,9 +32,7 @@ function LogsPage() {
   useEffect(() => {
     const fetchLogFiles = async () => {
       try {
-        const response = await axios.get<{ logs: string[] }>(
-          `${baseURL}/api/logs`,
-        );
+        const response = await axios.get<{ logs: string[] }>(`/api/logs`);
         if (response.data.logs.length > 0) {
           setLogFiles(response.data.logs);
           setSelectedLog(response.data.logs[0]); // Default to the latest log file
@@ -52,7 +49,7 @@ function LogsPage() {
   useEffect(() => {
     if (!selectedLog) return;
 
-    const eventSource = new EventSource(`${baseURL}/api/logs/${selectedLog}`);
+    const eventSource = new EventSource(`/api/logs/${selectedLog}`);
 
     eventSource.onmessage = (event) => {
       const logData = JSON.parse(event.data);
