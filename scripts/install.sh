@@ -69,6 +69,42 @@ elif [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
 elif [ -z "$CURRENT_BRANCH" ]; then
   NEEDS_UPDATE=true
   REASON="Branch information missing, updating to ensure correct branch"
+else
+  # If repo exists and branch matches, compare local vs. remote commit hashes
+  # Local commit hash is stored in $REPO_DIR/.git-info when this installer last ran
+  LOCAL_COMMIT=""
+  if [ -f "$REPO_DIR/.git-info" ]; then
+    LOCAL_COMMIT=$(grep -o '"commitHash"[[:space:]]*:[[:space:]]*"[^"]*"' "$REPO_DIR/.git-info" 2>/dev/null | cut -d'"' -f4 || true)
+  elif [ -f "$SERVER_DIR/.git-info" ]; then
+    LOCAL_COMMIT=$(grep -o '"commitHash"[[:space:]]*:[[:space:]]*"[^"]*"' "$SERVER_DIR/.git-info" 2>/dev/null | cut -d'"' -f4 || true)
+  fi
+
+  # Fetch the latest commit hash for the branch from GitHub if curl is available
+  REMOTE_COMMIT=""
+  if command -v curl >/dev/null 2>&1; then
+    GITHUB_API_URL="https://api.github.com/repos/throwaway31265/free-sleep/commits/${BRANCH}"
+    # Use a short timeout to avoid hanging the installer (if available)
+    if command -v timeout >/dev/null 2>&1; then
+      COMMIT_DATA=$(timeout 8s curl -s "$GITHUB_API_URL" 2>/dev/null) || COMMIT_DATA=""
+    else
+      COMMIT_DATA=$(curl -s "$GITHUB_API_URL" 2>/dev/null) || COMMIT_DATA=""
+    fi
+    if [ -n "$COMMIT_DATA" ]; then
+      # Extract full SHA then trim to 8 chars to match stored format
+      REMOTE_COMMIT=$(echo "$COMMIT_DATA" | sed -n 's/.*"sha": *"\([^"]*\)".*/\1/p' | head -1 | cut -c1-8 || true)
+    fi
+  fi
+
+  # If we successfully fetched a remote commit and it differs from local, update
+  if [ -n "$REMOTE_COMMIT" ]; then
+    if [ -z "$LOCAL_COMMIT" ]; then
+      NEEDS_UPDATE=true
+      REASON="Local commit unknown; remote has ${REMOTE_COMMIT}"
+    elif [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
+      NEEDS_UPDATE=true
+      REASON="Repository is behind (${LOCAL_COMMIT} → ${REMOTE_COMMIT})"
+    fi
+  fi
 fi
 
 if [ "$NEEDS_UPDATE" = "true" ]; then
