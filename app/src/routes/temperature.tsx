@@ -8,7 +8,6 @@ import Slider from '@components/temperature/Slider.tsx';
 import WaterNotification from '@components/temperature/WaterNotification.tsx';
 import { Box } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
-import { useTheme } from '@mui/material/styles';
 import { useAppStore } from '@state/appStore.tsx';
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect } from 'react';
@@ -24,7 +23,6 @@ function ControlTempPage() {
   const { setOriginalDeviceStatus, deviceStatus } = useControlTempStore();
   const { data: settings, isLoading: isLoadingSettings } = useSettings();
   const { isUpdating, side } = useAppStore();
-  const theme = useTheme();
 
   useEffect(() => {
     if (!deviceStatusOriginal) return;
