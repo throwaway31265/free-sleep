@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port 3000",
-    "start": "vite --port 3000",
+    "dev": "vite",
+    "start": "vite",
     "build": "vite build && tsc",
     "serve": "vite preview",
     "test": "vitest run",
@@ -50,6 +50,7 @@
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^4.7.0",
     "sass-embedded": "^1.89.2",
+    "ts-essentials": "^10.1.1",
     "typescript": "^5.9.2",
     "vite": "^7.0.6",
     "vitest": "^3.2.4"
