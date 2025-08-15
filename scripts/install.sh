@@ -12,6 +12,124 @@
 # Exit immediately on error, on undefined variables, and on error in pipelines
 set -euo pipefail
 
+# --------------------------------------------------------------------------------
+# Helper Functions
+# --------------------------------------------------------------------------------
+
+# Fetch commit info from GitHub API with timeout and error handling
+fetch_github_commit_info() {
+  local branch="$1"
+  local timeout_seconds="${2:-10}"
+
+  if ! command -v curl >/dev/null 2>&1; then
+    return 1
+  fi
+
+  local github_api_url="https://api.github.com/repos/throwaway31265/free-sleep/commits/${branch}"
+  local commit_data=""
+
+  if command -v timeout >/dev/null 2>&1; then
+    commit_data=$(timeout "${timeout_seconds}s" curl -s -w "HTTP_CODE:%{http_code}" "$github_api_url" 2>/dev/null) || return 1
+  else
+    commit_data=$(curl -s -w "HTTP_CODE:%{http_code}" "$github_api_url" 2>/dev/null) || return 1
+  fi
+
+  local http_code
+  http_code=$(echo "$commit_data" | grep -o 'HTTP_CODE:[0-9]*' | cut -d':' -f2 | tr -d '[:space:]')
+  commit_data=$(echo "$commit_data" | sed 's/HTTP_CODE:[0-9]*$//')
+
+  if [ "$http_code" = "200" ]; then
+    # Extract SHA and truncate to 8 chars
+    COMMIT_HASH=$(echo "$commit_data" | sed -n 's/.*"sha": *"\([^"]*\)".*/\1/p' | head -1 | head -c 8 || true)
+    # Extract commit message
+    COMMIT_TITLE=$(echo "$commit_data" | sed -n 's/.*"message": *"\([^"]*\(\\.[^"]*\)*\)".*/\1/p' | head -1 || true)
+    # Clean up commit title
+    COMMIT_TITLE=$(echo "$COMMIT_TITLE" | sed 's/\\n/ - /g' | sed 's/\\"/"/g' | sed 's/\\t/ /g' | head -c 100 || true)
+    return 0
+  fi
+
+  return 1
+}
+
+# Ensure bun directory ownership is correct
+fix_bun_ownership() {
+  local username="$1"
+  if [ -d "/home/$username/.bun" ]; then
+    chown -R "$username":"$username" "/home/$username/.bun" || true
+  fi
+}
+
+# Run command as user with optional timeout
+run_as_user_with_timeout() {
+  local username="$1"
+  local timeout_seconds="$2"
+  local command="$3"
+
+  if [ "$timeout_seconds" -gt 0 ] && command -v timeout >/dev/null 2>&1; then
+    timeout "${timeout_seconds}s" sudo -u "$username" bash -c "$command"
+  else
+    sudo -u "$username" bash -c "$command"
+  fi
+}
+
+# Build PATH for systemd service
+build_service_path() {
+  local username="$1"
+  local volta_detected="$2"
+
+  local service_path="/home/$username/.bun/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
+  if [ "$volta_detected" = true ]; then
+    service_path="/home/$username/.volta/bin:$service_path"
+  fi
+  echo "$service_path"
+}
+
+# Create systemd service file
+create_systemd_service() {
+  local service_file="$1"
+  local username="$2"
+  local server_dir="$3"
+  local service_path="$4"
+
+  cat >"$service_file" <<EOF
+[Unit]
+Description=Free Sleep Server
+After=network.target
+
+[Service]
+ExecStart=/home/$username/.bun/bin/bun run dev
+WorkingDirectory=$server_dir
+Restart=always
+User=$username
+Environment=NODE_ENV=production
+Environment=BUN_INSTALL=/home/$username/.bun
+Environment=PATH=$service_path
+
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+
+# Apply IPv6 workarounds for bun install issues
+apply_ipv6_workarounds() {
+  echo "Applying IPv6 workarounds..."
+  # Disable IPv6 (runtime)
+  sysctl -w net.ipv6.conf.all.disable_ipv6=1 || true
+  sysctl -w net.ipv6.conf.default.disable_ipv6=1 || true
+  sysctl -w net.ipv6.conf.lo.disable_ipv6=1 || true
+
+  # Persist IPv6 disable across reboots
+  if [ -f /etc/sysctl.conf ]; then
+    sed -i '/net.ipv6.conf.all.disable_ipv6/d' /etc/sysctl.conf || true
+    sed -i '/net.ipv6.conf.default.disable_ipv6/d' /etc/sysctl.conf || true
+    sed -i '/net.ipv6.conf.lo.disable_ipv6/d' /etc/sysctl.conf || true
+    echo 'net.ipv6.conf.all.disable_ipv6=1' >> /etc/sysctl.conf
+    echo 'net.ipv6.conf.default.disable_ipv6=1' >> /etc/sysctl.conf
+    echo 'net.ipv6.conf.lo.disable_ipv6=1' >> /etc/sysctl.conf
+    sysctl -p || true
+  fi
+}
+
 echo "==================================================================="
 echo "           Free Sleep Installation Script"
 echo "==================================================================="
@@ -81,18 +199,8 @@ else
 
   # Fetch the latest commit hash for the branch from GitHub if curl is available
   REMOTE_COMMIT=""
-  if command -v curl >/dev/null 2>&1; then
-    GITHUB_API_URL="https://api.github.com/repos/throwaway31265/free-sleep/commits/${BRANCH}"
-    # Use a short timeout to avoid hanging the installer (if available)
-    if command -v timeout >/dev/null 2>&1; then
-      COMMIT_DATA=$(timeout 8s curl -s "$GITHUB_API_URL" 2>/dev/null) || COMMIT_DATA=""
-    else
-      COMMIT_DATA=$(curl -s "$GITHUB_API_URL" 2>/dev/null) || COMMIT_DATA=""
-    fi
-    if [ -n "$COMMIT_DATA" ]; then
-      # Extract full SHA then trim to 8 chars to match stored format
-      REMOTE_COMMIT=$(echo "$COMMIT_DATA" | sed -n 's/.*"sha": *"\([^"]*\)".*/\1/p' | head -1 | cut -c1-8 || true)
-    fi
+  if fetch_github_commit_info "$BRANCH" 8; then
+    REMOTE_COMMIT="$COMMIT_HASH"
   fi
 
   # If we successfully fetched a remote commit and it differs from local, update
@@ -133,30 +241,9 @@ if [ "$NEEDS_UPDATE" = "true" ]; then
   COMMIT_TITLE=""
 
   # Try to get commit info from GitHub API (works without git being installed)
-  if command -v curl >/dev/null 2>&1; then
-    echo "Fetching latest commit information from GitHub..."
-    GITHUB_API_URL="https://api.github.com/repos/throwaway31265/free-sleep/commits/${BRANCH}"
-
-        # Fetch commit info with timeout and better error handling
-        if COMMIT_DATA=$(timeout 10s curl -s -w "HTTP_CODE:%{http_code}" "$GITHUB_API_URL" 2>/dev/null); then
-      HTTP_CODE=$(echo "$COMMIT_DATA" | grep -o 'HTTP_CODE:[0-9]*' | cut -d':' -f2 | tr -d '[:space:]')
-      COMMIT_DATA=$(echo "$COMMIT_DATA" | sed 's/HTTP_CODE:[0-9]*$//')
-
-      if [ "$HTTP_CODE" = "200" ]; then
-        # Parse JSON response using basic tools (no jq dependency)
-        # Extract SHA (should be near the beginning)
-        COMMIT_HASH=$(echo "$COMMIT_DATA" | sed -n 's/.*"sha": *"\([^"]*\)".*/\1/p' | head -1 | head -c 8 || true)
-        # Extract message (nested in commit object) - handle JSON escaped content properly
-        COMMIT_TITLE=$(echo "$COMMIT_DATA" | sed -n 's/.*"message": *"\([^"]*\(\\.[^"]*\)*\)".*/\1/p' | head -1 || true)
-
-        # Clean up commit title (remove escaped characters and truncate properly)
-        COMMIT_TITLE=$(echo "$COMMIT_TITLE" | sed 's/\\n/ - /g' | sed 's/\\"/"/g' | sed 's/\\t/ /g' | head -c 100 || true)
-      else
-        echo "GitHub API returned HTTP $HTTP_CODE, using fallback values"
-      fi
-    else
-      echo "Failed to fetch commit info from GitHub API (network/timeout), using fallback values"
-    fi
+  echo "Fetching latest commit information from GitHub..."
+  if ! fetch_github_commit_info "$BRANCH" 10; then
+    echo "Failed to fetch commit info from GitHub API (network/timeout), using fallback values"
   fi
 
   # Alternative: Try to get commit info from package.json if it exists
@@ -309,52 +396,32 @@ if [ -d "$SERVER_DIR/node_modules" ] && [ "$(ls -A $SERVER_DIR/node_modules)" ];
   echo "Dependencies appear to be installed. Checking if update is needed..."
 
   # Ensure bun directory has correct ownership
-  if [ -d "/home/$USERNAME/.bun" ]; then
-    chown -R "$USERNAME":"$USERNAME" "/home/$USERNAME/.bun" || true
-  fi
+  fix_bun_ownership "$USERNAME"
 
   # Run bun install anyway to update/verify dependencies, but with shorter timeout
-  if command -v timeout >/dev/null 2>&1; then
-    echo "Running bun install to verify/update dependencies..."
-    sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && timeout 60s /home/$USERNAME/.bun/bin/bun install" || echo "Dependency check completed (may have been interrupted)"
-  else
-    sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun install"
-  fi
+  echo "Running bun install to verify/update dependencies..."
+  run_as_user_with_timeout "$USERNAME" 60 "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun install" || echo "Dependency check completed (may have been interrupted)"
 else
   echo "Installing dependencies in $SERVER_DIR ..."
 
   # Fix potential permission issues with bun cache directory
   echo "Ensuring bun cache directory has correct ownership..."
-  if [ -d "/home/$USERNAME/.bun" ]; then
-    chown -R "$USERNAME":"$USERNAME" "/home/$USERNAME/.bun" || true
-  fi
+  fix_bun_ownership "$USERNAME"
 
   if command -v timeout >/dev/null 2>&1; then
     echo "Running bun install with a 180s timeout to detect hangs..."
-    if ! sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && timeout 180s /home/$USERNAME/.bun/bin/bun install"; then
+    if ! run_as_user_with_timeout "$USERNAME" 180 "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun install"; then
       echo "bun install failed or timed out. Clearing cache and applying workarounds..."
 
       # Clear bun cache to resolve permission issues
       echo "Clearing bun cache..."
       sudo -u "$USERNAME" bash -c "/home/$USERNAME/.bun/bin/bun pm cache rm" || true
 
-      # Disable IPv6 (runtime)
-      sysctl -w net.ipv6.conf.all.disable_ipv6=1 || true
-      sysctl -w net.ipv6.conf.default.disable_ipv6=1 || true
-      sysctl -w net.ipv6.conf.lo.disable_ipv6=1 || true
-      # Persist IPv6 disable across reboots
-      if [ -f /etc/sysctl.conf ]; then
-        sed -i '/net.ipv6.conf.all.disable_ipv6/d' /etc/sysctl.conf || true
-        sed -i '/net.ipv6.conf.default.disable_ipv6/d' /etc/sysctl.conf || true
-        sed -i '/net.ipv6.conf.lo.disable_ipv6/d' /etc/sysctl.conf || true
-        echo 'net.ipv6.conf.all.disable_ipv6=1' >> /etc/sysctl.conf
-        echo 'net.ipv6.conf.default.disable_ipv6=1' >> /etc/sysctl.conf
-        echo 'net.ipv6.conf.lo.disable_ipv6=1' >> /etc/sysctl.conf
-        sysctl -p || true
-      fi
+      # Apply IPv6 workarounds
+      apply_ipv6_workarounds
 
       # Ensure ownership is correct again after cache clear
-      chown -R "$USERNAME":"$USERNAME" "/home/$USERNAME/.bun" || true
+      fix_bun_ownership "$USERNAME"
 
       # Retry bun install
       echo "Retrying bun install..."
@@ -378,7 +445,7 @@ else
   else
     echo "'timeout' command not found. Running bun install normally. If it hangs at 'Resolving...', run /home/dac/free-sleep/scripts/disable_ipv6.sh and re-run the installer."
     # Still fix permissions even without timeout
-    chown -R "$USERNAME":"$USERNAME" "/home/$USERNAME/.bun" || true
+    fix_bun_ownership "$USERNAME"
     sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun install"
   fi
 fi
@@ -401,28 +468,8 @@ if systemctl is-enabled free-sleep.service >/dev/null 2>&1; then
   echo "Updating systemd service file at $SERVICE_FILE..."
 
   # Build PATH with Volta support if detected
-  SERVICE_PATH="/home/$USERNAME/.bun/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
-  if [ "$VOLTA_DETECTED" = true ]; then
-    SERVICE_PATH="/home/$USERNAME/.volta/bin:$SERVICE_PATH"
-  fi
-
-  cat >"$SERVICE_FILE" <<EOF
-[Unit]
-Description=Free Sleep Server
-After=network.target
-
-[Service]
-ExecStart=/home/$USERNAME/.bun/bin/bun run dev
-WorkingDirectory=$SERVER_DIR
-Restart=always
-User=$USERNAME
-Environment=NODE_ENV=production
-Environment=BUN_INSTALL=/home/$USERNAME/.bun
-Environment=PATH=$SERVICE_PATH
-
-[Install]
-WantedBy=multi-user.target
-EOF
+  SERVICE_PATH=$(build_service_path "$USERNAME" "$VOLTA_DETECTED")
+  create_systemd_service "$SERVICE_FILE" "$USERNAME" "$SERVER_DIR" "$SERVICE_PATH"
 
   echo "Reloading systemd daemon..."
   systemctl daemon-reload
@@ -438,28 +485,8 @@ else
   echo "Creating systemd service file at $SERVICE_FILE..."
 
   # Build PATH with Volta support if detected
-  SERVICE_PATH="/home/$USERNAME/.bun/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
-  if [ "$VOLTA_DETECTED" = true ]; then
-    SERVICE_PATH="/home/$USERNAME/.volta/bin:$SERVICE_PATH"
-  fi
-
-  cat >"$SERVICE_FILE" <<EOF
-[Unit]
-Description=Free Sleep Server
-After=network.target
-
-[Service]
-ExecStart=/home/$USERNAME/.bun/bin/bun run dev
-WorkingDirectory=$SERVER_DIR
-Restart=always
-User=$USERNAME
-Environment=NODE_ENV=production
-Environment=BUN_INSTALL=/home/$USERNAME/.bun
-Environment=PATH=$SERVICE_PATH
-
-[Install]
-WantedBy=multi-user.target
-EOF
+  SERVICE_PATH=$(build_service_path "$USERNAME" "$VOLTA_DETECTED")
+  create_systemd_service "$SERVICE_FILE" "$USERNAME" "$SERVER_DIR" "$SERVICE_PATH"
 
   echo "Reloading systemd daemon and enabling the service..."
   systemctl daemon-reload
