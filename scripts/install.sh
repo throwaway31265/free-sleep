@@ -142,33 +142,15 @@ if [ "$NEEDS_UPDATE" = "true" ]; then
       HTTP_CODE=$(echo "$COMMIT_DATA" | grep -o 'HTTP_CODE:[0-9]*' | cut -d':' -f2 | tr -d '[:space:]')
       COMMIT_DATA=$(echo "$COMMIT_DATA" | sed 's/HTTP_CODE:[0-9]*$//')
 
-      echo "DEBUG: HTTP_CODE extracted: '$HTTP_CODE' (length: ${#HTTP_CODE})"
-
       if [ "$HTTP_CODE" = "200" ]; then
-        echo "DEBUG: GitHub API successful, response length: $(echo "$COMMIT_DATA" | wc -c) characters"
-        echo "DEBUG: First 200 chars of response: $(echo "$COMMIT_DATA" | head -c 200)"
-
-        # Save full response for debugging if DEBUG_API is set
-        if [ "${DEBUG_API:-false}" = "true" ]; then
-          echo "DEBUG: Full API response saved to /tmp/github_api_response.json"
-          echo "$COMMIT_DATA" > /tmp/github_api_response.json
-        fi
-
         # Parse JSON response using basic tools (no jq dependency)
         # Extract SHA (should be near the beginning)
         COMMIT_HASH=$(echo "$COMMIT_DATA" | sed -n 's/.*"sha": *"\([^"]*\)".*/\1/p' | head -1 | head -c 8 || true)
         # Extract message (nested in commit object) - handle JSON escaped content properly
         COMMIT_TITLE=$(echo "$COMMIT_DATA" | sed -n 's/.*"message": *"\([^"]*\(\\.[^"]*\)*\)".*/\1/p' | head -1 || true)
 
-        echo "DEBUG: Extracted COMMIT_HASH: '$COMMIT_HASH'"
-        echo "DEBUG: Extracted COMMIT_TITLE: '$COMMIT_TITLE'"
-
         # Clean up commit title (remove escaped characters and truncate properly)
         COMMIT_TITLE=$(echo "$COMMIT_TITLE" | sed 's/\\n/ - /g' | sed 's/\\"/"/g' | sed 's/\\t/ /g' | head -c 100 || true)
-
-        if [ -z "$COMMIT_HASH" ] || [ -z "$COMMIT_TITLE" ]; then
-          echo "DEBUG: Failed to parse commit data from GitHub API response"
-        fi
       else
         echo "GitHub API returned HTTP $HTTP_CODE, using fallback values"
       fi
