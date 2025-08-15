@@ -74,7 +74,6 @@ export default function VitalsLineChart({
               moment(periodStart).format('HH:mm'),
           },
         ]}
-        legend={{ hidden: true }}
         series={[
           {
             id: label,

@@ -4,7 +4,7 @@ import { Box, Button, Typography } from '@mui/material';
 import { useEffect } from 'react';
 import { useRouter } from '@tanstack/react-router';
 
-export default function RouteErrorComponent({ error, reset }: ErrorComponentProps) {
+export default function RouteErrorComponent({ error }: ErrorComponentProps) {
   const router = useRouter();
   const queryErrorResetBoundary = useQueryErrorResetBoundary();
 
@@ -15,13 +15,13 @@ export default function RouteErrorComponent({ error, reset }: ErrorComponentProp
 
   // Check if it's a network/API error
   const errorAny = error as any;
-  const isNetworkError = error?.message?.includes('Network') || 
+  const isNetworkError = error?.message?.includes('Network') ||
                         error?.message?.includes('fetch') ||
                         errorAny?.response?.status >= 500 ||
                         errorAny?.code === 'ECONNREFUSED';
 
-  const title = isNetworkError 
-    ? 'Unable to Connect to Server' 
+  const title = isNetworkError
+    ? 'Unable to Connect to Server'
     : 'Something Went Wrong';
 
   const message = isNetworkError
@@ -35,8 +35,8 @@ export default function RouteErrorComponent({ error, reset }: ErrorComponentProp
 
   // Production-friendly error display
   return (
-    <Box sx={{ 
-      textAlign: 'center', 
+    <Box sx={{
+      textAlign: 'center',
       py: 6,
       px: 3,
       color: '#fff',
@@ -52,14 +52,14 @@ export default function RouteErrorComponent({ error, reset }: ErrorComponentProp
       <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', maxWidth: 600 }}>
         {message}
       </Typography>
-      <Button 
+      <Button
         onClick={() => {
           // Invalidate the route to reload the loader and reset error boundaries
           router.invalidate();
-        }} 
+        }}
         variant="contained"
         size="large"
-        sx={{ 
+        sx={{
           backgroundColor: 'rgba(255, 255, 255, 0.1)',
           '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
         }}
