@@ -41,24 +41,29 @@ function ControlTempPage() {
   // Show loading state while data is being fetched
   if (isLoadingDevice || isLoadingSettings) {
     return (
-      <PageContainer
-        sx={{
-          maxWidth: '500px',
-          [theme.breakpoints.up('md')]: {
-            maxWidth: '400px',
-          },
-        }}
-      >
-        <SideControl title={'Temperature'} />
+      <PageContainer>
         <Box
           sx={{
             display: 'flex',
-            justifyContent: 'center',
+            flexDirection: 'column',
             alignItems: 'center',
-            minHeight: '50vh',
+            maxWidth: { xs: '100%', sm: '500px', md: '600px', lg: '650px' },
+            margin: '0 auto',
+            width: '100%',
           }}
         >
-          <CircularProgress sx={{ color: '#fff' }} />
+          <SideControl title={'Temperature'} />
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '40vh',
+              width: '100%',
+            }}
+          >
+            <CircularProgress sx={{ color: '#fff' }} />
+          </Box>
         </Box>
       </PageContainer>
     );
@@ -70,32 +75,51 @@ function ControlTempPage() {
   }
 
   return (
-    <PageContainer
-      sx={{
-        maxWidth: '500px',
-        [theme.breakpoints.up('md')]: {
-          maxWidth: '400px',
-        },
-      }}
-    >
-      <SideControl title={'Temperature'} />
-      <Slider
-        isOn={isOn}
-        currentTargetTemp={sideStatus?.targetTemperatureF || 55}
-        refetch={refetch}
-        currentTemperatureF={sideStatus?.currentTemperatureF || 55}
-        displayCelsius={settings?.temperatureFormat === 'celsius' || false}
-      />
-      <PowerButton isOn={sideStatus?.isOn || false} refetch={refetch} />
+    <PageContainer>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          maxWidth: { xs: '100%', sm: '500px', md: '600px', lg: '650px' },
+          margin: '0 auto',
+          width: '100%',
+          gap: 2,
+        }}
+      >
+        <SideControl title={'Temperature'} />
 
-      <AwayNotification settings={settings} />
-      <WaterNotification deviceStatus={deviceStatus} />
-      <AlarmDismissal deviceStatus={deviceStatus} refetch={refetch} />
-      {isUpdating && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-          <CircularProgress />
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: { xs: '320px', sm: '400px', md: '450px' },
+            aspectRatio: '1',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Slider
+            isOn={isOn}
+            currentTargetTemp={sideStatus?.targetTemperatureF || 55}
+            refetch={refetch}
+            currentTemperatureF={sideStatus?.currentTemperatureF || 55}
+            displayCelsius={settings?.temperatureFormat === 'celsius' || false}
+          />
         </Box>
-      )}
+
+        <PowerButton isOn={sideStatus?.isOn || false} refetch={refetch} />
+
+        <AwayNotification settings={settings} />
+        <WaterNotification deviceStatus={deviceStatus} />
+        <AlarmDismissal deviceStatus={deviceStatus} refetch={refetch} />
+
+        {isUpdating && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <CircularProgress />
+          </Box>
+        )}
+      </Box>
     </PageContainer>
   );
 }

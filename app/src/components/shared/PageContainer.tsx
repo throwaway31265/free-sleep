@@ -27,23 +27,43 @@ export default function PageContainer({
         gap: 2,
         margin: 0,
         justifyContent: 'center',
-        [theme.breakpoints.up('sm')]: {
-          width: '90%',
-          padding: 0,
-          paddingTop: 6,
-          paddingBottom: 6,
-          maxWidth: '700px',
-        },
+        // Mobile (xs)
         [theme.breakpoints.down('sm')]: {
           width: '100%',
           padding: 1,
           paddingBottom: 12, // Add bottom padding for mobile navigation (80px + extra spacing)
         },
+        // Small tablets (sm)
         [theme.breakpoints.between('sm', 'md')]: {
+          width: '90%',
+          padding: 0,
+          paddingTop: 4,
           paddingBottom: 12, // Add bottom padding for mobile navigation on tablets
+          maxWidth: '700px',
         },
-        [theme.breakpoints.up('md')]: {
-          paddingBottom: 12, // Add bottom padding for desktop navigation
+        // Medium tablets and small desktops (md)
+        [theme.breakpoints.between('md', 'lg')]: {
+          width: '85%',
+          padding: 0,
+          paddingTop: 6,
+          paddingBottom: 12,
+          maxWidth: '900px',
+        },
+        // Large desktops (lg)
+        [theme.breakpoints.between('lg', 'xl')]: {
+          width: '80%',
+          padding: 0,
+          paddingTop: 6,
+          paddingBottom: 12,
+          maxWidth: '1200px',
+        },
+        // Extra large desktops (xl)
+        [theme.breakpoints.up('xl')]: {
+          width: '75%',
+          padding: 0,
+          paddingTop: 8,
+          paddingBottom: 12,
+          maxWidth: '1400px',
         },
         ...sx,
       }}

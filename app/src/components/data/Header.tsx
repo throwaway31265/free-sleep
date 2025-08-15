@@ -9,21 +9,23 @@ type HeaderProps = {
 
 export default function Header({ title, icon }: HeaderProps) {
   return (
-    <Grid container alignItems="center">
-      {/* Back Icon - Left Aligned & Vertically Centered */}
-      <Grid size={2} display="flex" alignItems="center">
+    <Grid container alignItems="center" sx={{ width: '100%', mb: 2 }}>
+      {/* Back Icon - Fixed width on left */}
+      <Grid size="auto" display="flex" alignItems="center">
         <NavigateBeforeIcon
           onClick={() => window.history.back()}
-          sx={{ cursor: 'pointer', fontSize: 28 }}
+          sx={{ cursor: 'pointer', fontSize: 28, mr: 2 }}
         />
       </Grid>
-      {/* Title - Centered */}
-      <Grid size={8} display="flex" justifyContent="center">
+      {/* Title - Takes remaining space and centers itself */}
+      <Grid size="grow" display="flex" justifyContent="center">
         <Typography variant="h6" display="flex" alignItems="center" gap={1}>
           {icon}
           {title}
         </Typography>
       </Grid>
+      {/* Invisible spacer to balance the back button for true centering */}
+      <Grid size="auto" sx={{ width: '40px' }} />
     </Grid>
   );
 }

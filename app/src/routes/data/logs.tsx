@@ -187,9 +187,15 @@ function LogsPage() {
         sx={{
           display: 'grid',
           gap: 3,
-          gridTemplateColumns: { xs: '1fr', lg: '350px 1fr' },
+          gridTemplateColumns: {
+            xs: '1fr',
+            md: '300px 1fr',
+            lg: '320px 1fr',
+            xl: '350px 1fr'
+          },
           alignItems: 'start',
           height: 'fit-content',
+          width: '100%',
         }}
       >
         {/* Log File Selector Section */}
