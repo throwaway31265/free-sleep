@@ -14,7 +14,7 @@
     "generate": "dotenv -e .env.pod -- bun x prisma generate",
     "migrate:local": "dotenv -e .env.local -- bun x prisma migrate dev --name ",
     "generate:local": "dotenv -e .env.local -- bun x prisma generate",
-    "postinstall": "cd ../app && bun install && bun run build"
+    "postinstall": "cd ../app && bun install && bun run build || echo 'Frontend build failed, but server installation will continue'"
   },
   "keywords": [],
   "author": "",
