@@ -48,6 +48,26 @@ else
 fi
 
 # --------------------------------------------------------------------------------
+# Update system Node.js to version 22
+echo "Updating system Node.js to version 22..."
+NODE_VERSION="22.18.0"
+NODE_TARBALL="node-v${NODE_VERSION}-linux-arm64.tar.gz"
+NODE_URL="https://nodejs.org/dist/v${NODE_VERSION}/${NODE_TARBALL}"
+
+# Download and install Node.js v22
+wget "$NODE_URL"
+tar -xzf "$NODE_TARBALL"
+cp "node-v${NODE_VERSION}-linux-arm64/bin/node" /usr/bin/node
+chmod +x /usr/bin/node
+
+# Clean up downloaded files
+rm -rf "$NODE_TARBALL" "node-v${NODE_VERSION}-linux-arm64"
+
+# Verify installation
+echo "Node.js version installed:"
+node -v
+
+# --------------------------------------------------------------------------------
 # Setup /persistent/free-sleep-data (migrate old configs, logs, etc.)
 mkdir -p /persistent/free-sleep-data/logs/
 mkdir -p /persistent/free-sleep-data/lowdb/
