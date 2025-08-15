@@ -1,8 +1,8 @@
 import {
-  useBaseStatus,
-  useSetBasePosition,
-  useSetBasePreset,
-  useStopBase,
+    useBaseStatus,
+    useSetBasePosition,
+    useSetBasePreset,
+    useStopBase,
 } from '@api/baseControl';
 import BedVisualization from '@components/BedVisualization';
 import AddIcon from '@mui/icons-material/Add';
@@ -245,6 +245,25 @@ function BaseControlPage() {
 
   if (!baseStatus) {
     return null; // Will be caught by error boundary if data fails to load
+  }
+
+  if (baseStatus.isConfigured === false) {
+    return (
+      <PageContainer
+        sx={{
+          bgcolor: '#000',
+          color: '#fff',
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Typography>
+          Elevation is unavailable on this device. It’s hidden from navigation because an elevation-capable base was not detected.
+        </Typography>
+      </PageContainer>
+    );
   }
 
   const isMoving = baseStatus.isMoving || false;

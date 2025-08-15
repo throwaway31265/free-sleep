@@ -1,4 +1,5 @@
 import { useVersion } from '@api/version';
+import { useBaseStatus } from '@api/baseControl';
 import AppBar from '@mui/material/AppBar';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
@@ -16,12 +17,27 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { isUpdating } = useAppStore();
+  const { data: baseStatus } = useBaseStatus();
   const theme = useTheme(); // Access the Material-UI theme
   const { data: version } = useVersion();
-  const currentTitle = PAGES.find((page) => page.route === pathname)?.title;
-  const [mobileNavValue, setMobileNavValue] = React.useState(
-    PAGES.findIndex((page) => page.route === pathname),
-  );
+  const visiblePages = React.useMemo(() => {
+    // Show Elevation only when base is explicitly configured
+    const isElevationAvailable = baseStatus?.isConfigured === true;
+    return PAGES.filter((p) =>
+      p.route === '/base-control' ? isElevationAvailable : true,
+    );
+  }, [baseStatus?.isConfigured]);
+
+  const currentTitle = visiblePages.find((page) => page.route === pathname)?.title;
+  const [mobileNavValue, setMobileNavValue] = React.useState(() => {
+    const idx = visiblePages.findIndex((page) => page.route === pathname);
+    return idx >= 0 ? idx : 0;
+  });
+
+  React.useEffect(() => {
+    const idx = visiblePages.findIndex((page) => page.route === pathname);
+    setMobileNavValue(idx >= 0 ? idx : 0);
+  }, [visiblePages, pathname]);
 
   // Handle navigation for both desktop and mobile
   const handleNavigation = (route: string) => {
@@ -33,7 +49,7 @@ export default function Navbar() {
     newValue: number,
   ) => {
     setMobileNavValue(newValue);
-    handleNavigation(PAGES[newValue].route);
+    handleNavigation(visiblePages[newValue].route);
   };
 
   const gradient = `linear-gradient(
@@ -101,7 +117,7 @@ export default function Navbar() {
             )}
           </Typography>
           <Box sx={{ display: 'flex', gap: 2 }}>
-            {PAGES.map(({ title, route }) => (
+            {visiblePages.map(({ title, route }) => (
               <Button
                 key={route}
                 onClick={() => handleNavigation(route)}
@@ -146,7 +162,7 @@ export default function Navbar() {
             },
           }}
         >
-          {PAGES.map(({ title, icon }, index) => (
+          {visiblePages.map(({ title, icon }, index) => (
             <BottomNavigationAction
               key={index}
               icon={icon}

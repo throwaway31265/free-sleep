@@ -1,4 +1,5 @@
 import { postSettings, useSettings } from '@api/settings.ts';
+import { useBaseStatus } from '@api/baseControl';
 import type { Settings } from '@api/settingsSchema.ts';
 import DailyPriming from '@components/settings/DailyPriming.tsx';
 import DailyReboot from '@components/settings/DailyReboot.tsx';
@@ -20,6 +21,7 @@ import PageContainer from '@/components/shared/PageContainer.tsx';
 function SettingsPage() {
   const { data: settings, refetch } = useSettings();
   const { setIsUpdating } = useAppStore();
+  const { data: baseStatus } = useBaseStatus();
 
   const updateSettings = (settings: DeepPartial<Settings>) => {
     // console.log(`SettingsPage.tsx:21 | settings: `, settings);
@@ -44,6 +46,18 @@ function SettingsPage() {
 
   return (
     <PageContainer sx={{ mb: 15, mt: 2 }}>
+      {baseStatus?.isConfigured === false && (
+        <div role="alert" style={{
+          padding: '12px 16px',
+          borderRadius: 8,
+          background: 'rgba(255, 255, 255, 0.08)',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          marginBottom: 16,
+          color: '#fff',
+        }}>
+          Elevation controls are disabled because no compatible elevation base was detected on your 8 Sleep. If you add one later, restart the server and the Elevation page will appear.
+        </div>
+      )}
       <TimeZoneSelector settings={settings} updateSettings={updateSettings} />
       <TemperatureFormatSelector
         settings={settings}
