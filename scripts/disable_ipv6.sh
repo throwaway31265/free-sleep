@@ -18,6 +18,3 @@ if [ -f /etc/sysctl.conf ]; then
 fi
 
 echo "IPv6 disabled."
-
-
-
