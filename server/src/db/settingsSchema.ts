@@ -31,12 +31,18 @@ export const SettingsSchema = z
 export type SideSettings = z.infer<typeof SideSettingsSchema>;
 export type Settings = z.infer<typeof SettingsSchema>;
 
-// Update schema (deep partial for patch routes)
+// Update schema (deep partial for patch routes) - preserving validation constraints
 export const SettingsUpdateSchema = z
   .object({
     timeZone: z.enum(TIME_ZONES).nullable().optional(),
-    left: SideSettingsSchema.partial().optional(),
-    right: SideSettingsSchema.partial().optional(),
+    left: z.object({
+      name: z.string().min(1).max(20).optional(),
+      awayMode: z.boolean().optional(),
+    }).strict().optional(),
+    right: z.object({
+      name: z.string().min(1).max(20).optional(),
+      awayMode: z.boolean().optional(),
+    }).strict().optional(),
     lastPrime: z.string().datetime().optional(),
     primePodDaily: z
       .object({

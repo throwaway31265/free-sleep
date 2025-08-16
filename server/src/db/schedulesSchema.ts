@@ -84,11 +84,18 @@ export type DayOfWeek = keyof SideSchedule;
 // eslint-disable-next-line @typescript-eslint/no-type-alias
 export type Side = keyof Schedules;
 
-// Update schemas (deep partial for patch routes)
+// Update schemas (deep partial for patch routes) - preserving validation constraints
 export const DailyScheduleUpdateSchema = z
   .object({
     temperatures: z.record(TimeSchema, TemperatureSchema).optional(),
-    alarm: AlarmSchema.partial().optional(),
+    alarm: z.object({
+      time: TimeSchema.optional(),
+      vibrationIntensity: z.number().int().min(1).max(100).optional(),
+      vibrationPattern: z.enum(['double', 'rise']).optional(),
+      duration: z.number().int().positive().min(0).max(180).optional(),
+      enabled: z.boolean().optional(),
+      alarmTemperature: TemperatureSchema.optional(),
+    }).strict().optional(),
     power: z
       .object({
         on: TimeSchema.optional(),

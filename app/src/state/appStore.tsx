@@ -13,6 +13,9 @@ type AppState = {
   setIsUpdating: (isUpdating: boolean) => void;
   side: Side;
   setSide: (side: Side) => void;
+  error: string | null;
+  setError: (error: string | null) => void;
+  clearError: () => void;
 };
 
 // Create Zustand store
@@ -28,6 +31,9 @@ export const useAppStore = create<AppState>((set) => ({
         console.error(error);
       });
   },
+  error: null,
+  setError: (error: string | null) => set({ error }),
+  clearError: () => set({ error: null }),
 }));
 
 // AppStoreProvider to sync Zustand with react-query's isFetching
