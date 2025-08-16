@@ -42,6 +42,9 @@ export default function VitalsLineChart({
   const allowedPoints = width / pxPerPoint;
   const downsampleTo = Math.ceil(vitalsRecords.length / allowedPoints);
 
+  if (!vitalsRecords) return;
+  if (!Array.isArray(vitalsRecords)) return;
+
   const cleanedVitalsRecords = downsampleData(vitalsRecords, downsampleTo)
     .filter(
       (record) =>

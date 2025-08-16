@@ -1,4 +1,5 @@
-import { Container, type ContainerProps, type SxProps } from '@mui/material';
+import { useDeviceStatus } from '@/api/deviceStatus';
+import { Alert, Container, type ContainerProps, type SxProps } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import type React from 'react';
 
@@ -13,6 +14,34 @@ export default function PageContainer({
   containerProps,
 }: React.PropsWithChildren<PageContainerProps>) {
   const theme = useTheme();
+  const { data: deviceStatus, isLoading } = useDeviceStatus();
+
+  if (!isLoading && !deviceStatus) {
+    return (
+      <Container
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '90vh',
+          padding: 4,
+        }}
+      >
+        <Alert
+          severity="error"
+          sx={{
+            width: '100%',
+            maxWidth: '600px',
+            fontSize: '1.2rem',
+            padding: 3,
+          }}
+        >
+          Error loading device status. Could not reach the device.
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container

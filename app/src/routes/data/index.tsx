@@ -46,11 +46,14 @@ const RecentSleepCard = () => {
   });
 
   const lastNight = sleepRecords && sleepRecords.length > 0 ? sleepRecords[sleepRecords.length - 1] : null;
-  const avgSleepDuration = sleepRecords && sleepRecords.length > 0
+  const avgSleepDuration = Array.isArray(sleepRecords) && sleepRecords.length > 0
     ? sleepRecords.reduce((sum, record) => sum + (record.sleep_period_seconds / 60), 0) / sleepRecords.length
     : 0;
 
   const formatDuration = (minutes: number) => {
+    if (!minutes || isNaN(minutes)) {
+      return '--';
+    }
     const hours = Math.floor(minutes / 60);
     const mins = Math.floor(minutes % 60);
     return `${hours}h ${mins}m`;
@@ -88,7 +91,7 @@ const RecentSleepCard = () => {
             </Box>
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h6" color="primary">
-                {sleepRecords?.length || 0}
+                {Array.isArray(sleepRecords) && sleepRecords.length || 0}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 Sleep Sessions

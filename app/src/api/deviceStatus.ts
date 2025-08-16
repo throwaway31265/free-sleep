@@ -8,6 +8,12 @@ export const useDeviceStatus = () =>
     queryKey: ['useDeviceStatus'],
     queryFn: async () => {
       const response = await axios.get<DeviceStatus>('/deviceStatus');
+
+      // Validate that the response is valid JSON
+      if (!response.data || typeof response.data !== 'object') {
+        throw new Error('Invalid JSON response from device status endpoint');
+      }
+
       return response.data;
     },
     refetchInterval: 30_000,

@@ -85,20 +85,20 @@ function createScales({
   width,
   height,
 }: {
-  data: SleepRecord[];
+  data?: SleepRecord[];
   width: number;
   height: number;
 }) {
   // X scale: one band per "entered_bed_at"
   const xScale = d3
     .scaleBand<string>()
-    .domain(data.map((d) => d.entered_bed_at))
+    .domain(Array.isArray(data) && data?.map((d) => d.entered_bed_at) || [])
     .range([0, width])
     .padding(0.5);
 
   // 1) Collect all shifted hours from data
   const allShiftedHours: number[] = [];
-  data.forEach((rec) => {
+  Array.isArray(data) && data.forEach((rec) => {
     rec.present_intervals.forEach(([startStr, endStr]) => {
       const startHour = dateToHourOfDay(startStr);
       const endHour = dateToHourOfDay(endStr);
@@ -228,6 +228,8 @@ function plotSleepRecords({
       const rectX = xScale(sleepRecord.entered_bed_at) ?? 0;
       const rectWidth = xScale.bandwidth();
       const isSelected = sleepRecord.id === selectedSleepRecord?.id;
+
+      if (!Array.isArray(sleepRecord.present_intervals)) return;
 
       sleepRecord.present_intervals.forEach(([startStr, endStr], i) => {
         if (startStr < sleepRecord.entered_bed_at) {
