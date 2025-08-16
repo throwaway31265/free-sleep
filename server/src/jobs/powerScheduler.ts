@@ -31,12 +31,17 @@ export const schedulePowerOn = (
   schedule.scheduleJob(`${side}-${day}-${time}-power-on`, onRule, async () => {
     logJob('Executing power on job', side, day, dayOfWeekIndex, time);
 
-    await updateDeviceStatus({
-      [side]: {
-        isOn: true,
-        targetTemperatureF: power.onTemperature,
-      },
-    });
+    try {
+      await updateDeviceStatus({
+        [side]: {
+          isOn: true,
+          targetTemperatureF: power.onTemperature,
+        },
+      });
+      logger.info(`Successfully turned on ${side} side at scheduled time ${time} with temperature ${power.onTemperature}°F`);
+    } catch (error) {
+      logger.error(`Failed to turn on ${side} side at ${time}: ${error}`);
+    }
   });
 };
 
@@ -64,14 +69,19 @@ const scheduleAnalyzeSleep = (
     dailyRule,
     async () => {
       logger.info(
-        `Executing scheduled calibration job for side ${side} on ${day} at ${time}`,
+        `Executing scheduled sleep analysis job for side ${side} on ${day} at ${time}`,
       );
-      // Subtract a fixed start time
-      await executeAnalyzeSleep(
-        side,
-        moment().subtract(12, 'hours').toISOString(),
-        moment().add(3, 'hours').toISOString(),
-      );
+      try {
+        // Subtract a fixed start time
+        await executeAnalyzeSleep(
+          side,
+          moment().subtract(12, 'hours').toISOString(),
+          moment().add(3, 'hours').toISOString(),
+        );
+      } catch (error) {
+        logger.error(`Sleep analysis failed for ${side} side: ${error}`);
+        // Don't re-throw - this shouldn't prevent other operations
+      }
     },
   );
 };
@@ -109,11 +119,16 @@ export const schedulePowerOffAndSleepAnalysis = (
     offRule,
     async () => {
       logJob('Executing power off job', side, day, dayOfWeekIndex, time);
-      await updateDeviceStatus({
-        [side]: {
-          isOn: false,
-        },
-      });
+      try {
+        await updateDeviceStatus({
+          [side]: {
+            isOn: false,
+          },
+        });
+        logger.info(`Successfully turned off ${side} side at scheduled time ${time}`);
+      } catch (error) {
+        logger.error(`Failed to turn off ${side} side at ${time}: ${error}`);
+      }
     },
   );
 };
