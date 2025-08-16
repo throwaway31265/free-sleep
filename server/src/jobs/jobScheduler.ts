@@ -9,19 +9,21 @@ import logger from '../logger.js';
 import { scheduleAlarm } from './alarmScheduler.js';
 import { scheduleElevations } from './baseScheduler.js';
 import {
-  schedulePowerOffAndSleepAnalysis,
-  schedulePowerOn,
+    schedulePowerOffAndSleepAnalysis,
+    schedulePowerOn,
 } from './powerScheduler.js';
 import { schedulePrimingRebootAndCalibration } from './primeScheduler.js';
 import { scheduleTemperatures } from './temperatureScheduler.js';
 
-const isJobSetupRunning = false;
+let isJobSetupRunning = false;
 
 async function setupJobs() {
   if (isJobSetupRunning) {
     logger.debug('Job setup already running, skipping duplicate execution.');
     return;
   }
+
+  isJobSetupRunning = true;
 
   // Clear existing jobs
   logger.info('Canceling old jobs...');
@@ -73,6 +75,7 @@ async function setupJobs() {
   schedulePrimingRebootAndCalibration(settingsData);
 
   logger.info('Done scheduling jobs!');
+  isJobSetupRunning = false;
 }
 
 function isSystemDateValid() {
