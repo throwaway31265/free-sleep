@@ -2,11 +2,11 @@ import { postDeviceStatus } from '@api/deviceStatus.ts';
 import type { DeviceStatus } from '@api/deviceStatusSchema.ts';
 import AlarmIcon from '@mui/icons-material/Alarm';
 import {
-  Button,
-  Dialog,
-  DialogActions,
-  useMediaQuery,
-  useTheme,
+    Button,
+    Dialog,
+    DialogActions,
+    useMediaQuery,
+    useTheme,
 } from '@mui/material';
 import { keyframes } from '@mui/system';
 import { useAppStore } from '@state/appStore.tsx';
@@ -31,7 +31,7 @@ export default function AlarmDismissal({
   deviceStatus,
   refetch,
 }: AlarmDismissalProps) {
-  const { side, setIsUpdating } = useAppStore();
+  const { side, setIsUpdating, setError, clearError } = useAppStore();
 
   const [dismissed, setDismissed] = useState(false);
 
@@ -40,6 +40,7 @@ export default function AlarmDismissal({
 
   const handleDismiss = () => {
     setIsUpdating(true);
+    clearError(); // Clear any previous errors
     postDeviceStatus({
       [side]: {
         isAlarmVibrating: false,
@@ -52,6 +53,23 @@ export default function AlarmDismissal({
       .then(() => refetch())
       .catch((error) => {
         console.error(error);
+
+        // Extract meaningful error message for user
+        let errorMessage = 'Failed to dismiss alarm';
+
+        if (error.response?.status === 400) {
+          if (error.response?.data?.details) {
+            errorMessage = `Invalid alarm dismissal: ${error.response.data.details}`;
+          } else {
+            errorMessage = 'Invalid alarm dismissal request. Please try again.';
+          }
+        } else if (error.response?.status === 500) {
+          errorMessage = 'Server error. Please try again in a moment.';
+        } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        }
+
+        setError(errorMessage);
       })
       .finally(() => {
         setIsUpdating(false);

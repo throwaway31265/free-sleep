@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { useEffect, useState } from 'react';
 
 export default function LedBrightnessSlider() {
-  const { isUpdating, setIsUpdating } = useAppStore();
+  const { isUpdating, setIsUpdating, setError, clearError } = useAppStore();
   const { data: deviceStatus, refetch } = useDeviceStatus();
   const [settingsCopy, setSettingsCopy] = useState<
     undefined | DeviceStatus['settings']
@@ -24,6 +24,7 @@ export default function LedBrightnessSlider() {
 
   const handleSave = () => {
     setIsUpdating(true);
+    clearError(); // Clear any previous errors
     postDeviceStatus({
       settings: settingsCopy,
     })
@@ -34,6 +35,23 @@ export default function LedBrightnessSlider() {
       .then(() => refetch())
       .catch((error) => {
         console.error(error);
+
+        // Extract meaningful error message for user
+        let errorMessage = 'Failed to update LED brightness';
+
+        if (error.response?.status === 400) {
+          if (error.response?.data?.details) {
+            errorMessage = `Invalid LED setting: ${error.response.data.details}`;
+          } else {
+            errorMessage = 'Invalid LED brightness setting. Please check the value and try again.';
+          }
+        } else if (error.response?.status === 500) {
+          errorMessage = 'Server error. Please try again in a moment.';
+        } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        }
+
+        setError(errorMessage);
       })
       .finally(() => {
         setIsUpdating(false);

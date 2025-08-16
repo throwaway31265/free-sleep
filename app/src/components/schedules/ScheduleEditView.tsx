@@ -23,7 +23,7 @@ type ScheduleEditViewProps = {
 };
 
 export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
-  const { setIsUpdating, side } = useAppStore();
+  const { setIsUpdating, side, setError, clearError } = useAppStore();
   const { refetch } = useSchedules();
   const { selectedSchedule, selectedDays, reloadScheduleData } =
     useScheduleStore();
@@ -36,6 +36,7 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
 
   const handleSave = async () => {
     setIsUpdating(true);
+    clearError(); // Clear any previous errors
 
     const daysList: DayOfWeek[] = _.uniq(
       _.keys(_.pickBy(selectedDays, (value) => value)) as DayOfWeek[],
@@ -59,6 +60,23 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
       })
       .catch((error) => {
         console.error(error);
+
+        // Extract meaningful error message for user
+        let errorMessage = 'Failed to save schedule';
+
+        if (error.response?.status === 400) {
+          if (error.response?.data?.details) {
+            errorMessage = `Invalid schedule: ${error.response.data.details}`;
+          } else {
+            errorMessage = 'Invalid schedule settings. Please check the configuration and try again.';
+          }
+        } else if (error.response?.status === 500) {
+          errorMessage = 'Server error. Please try again in a moment.';
+        } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        }
+
+        setError(errorMessage);
       })
       .finally(() => {
         setIsUpdating(false);

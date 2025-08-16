@@ -3,11 +3,11 @@ import type { DayOfWeek, Schedules } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings';
 import { Add, Schedule } from '@mui/icons-material';
 import {
-  Box,
-  Button,
-  Typography,
-  useMediaQuery,
-  useTheme,
+    Box,
+    Button,
+    Typography,
+    useMediaQuery,
+    useTheme,
 } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import { LOWERCASE_DAYS } from './days.ts';
@@ -29,7 +29,7 @@ export default function ScheduleOverview({
   onCreateNew,
   onRefresh,
 }: ScheduleOverviewProps) {
-  const { side, setIsUpdating } = useAppStore();
+  const { side, setIsUpdating, setError, clearError } = useAppStore();
   const { data: settings } = useSettings();
   const displayCelsius = settings?.temperatureFormat === 'celsius';
   const theme = useTheme();
@@ -85,6 +85,7 @@ export default function ScheduleOverview({
 
   const handleToggleSchedule = async (days: DayOfWeek[]) => {
     setIsUpdating(true);
+    clearError(); // Clear any previous errors
 
     // Get the first day's schedule to determine the new enabled state
     const firstDaySchedule = sideSchedules[days[0]];
@@ -110,8 +111,25 @@ export default function ScheduleOverview({
       await postSchedules(payload);
       await new Promise((resolve) => setTimeout(resolve, 500));
       onRefresh();
-    } catch (error) {
+        } catch (error: any) {
       console.error('Failed to toggle schedule:', error);
+
+      // Extract meaningful error message for user
+      let errorMessage = `Failed to ${newEnabledState ? 'enable' : 'disable'} schedule`;
+
+      if (error.response?.status === 400) {
+        if (error.response?.data?.details) {
+          errorMessage = `Invalid schedule: ${error.response.data.details}`;
+        } else {
+          errorMessage = 'Invalid schedule settings. Please check the configuration and try again.';
+        }
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error. Please try again in a moment.';
+      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
+
+      setError(errorMessage);
     } finally {
       setIsUpdating(false);
     }

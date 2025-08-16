@@ -18,12 +18,13 @@ import PageContainer from '@/components/shared/PageContainer.tsx';
 
 function SettingsPage() {
   const { data: settings, refetch } = useSettings();
-  const { setIsUpdating } = useAppStore();
+  const { setIsUpdating, setError, clearError } = useAppStore();
 
   const updateSettings = (settings: DeepPartial<Settings>) => {
     // console.log(`SettingsPage.tsx:21 | settings: `, settings);
     // return
     setIsUpdating(true);
+    clearError(); // Clear any previous errors
 
     postSettings(settings)
       .then(() => {
@@ -33,6 +34,23 @@ function SettingsPage() {
       .then(() => refetch())
       .catch((error) => {
         console.error(error);
+
+        // Extract meaningful error message for user
+        let errorMessage = 'Failed to update settings';
+
+        if (error.response?.status === 400) {
+          if (error.response?.data?.details) {
+            errorMessage = `Invalid settings: ${error.response.data.details}`;
+          } else {
+            errorMessage = 'Invalid settings. Please check the values and try again.';
+          }
+        } else if (error.response?.status === 500) {
+          errorMessage = 'Server error. Please try again in a moment.';
+        } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        }
+
+        setError(errorMessage);
       })
       .finally(() => setIsUpdating(false));
   };

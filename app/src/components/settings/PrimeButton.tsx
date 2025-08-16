@@ -7,10 +7,11 @@ type PrimeButtonProps = {
 };
 
 export default function PrimeButton({ refetch }: PrimeButtonProps) {
-  const { setIsUpdating, isUpdating } = useAppStore();
+  const { setIsUpdating, isUpdating, setError, clearError } = useAppStore();
 
   const handleClick = () => {
     setIsUpdating(true);
+    clearError(); // Clear any previous errors
     postDeviceStatus({
       isPriming: true,
     })
@@ -21,6 +22,26 @@ export default function PrimeButton({ refetch }: PrimeButtonProps) {
       .then(() => refetch())
       .catch((error) => {
         console.error(error);
+
+        // Extract meaningful error message for user
+        let errorMessage = 'Failed to start priming';
+
+        if (error.response?.status === 400) {
+          if (error.response?.data?.details) {
+            errorMessage = `Invalid priming request: ${error.response.data.details}`;
+          } else {
+            errorMessage = 'Invalid priming request. Please try again.';
+          }
+        } else if (error.response?.status === 500) {
+          errorMessage = 'Server error. Please try again in a moment.';
+        } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        }
+
+        setError(errorMessage);
+      })
+      .finally(() => {
+        setIsUpdating(false);
       });
   };
 

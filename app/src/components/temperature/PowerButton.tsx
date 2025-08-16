@@ -11,7 +11,7 @@ type PowerButtonProps = {
 };
 
 export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
-  const { isUpdating, setIsUpdating, side } = useAppStore();
+  const { isUpdating, setIsUpdating, side, setError, clearError } = useAppStore();
   const { data: settings } = useSettings();
   const isInAwayMode = settings?.[side]?.awayMode;
   const disabled = isUpdating || isInAwayMode;
@@ -23,6 +23,7 @@ export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
     deviceStatus[side] = sideStatus;
 
     setIsUpdating(true);
+    clearError(); // Clear any previous errors
     postDeviceStatus(deviceStatus)
       .then(() => {
         // Wait 1 second before refreshing the device status
@@ -31,6 +32,23 @@ export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
       .then(() => refetch())
       .catch((error) => {
         console.error(error);
+
+        // Extract meaningful error message for user
+        let errorMessage = `Failed to ${isOn ? 'turn off' : 'turn on'} heating`;
+
+        if (error.response?.status === 400) {
+          if (error.response?.data?.details) {
+            errorMessage = `Invalid power setting: ${error.response.data.details}`;
+          } else {
+            errorMessage = 'Invalid power setting. Please try again.';
+          }
+        } else if (error.response?.status === 500) {
+          errorMessage = 'Server error. Please try again in a moment.';
+        } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        }
+
+        setError(errorMessage);
       })
       .finally(() => {
         setIsUpdating(false);
