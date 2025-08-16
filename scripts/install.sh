@@ -147,6 +147,7 @@ echo "  - Node.js v22.18.0 (skipped if correct version installed)"
 echo "  - Server dependencies (includes automatic frontend build)"
 echo "  - SystemD service (updated and restarted if needed)"
 echo "  - Data directories and migrations"
+echo "  - Time synchronization (NTP configuration and periodic sync)"
 echo ""
 echo "Usage:"
 echo "  ./install.sh                    # Install/switch to main branch"
@@ -498,15 +499,230 @@ echo "Checking service status..."
 systemctl status free-sleep.service --no-pager || true
 
 # --------------------------------------------------------------------------------
-# Graceful device time update (optional)
+# Configure and sync system time
 
-echo "Attempting to update device time from Google..."
-# If the curl fails or is blocked, skip with a warning but don't fail the entire script
-if date_string="$(curl -s --head http://google.com | grep '^Date: ' | sed 's/Date: //g')" && [ -n "$date_string" ]; then
-  date -s "$date_string" || echo "WARNING: Unable to update system time"
+echo "Configuring system time synchronization..."
+
+# Function to check if timesyncd is available
+check_timesyncd() {
+  systemctl list-unit-files | grep -q systemd-timesyncd
+}
+
+# Function to configure NTP servers
+configure_ntp_servers() {
+  echo "Configuring NTP servers..."
+
+  # Backup existing config if it exists
+  if [ -f /etc/systemd/timesyncd.conf ]; then
+    cp /etc/systemd/timesyncd.conf "/etc/systemd/timesyncd.conf.backup.$(date +%Y%m%d_%H%M%S)" || true
+  fi
+
+  # Create new timesyncd configuration
+  cat > /etc/systemd/timesyncd.conf <<EOF
+[Time]
+NTP=pool.ntp.org 0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org
+FallbackNTP=time1.google.com time2.google.com time3.google.com time4.google.com
+RootDistanceMaxSec=5
+PollIntervalMinSec=32
+PollIntervalMaxSec=2048
+EOF
+
+  echo "NTP servers configured successfully."
+}
+
+# Function to enable and start timesyncd
+enable_time_sync() {
+  echo "Enabling and starting systemd-timesyncd..."
+
+  # Stop and disable conflicting services
+  for service in ntp chrony; do
+    if systemctl is-active "$service" >/dev/null 2>&1; then
+      echo "Stopping conflicting time service: $service"
+      systemctl stop "$service" || true
+      systemctl disable "$service" || true
+    fi
+  done
+
+  # Enable and start timesyncd
+  systemctl enable systemd-timesyncd || true
+  systemctl restart systemd-timesyncd || true
+
+  # Wait a moment for the service to start
+  sleep 2
+
+  # Check if service is running
+  if systemctl is-active systemd-timesyncd >/dev/null 2>&1; then
+    echo "systemd-timesyncd is running successfully."
+
+    # Show sync status
+    timedatectl status | grep "System clock synchronized" || true
+    timedatectl status | grep "NTP service" || true
+  else
+    echo "WARNING: systemd-timesyncd failed to start."
+  fi
+}
+
+# Function to manually sync time if timesyncd is not available
+manual_time_sync() {
+  echo "Attempting manual time synchronization..."
+
+  # Try multiple time sources
+  TIME_SOURCES=(
+    "http://google.com"
+    "http://worldtimeapi.org/api/ip"
+    "http://pool.ntp.org"
+  )
+
+  for source in "${TIME_SOURCES[@]}"; do
+    echo "Trying to get time from $source..."
+
+    if [[ "$source" == *"worldtimeapi"* ]]; then
+      # WorldTimeAPI returns JSON with datetime field
+      if command -v curl >/dev/null 2>&1; then
+        datetime=$(curl -s --connect-timeout 10 --max-time 15 "$source" | grep -o '"datetime":"[^"]*"' | cut -d'"' -f4 | head -1)
+        if [ -n "$datetime" ]; then
+          # Convert ISO format to date command format
+          date_string=$(echo "$datetime" | sed 's/T/ /' | sed 's/\.[0-9]*+.*//')
+          if date -s "$date_string" >/dev/null 2>&1; then
+            echo "Time synchronized successfully from $source"
+            return 0
+          fi
+        fi
+      fi
+    else
+      # HTTP date header method
+      if command -v curl >/dev/null 2>&1; then
+        date_string=$(curl -s --connect-timeout 10 --max-time 15 --head "$source" | grep '^Date: ' | sed 's/Date: //g' | tr -d '\r')
+        if [ -n "$date_string" ] && date -s "$date_string" >/dev/null 2>&1; then
+          echo "Time synchronized successfully from $source"
+          return 0
+        fi
+      fi
+    fi
+  done
+
+  echo "WARNING: Manual time synchronization failed from all sources."
+  return 1
+}
+
+# Function to create time sync cron job for blocked internet scenarios
+setup_periodic_time_sync() {
+  echo "Setting up periodic time synchronization for blocked internet scenarios..."
+
+  # Create a script that temporarily unblocks internet, syncs time, then blocks again
+  cat > /usr/local/bin/sync-time-with-internet.sh <<'EOF'
+#!/bin/bash
+# Periodic time sync script for pods with blocked internet
+
+SCRIPT_DIR="/home/dac/free-sleep/scripts"
+LOG_FILE="/persistent/free-sleep-data/logs/time-sync.log"
+
+# Ensure log directory exists
+mkdir -p "$(dirname "$LOG_FILE")"
+
+# Function to log with timestamp
+log_message() {
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
+}
+
+log_message "Starting periodic time sync"
+
+# Check if internet is currently blocked by testing connectivity
+if ! curl -s --connect-timeout 5 --max-time 10 http://google.com >/dev/null 2>&1; then
+  log_message "Internet appears to be blocked, temporarily unblocking for time sync"
+
+  # Unblock internet access
+  if [ -f "$SCRIPT_DIR/unblock_internet_access.sh" ]; then
+    bash "$SCRIPT_DIR/unblock_internet_access.sh" >> "$LOG_FILE" 2>&1
+    sleep 3
+  else
+    log_message "ERROR: unblock_internet_access.sh not found"
+    exit 1
+  fi
+
+  # Force time sync
+  if systemctl is-active systemd-timesyncd >/dev/null 2>&1; then
+    systemctl restart systemd-timesyncd
+    sleep 10
+    timedatectl set-ntp true
+    sleep 5
+  fi
+
+  # Check if sync was successful
+  if timedatectl status | grep -q "System clock synchronized: yes"; then
+    log_message "Time synchronization successful"
+  else
+    log_message "Time synchronization may have failed"
+  fi
+
+  # Re-block internet access
+  if [ -f "$SCRIPT_DIR/block_internet_access.sh" ]; then
+    bash "$SCRIPT_DIR/block_internet_access.sh" >> "$LOG_FILE" 2>&1
+    log_message "Internet access re-blocked"
+  else
+    log_message "ERROR: block_internet_access.sh not found"
+  fi
 else
-  echo -e "\033[0;33mWARNING: Unable to retrieve date from Google... Skipping time update.\033[0m"
+  log_message "Internet is accessible, performing standard time sync"
+
+  if systemctl is-active systemd-timesyncd >/dev/null 2>&1; then
+    systemctl restart systemd-timesyncd
+    sleep 5
+  fi
 fi
+
+log_message "Periodic time sync completed"
+EOF
+
+  chmod +x /usr/local/bin/sync-time-with-internet.sh
+  chown root:root /usr/local/bin/sync-time-with-internet.sh
+
+  # Add cron job to run twice daily (6 AM and 6 PM)
+  CRON_JOB="0 6,18 * * * /usr/local/bin/sync-time-with-internet.sh"
+
+  # Check if cron job already exists
+  if ! crontab -l 2>/dev/null | grep -q "sync-time-with-internet.sh"; then
+    # Add the cron job
+    (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+    echo "Periodic time sync cron job added (runs at 6 AM and 6 PM daily)."
+  else
+    echo "Periodic time sync cron job already exists."
+  fi
+}
+
+# Main time synchronization logic
+if check_timesyncd; then
+  echo "systemd-timesyncd is available on this system."
+
+  # Configure NTP servers
+  configure_ntp_servers
+
+  # Enable time synchronization
+  enable_time_sync
+
+  # Try to sync immediately if we have internet
+  if curl -s --connect-timeout 5 --max-time 10 http://google.com >/dev/null 2>&1; then
+    echo "Internet connectivity detected, forcing immediate time sync..."
+    timedatectl set-ntp true
+    sleep 5
+
+    # Show current sync status
+    echo "Current time sync status:"
+    timedatectl status | grep -E "(Local time|Universal time|System clock synchronized|NTP service)" || true
+  else
+    echo "No internet connectivity detected during installation."
+    manual_time_sync || true
+  fi
+
+else
+  echo "systemd-timesyncd not available, attempting manual time sync..."
+  manual_time_sync || true
+fi
+
+# Always setup periodic sync for blocked internet scenarios
+setup_periodic_time_sync
+
+echo "Time synchronization configuration completed."
 
 # --------------------------------------------------------------------------------
 # Setup passwordless reboot for 'dac'
@@ -563,11 +779,25 @@ fi
 echo "  - Bun: $(sudo -u "$USERNAME" bash -c '/home/dac/.bun/bin/bun --version' 2>/dev/null || echo 'Not found')"
 
 echo ""
+echo "Time synchronization status:"
+if systemctl is-active systemd-timesyncd >/dev/null 2>&1; then
+  echo -e "  - systemd-timesyncd: \033[0;32mActive\033[0m"
+  timedatectl status | grep -E "(System clock synchronized|NTP service)" | sed 's/^/    /' || true
+else
+  echo -e "  - systemd-timesyncd: \033[0;33mInactive\033[0m"
+fi
+echo "  - Periodic sync: Configured (runs at 6 AM and 6 PM daily)"
+echo "  - Time sync logs: /persistent/free-sleep-data/logs/time-sync.log"
+
+echo ""
 echo -e "\033[0;32mInstallation complete! The Free Sleep server is running and will start automatically on boot.\033[0m"
 echo -e "\033[0;32mSee logs with: journalctl -u free-sleep --no-pager --output=cat\033[0m"
+echo -e "\033[0;32mTime sync logs: tail -f /persistent/free-sleep-data/logs/time-sync.log\033[0m"
 echo ""
 echo "To re-run this script safely:"
 echo "  ./install.sh                    # Install/switch to main branch"
 echo "  BRANCH=beta ./install.sh        # Install/switch to beta branch"
 echo "  FORCE_UPDATE=true ./install.sh  # Force repository update"
+echo ""
+echo "To manually sync time now: /usr/local/bin/sync-time-with-internet.sh"
 echo "==================================================================="
