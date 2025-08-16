@@ -20,17 +20,20 @@ export const executePythonScript = ({
       reject(new Error(`Python executable not found: ${pythonExecutable}`));
       return;
     }
-    const command = `${pythonExecutable} -B ${script} ${args.join(' ')}`;
+    // Run Python scripts as dac user to ensure proper file permissions
+    const command = `sudo -u dac ${pythonExecutable} -B ${script} ${args.join(' ')}`;
     logger.info(`Executing: ${command}`);
 
     exec(command, { env: { ...process.env } }, (error, stdout, stderr) => {
       if (error) {
         logger.error(`Execution error: ${error.message}`);
         reject(error);
+        return;
       }
       if (stderr) {
         logger.error(`Python stderr: ${stderr}`);
-        reject(`Python stderr: ${stderr}`);
+        reject(new Error(`Python stderr: ${stderr}`));
+        return;
       }
       if (stdout) {
         logger.info(`Python stdout: ${stdout}`);

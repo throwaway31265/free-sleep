@@ -66,14 +66,56 @@ def _get_file_handler(data_folder_path: str, name: str):
     if not os.path.isdir(folder_path):
         os.makedirs(folder_path)
 
+    log_file_path = f"{folder_path}/{name}.log"
+
+    # Ensure proper ownership on Linux systems before creating the handler
+    if platform.system().lower() == 'linux':
+        try:
+            import pwd
+            import grp
+            # Get dac user and group IDs
+            dac_user = pwd.getpwnam('dac')
+            dac_group = grp.getgrnam('dac')
+
+            # Ensure logs directory has correct ownership
+            if os.path.exists(folder_path):
+                dir_stat = os.stat(folder_path)
+                if dir_stat.st_uid != dac_user.pw_uid or dir_stat.st_gid != dac_group.gr_gid:
+                    os.chown(folder_path, dac_user.pw_uid, dac_group.gr_gid)
+
+            # If log file exists, ensure it has correct ownership
+            if os.path.exists(log_file_path):
+                file_stat = os.stat(log_file_path)
+                if file_stat.st_uid != dac_user.pw_uid or file_stat.st_gid != dac_group.gr_gid:
+                    os.chown(log_file_path, dac_user.pw_uid, dac_group.gr_gid)
+        except (PermissionError, KeyError, OSError):
+            # If we can't change ownership (e.g., not running as root/sudo), just continue
+            # The file will be created with current user's permissions
+            pass
+
     handler = RotatingFileHandler(
-        filename=f"{folder_path}/{name}.log",
+        filename=log_file_path,
         mode='a',
         maxBytes=10 * 1024 * 1024,  # 10MB max file size
         backupCount=0,  # No rotation, just truncate when max size is reached
         encoding="utf-8",
     )
     handler.setFormatter(FORMATTER)
+
+    # Final check: ensure the newly created log file has correct ownership
+    if platform.system().lower() == 'linux':
+        try:
+            import pwd
+            import grp
+            dac_user = pwd.getpwnam('dac')
+            dac_group = grp.getgrnam('dac')
+            if os.path.exists(log_file_path):
+                file_stat = os.stat(log_file_path)
+                if file_stat.st_uid != dac_user.pw_uid or file_stat.st_gid != dac_group.gr_gid:
+                    os.chown(log_file_path, dac_user.pw_uid, dac_group.gr_gid)
+        except (PermissionError, KeyError, OSError):
+            pass
+
     return handler
 
 
