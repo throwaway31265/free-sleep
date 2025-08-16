@@ -23,6 +23,12 @@ function roundToNearestHalf(number: number) {
   return Math.round(number * 2) / 2;
 }
 
+function temperatureToScale(temperatureF: number): number {
+  // Based on the formula T(x) = 2.75x + 82.5
+  // Solving for x: x = (T - 82.5) / 2.75
+  return Math.round((temperatureF - 82.5) / 2.75);
+}
+
 export function formatTemperature(temperature: number, celcius: boolean) {
   return celcius
     ? `${roundToNearestHalf(farenheitToCelcius(temperature))}°C`
@@ -106,13 +112,23 @@ export default function TemperatureLabel({
             )}
           </Typography>
 
+          {/* Scale (-10 to +10) */}
+          <Typography
+            style={{ top: '100%' }}
+            className={styles.label}
+            color={theme.palette.grey[500]}
+            variant="body2"
+          >
+            Scale: {temperatureToScale(currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp)}
+          </Typography>
+
           {/* Currently at label */}
           <Typography
-            style={{ top: '105%' }}
+            style={{ top: '115%' }}
             className={styles.label}
             color={theme.palette.grey[400]}
           >
-            {`Currently at ${formatTemperature(currentTemperatureF, displayCelsius)}`}
+            {`Currently at ${formatTemperature(currentTemperatureF, displayCelsius)} (${temperatureToScale(currentTemperatureF)})`}
           </Typography>
         </>
       ) : (
