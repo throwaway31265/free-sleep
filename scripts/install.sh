@@ -130,6 +130,56 @@ apply_ipv6_workarounds() {
   fi
 }
 
+# Check service status and store for later restoration
+check_and_store_service_status() {
+  local service_name="$1"
+  local status_var="$2"
+
+  if systemctl list-units --full --all | grep -q "${service_name}\.service"; then
+    if systemctl is-active "$service_name" >/dev/null 2>&1; then
+      eval "$status_var=running"
+      echo "$service_name service exists and is running - will be restarted after installation"
+    else
+      eval "$status_var=stopped"
+      echo "$service_name service exists but is stopped - will remain stopped"
+    fi
+  else
+    eval "$status_var=nonexistent"
+    echo "$service_name service does not exist - will not be managed"
+  fi
+}
+
+# Stop services before installation
+stop_services_for_installation() {
+  echo "Stopping Free Sleep services for installation..."
+
+  local services=("free-sleep" "free-sleep-stream")
+
+  for service in "${services[@]}"; do
+    if systemctl list-units --full --all | grep -q "${service}\.service"; then
+      if systemctl is-active "$service" >/dev/null 2>&1; then
+        echo "Stopping $service service..."
+        systemctl stop "$service" || true
+      fi
+    fi
+  done
+}
+
+# Start services after installation based on their previous state
+start_services_after_installation() {
+  echo "Restoring Free Sleep services to their previous state..."
+
+  if [ "$FREE_SLEEP_PREVIOUS_STATUS" = "running" ]; then
+    echo "Restarting free-sleep service (was previously running)..."
+    systemctl start free-sleep || echo "Failed to start free-sleep service"
+  fi
+
+  if [ "$FREE_SLEEP_STREAM_PREVIOUS_STATUS" = "running" ]; then
+    echo "Restarting free-sleep-stream service (was previously running)..."
+    systemctl start free-sleep-stream || echo "Failed to start free-sleep-stream service"
+  fi
+}
+
 echo "==================================================================="
 echo "           Free Sleep Installation Script"
 echo "==================================================================="
@@ -138,14 +188,25 @@ echo "==================================================================="
 # Variables
 BRANCH=${BRANCH:-main}
 
+# Check current status of Free Sleep services before starting installation
+echo "Checking current service status..."
+check_and_store_service_status "free-sleep" "FREE_SLEEP_PREVIOUS_STATUS"
+check_and_store_service_status "free-sleep-stream" "FREE_SLEEP_STREAM_PREVIOUS_STATUS"
+echo ""
+
+# Stop services before installation to prevent conflicts
+stop_services_for_installation
+echo ""
+
 echo "Branch: ${BRANCH}"
 echo ""
 echo "This script will check and update the following components:"
+echo "  - Service management (stop services before installation, restore after)"
 echo "  - Repository code (skipped if already present)"
 echo "  - Bun runtime (skipped if already installed)"
 echo "  - Node.js v22.18.0 (skipped if correct version installed)"
 echo "  - Server dependencies (includes automatic frontend build)"
-echo "  - SystemD service (updated and restarted if needed)"
+echo "  - SystemD service (updated, restored to previous state)"
 echo "  - Data directories and migrations"
 echo "  - Time synchronization (NTP configuration and periodic sync)"
 echo ""
@@ -461,7 +522,7 @@ sudo -u "$USERNAME" bash -lc "export BUN_INSTALL=/home/$USERNAME/.bun; export PA
 SERVICE_FILE="/etc/systemd/system/free-sleep.service"
 
 if systemctl is-enabled free-sleep.service >/dev/null 2>&1; then
-  echo "Free Sleep service is already configured. Checking if restart is needed..."
+  echo "Free Sleep service is already configured. Updating service file..."
 
   # Always update the service file in case there are changes
   echo "Updating systemd service file at $SERVICE_FILE..."
@@ -472,14 +533,7 @@ if systemctl is-enabled free-sleep.service >/dev/null 2>&1; then
 
   echo "Reloading systemd daemon..."
   systemctl daemon-reload
-
-  if systemctl is-active free-sleep.service >/dev/null 2>&1; then
-    echo "Restarting free-sleep.service..."
-    systemctl restart free-sleep.service
-  else
-    echo "Starting free-sleep.service..."
-    systemctl start free-sleep.service
-  fi
+  echo "Service file updated. Service will be restored to previous state later."
 else
   echo "Creating systemd service file at $SERVICE_FILE..."
 
@@ -490,16 +544,11 @@ else
   echo "Reloading systemd daemon and enabling the service..."
   systemctl daemon-reload
   systemctl enable free-sleep.service
-
-  echo "Starting free-sleep.service..."
-  systemctl start free-sleep.service
+  echo "Service created and enabled. Will be started based on previous state."
 fi
 
-echo "Checking service status..."
+echo "Current service status after update:"
 systemctl status free-sleep.service --no-pager || true
-
-# --------------------------------------------------------------------------------
-# Configure and sync system time
 
 echo "Configuring system time synchronization..."
 
@@ -744,14 +793,9 @@ fi
 echo ""
 
 # --------------------------------------------------------------------------------
-# Restart free-sleep-stream if it exists
+# Restore services to their previous state
 
-if systemctl list-units --full --all | grep -q "free-sleep-stream"; then
-  echo "Restarting free-sleep-stream service..."
-  systemctl restart free-sleep-stream
-else
-  echo "free-sleep-stream service does not exist. Skipping restart."
-fi
+start_services_after_installation
 
 echo ""
 
