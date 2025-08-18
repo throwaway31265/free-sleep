@@ -610,6 +610,9 @@ setup_periodic_time_sync() {
   echo "Setting up periodic time synchronization for blocked internet scenarios..."
 
   # Create a script that temporarily unblocks internet, syncs time, then blocks again
+  # Ensure target bin directory exists
+  mkdir -p /usr/local/bin
+
   cat > /usr/local/bin/sync-time-with-internet.sh <<'EOF'
 #!/bin/bash
 # Periodic time sync script for pods with blocked internet
