@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from '@tanstack/react-router';
 import { z } from 'zod';
 import axiosInstance from './api';
 
@@ -49,10 +50,13 @@ const stopBase = async () => {
 
 // React Query hooks
 export const useBaseStatus = () => {
+  const location = useLocation();
+  const isOnElevationRoute = location.pathname === '/base-control';
+
   return useQuery({
     queryKey: ['baseStatus'],
     queryFn: getBaseStatus,
-    refetchInterval: 2000, // Refetch every 2 seconds to track movement
+    refetchInterval: isOnElevationRoute ? 2000 : false, // Only refetch on elevation route
     select: (data) => ({
       // Only include fields that matter for UI state, exclude lastUpdate to prevent unnecessary re-renders
       head: data.head,

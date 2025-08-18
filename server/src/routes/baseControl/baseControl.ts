@@ -49,7 +49,6 @@ router.get('/base-control', async (_req, res) => {
       lastUpdate: new Date().toISOString(),
     };
 
-    logger.debug('Getting base status:', { ...baseStatus, isConfigured });
     res.json({ ...baseStatus, isConfigured });
   } catch (error) {
     logger.error('Error getting base status:', error);
