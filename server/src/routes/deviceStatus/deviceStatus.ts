@@ -11,27 +11,9 @@ import { updateDeviceStatus } from './updateDeviceStatus.js';
 const router = express.Router();
 
 router.get('/deviceStatus', async (req: Request, res: Response) => {
-  try {
-    // Set a timeout for the entire operation (10 seconds)
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Device status request timed out')), 10000)
-    );
-
-    const deviceStatusPromise = (async () => {
-      const franken = await getFranken();
-      return await franken.getDeviceStatus();
-    })();
-
-    const resp = await Promise.race([deviceStatusPromise, timeout]);
-    res.json(resp);
-  } catch (error) {
-    logger.error('Error getting device status:', error);
-    res.status(503).json({
-      error: 'Device status unavailable',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
-    });
-  }
+  const franken = await getFranken();
+  const resp = await franken.getDeviceStatus();
+  res.json(resp);
 });
 
 router.post('/deviceStatus', async (req: Request, res: Response) => {

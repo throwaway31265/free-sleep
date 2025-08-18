@@ -14,13 +14,6 @@ import { wait } from './promises.js';
 import { SequentialQueue } from './sequentialQueue.js';
 import { UnixSocketServer } from './unixSocketServer.js';
 
-// Helper function to create timeout promises
-function createTimeout<T = never>(ms: number, message: string): Promise<T> {
-  return new Promise<T>((_, reject) =>
-    setTimeout(() => reject(new Error(message)), ms)
-  );
-}
-
 export class Franken {
   public constructor(
     private readonly writeStream: PromiseWriteStream<Buffer>,
@@ -31,39 +24,27 @@ export class Franken {
 
   static readonly separator = Buffer.from('\n\n');
 
-  public async sendMessage(message: string, timeoutMs: number = 5000) {
+  public async sendMessage(message: string) {
     if (message !== `14`) {
       logger.debug(`Sending message to sock | message: ${message}`);
     }
-
-    const messageTimeout = createTimeout(timeoutMs, `Message timeout after ${timeoutMs}ms`);
-
-    try {
-      const responseBytes = await Promise.race([
-        this.sequentialQueue.exec(async () => {
-          const requestBytes = Buffer.concat([
-            Buffer.from(message),
-            Franken.separator,
-          ]);
-          await this.writeStream.write(requestBytes);
-          const resp = await this.messageStream.readMessage();
-
-          await wait(50);
-          return resp;
-        }),
-        messageTimeout
+    const responseBytes = await this.sequentialQueue.exec(async () => {
+      const requestBytes = Buffer.concat([
+        Buffer.from(message),
+        Franken.separator,
       ]);
+      await this.writeStream.write(requestBytes);
+      const resp = await this.messageStream.readMessage();
 
-      const response = responseBytes.toString();
-      if (message !== `14`) {
-        logger.debug(`Message sent successfully to sock | message: ${message}`);
-      }
-
-      return response;
-    } catch (error) {
-      logger.error(`Failed to send message: ${message}`, error);
-      throw error;
+      await wait(50);
+      return resp;
+    });
+    const response = responseBytes.toString();
+    if (message !== `14`) {
+      logger.debug(`Message sent successfully to sock | message: ${message}`);
     }
+
+    return response;
   }
 
   private tryStripNewlines(arg: string) {
@@ -165,20 +146,7 @@ export async function getFranken(): Promise<Franken> {
   } else {
     logger.debug('Franken not started in getFranken');
   }
-
   const frankenServer = await getFrankenServer();
-
-  // Add timeout for waiting for franken connection
-  const connectionTimeout = createTimeout(5000, 'Franken connection timeout');
-
-  try {
-    franken = await Promise.race([
-      frankenServer.waitForFranken(),
-      connectionTimeout
-    ]);
-    return franken;
-  } catch (error) {
-    logger.error('Failed to connect to Franken:', error);
-    throw error;
-  }
+  franken = await frankenServer.waitForFranken();
+  return franken;
 }
