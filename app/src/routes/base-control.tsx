@@ -1,14 +1,14 @@
 import {
-    useBaseStatus,
-    useSetBasePosition,
-    useSetBasePreset,
-    useStopBase,
+  useBaseStatus,
+  useSetBasePosition,
+  useSetBasePreset,
+  useStopBase,
 } from '@api/baseControl';
 import BedVisualization from '@components/BedVisualization';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { Box, Button, IconButton, Stack, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+
 import { useAppStore } from '@state/appStore';
 import { createFileRoute } from '@tanstack/react-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -65,7 +65,6 @@ const presetIcons = {
 };
 
 function BaseControlPage() {
-  const theme = useTheme();
   const { isUpdating } = useAppStore();
   const [position, setPosition] = useState<BasePosition>({ head: 0, feet: 0 });
   const [isOptimisticallyMoving, setIsOptimisticallyMoving] = useState(false);
@@ -150,11 +149,13 @@ function BaseControlPage() {
 
   const pillButtonStyle = {
     color: '#fff',
-    fontSize: '24px',
+    fontSize: { xs: '20px', sm: '24px' },
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: '50%',
-    width: '48px',
-    height: '48px',
+    width: { xs: '40px', sm: '48px' },
+    height: { xs: '40px', sm: '48px' },
+    minWidth: { xs: '40px', sm: '48px' },
+    maxWidth: { xs: '40px', sm: '48px' },
     '&:hover': {
       backgroundColor: 'rgba(255, 255, 255, 0.2)',
     },
@@ -167,13 +168,14 @@ function BaseControlPage() {
   const presetButtonStyle = {
     color: '#fff',
     justifyContent: 'space-between',
-    py: 2,
-    px: 4,
+    py: { xs: 1.5, sm: 2 },
+    px: { xs: 3, sm: 4 },
     textTransform: 'none',
-    fontSize: '18px',
+    fontSize: { xs: '16px', sm: '18px' },
     fontWeight: 'normal',
     width: '100%',
-    minWidth: '320px',
+    minWidth: { xs: '280px', sm: '320px' },
+    maxWidth: '100%',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: '24px',
     border: 'none',
@@ -276,13 +278,11 @@ function BaseControlPage() {
   return (
     <PageContainer
       sx={{
-        maxWidth: '500px',
-        [theme.breakpoints.up('md')]: {
-          maxWidth: '400px',
-        },
+        maxWidth: { xs: '100%', sm: '500px', md: '400px' },
         bgcolor: '#000',
         color: '#fff',
         minHeight: '100vh',
+        px: { xs: 2, sm: 3 },
       }}
     >
       <Typography
@@ -290,13 +290,17 @@ function BaseControlPage() {
         component="h1"
         gutterBottom
         align="center"
-        sx={{ color: '#fff', mb: 4 }}
+        sx={{
+          color: '#fff',
+          mb: { xs: 3, sm: 4 },
+          fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+        }}
       >
         Elevation
       </Typography>
 
       {/* Bed Visualization */}
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ mb: { xs: 3, sm: 4 }, display: 'flex', justifyContent: 'center' }}>
         <BedVisualization
           headPosition={position.head}
           feetPosition={position.feet}
@@ -306,23 +310,23 @@ function BaseControlPage() {
       {/* Head and Feet Controls */}
       <Stack
         direction="row"
-        spacing={6}
-        sx={{ mb: 4, justifyContent: 'center' }}
+        spacing={{ xs: 3, sm: 4, md: 6 }}
+        sx={{ mb: { xs: 3, sm: 4 }, justifyContent: 'center' }}
       >
         {/* Head Control */}
-        <Box sx={{ textAlign: 'center', minWidth: 120 }}>
+        <Box sx={{ textAlign: 'center', minWidth: { xs: 100, sm: 120 } }}>
           <Typography
             variant="h6"
             sx={{
               color: '#888',
               mb: 2,
-              fontSize: '14px',
+              fontSize: { xs: '12px', sm: '14px' },
               fontWeight: 'normal',
             }}
           >
             HEAD
           </Typography>
-          <Stack direction="row" alignItems="center" spacing={2}>
+          <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }}>
             <IconButton
               onClick={handleHeadDecrement}
               disabled={position.head <= 0}
@@ -332,7 +336,12 @@ function BaseControlPage() {
             </IconButton>
             <Typography
               variant="h2"
-              sx={{ color: '#fff', fontWeight: 'bold', minWidth: '60px' }}
+              sx={{
+                color: '#fff',
+                fontWeight: 'bold',
+                minWidth: { xs: '50px', sm: '60px' },
+                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              }}
             >
               {position.head}
             </Typography>
@@ -347,19 +356,19 @@ function BaseControlPage() {
         </Box>
 
         {/* Feet Control */}
-        <Box sx={{ textAlign: 'center', minWidth: 120 }}>
+        <Box sx={{ textAlign: 'center', minWidth: { xs: 100, sm: 120 } }}>
           <Typography
             variant="h6"
             sx={{
               color: '#888',
               mb: 2,
-              fontSize: '14px',
+              fontSize: { xs: '12px', sm: '14px' },
               fontWeight: 'normal',
             }}
           >
             FEET
           </Typography>
-          <Stack direction="row" alignItems="center" spacing={2}>
+          <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }}>
             <IconButton
               onClick={handleFeetDecrement}
               disabled={position.feet <= 0}
@@ -369,7 +378,12 @@ function BaseControlPage() {
             </IconButton>
             <Typography
               variant="h2"
-              sx={{ color: '#fff', fontWeight: 'bold', minWidth: '60px' }}
+              sx={{
+                color: '#fff',
+                fontWeight: 'bold',
+                minWidth: { xs: '50px', sm: '60px' },
+                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              }}
             >
               {position.feet}
             </Typography>
@@ -394,7 +408,7 @@ function BaseControlPage() {
       )}
 
       {/* Preset Buttons */}
-      <Stack spacing={2} sx={{ mb: 4 }}>
+      <Stack spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 3, sm: 4 }, width: '100%', maxWidth: { xs: '100%', sm: '500px' } }}>
         {Object.entries(presetTimes).map(([preset, time]) => {
           const IconComponent = presetIcons[preset as keyof typeof presetIcons];
           const isActive = activePreset === preset;
@@ -428,13 +442,16 @@ function BaseControlPage() {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ mr: 2 }}>{IconComponent(isActive || canStop)}</Box>
+                <Box sx={{ mr: { xs: 1.5, sm: 2 } }}>{IconComponent(isActive || canStop)}</Box>
                 {canStop
                   ? 'Stop'
                   : preset.charAt(0).toUpperCase() + preset.slice(1)}
               </Box>
               <Typography
-                sx={{ color: canStop ? '#dc3545' : isActive ? '#fff' : '#888' }}
+                sx={{
+                  color: canStop ? '#dc3545' : isActive ? '#fff' : '#888',
+                  fontSize: { xs: '14px', sm: '16px' },
+                }}
               >
                 {canStop ? 'Moving...' : time}
               </Typography>

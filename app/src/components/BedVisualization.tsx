@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import { useEffect, useState } from 'react';
 
 interface BedVisualizationProps {
@@ -84,7 +84,7 @@ export default function BedVisualization({
       sx={{
         position: 'relative',
         width: '100%',
-        height: '250px',
+        height: { xs: '200px', sm: '225px', md: '250px' },
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -98,8 +98,9 @@ export default function BedVisualization({
       <Box
         sx={{
           position: 'relative',
-          width: '400px',
-          height: '250px',
+          width: { xs: '320px', sm: '360px', md: '400px' },
+          height: { xs: '200px', sm: '225px', md: '250px' },
+          maxWidth: '90vw',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -137,27 +138,6 @@ export default function BedVisualization({
           }}
         />
       </Box>
-
-      {/* Loading state overlay */}
-      {!imagesLoaded ? (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 4,
-            textAlign: 'center',
-          }}
-        >
-          <Typography variant="body2" sx={{ mb: 1, color: '#fff' }}>
-            Loading bed visualization...
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#888' }}>
-            Preloading {46 + 21} images for smooth animation
-          </Typography>
-        </Box>
-      ) : null}
     </Box>
   );
 }
