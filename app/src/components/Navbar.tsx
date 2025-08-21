@@ -121,7 +121,17 @@ export default function Navbar() {
               <Button
                 key={route}
                 onClick={() => handleNavigation(route)}
-                sx={{ color: 'white' }}
+                sx={{ 
+                  color: 'white',
+                  '&:focus': {
+                    outline: '2px solid',
+                    outlineColor: 'primary.main',
+                    outlineOffset: '2px',
+                  },
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  }
+                }}
                 variant={pathname === route ? 'outlined' : 'text'}
                 disabled={isUpdating}
               >
@@ -159,6 +169,12 @@ export default function Navbar() {
             },
             '& .MuiBottomNavigationAction-root': {
               color: theme.palette.grey[500],
+              '&:focus': {
+                outline: '2px solid',
+                outlineColor: theme.palette.primary.main,
+                outlineOffset: '2px',
+                borderRadius: '8px',
+              },
             },
           }}
         >

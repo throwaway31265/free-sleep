@@ -29,8 +29,9 @@ export const DAYS_ORDER: DayOfWeek[] = [
 ];
 
 // Create a normalized version of a schedule for comparison
+// This focuses on core schedule settings and includes elevation presets
 const normalizeScheduleForComparison = (schedule: DailySchedule): string => {
-  // Create a simplified object with only the key properties we want to compare
+  // Create a simplified object focusing on the most important settings
   const normalized = {
     power: {
       enabled: schedule.power.enabled,
@@ -47,6 +48,7 @@ const normalizeScheduleForComparison = (schedule: DailySchedule): string => {
       alarmTemperature: schedule.alarm.alarmTemperature,
     },
     temperatures: schedule.temperatures,
+    // Include full elevation details including presets to ensure proper grouping
     elevations: schedule.elevations,
   };
 
@@ -68,14 +70,16 @@ const normalizeScheduleForComparison = (schedule: DailySchedule): string => {
   return sortedJsonString;
 };
 
+
 export const groupSchedulesBySettings = (
   schedules: Record<DayOfWeek, DailySchedule>,
 ): ScheduleGroup[] => {
   const groups: Record<string, ScheduleGroup> = {};
-
+  
+  // Group schedules by their full normalized comparison including elevation presets
   Object.entries(schedules).forEach(([day, schedule]) => {
     const dayOfWeek = day as DayOfWeek;
-    const dayIndex = DAYS_ORDER.indexOf(dayOfWeek); // Get the correct day index
+    const dayIndex = DAYS_ORDER.indexOf(dayOfWeek);
     const normalizedKey = normalizeScheduleForComparison(schedule);
 
     if (groups[normalizedKey]) {

@@ -2,6 +2,7 @@ import cbor from 'cbor';
 import fs from 'fs';
 import memoryDB from '../db/memoryDB.js';
 import settingsDB from '../db/settings.js';
+import { storeWaterLevelReading, getRecentWaterLevelReadings } from '../db/waterLevelReadings.js';
 import logger from '../logger.js';
 import { BASE_PRESETS } from './basePresets.js';
 import { executeFunction } from './deviceApi.js';
@@ -61,7 +62,11 @@ export class FrankenMonitor {
     logger.info('Starting FrankenMonitor');
 
     this.isRunning = true;
-    // monitorLoop
+
+    // Backfill historical water readings from logs if database is empty
+    await this.backfillHistoricalWaterReadings();
+
+    // Start the monitoring loop
     this.frankenLoop().catch((err) => {
       logger.error(
         err instanceof Error ? err.message : String(err),
@@ -371,15 +376,159 @@ export class FrankenMonitor {
 
   private async processPrimingState() {
     const isPriming = this.variableValues.priming === 'true';
+    const needsPrime = parseInt(this.variableValues.needsPrime || '0', 10);
 
-    if (!isPriming && this.wasPriming) {
+    // Pod 4 specific: needsPrime ranges from 0-5, where 0 = no priming needed
+    const isPrimingRequired = needsPrime > 0;
+    const isCurrentlyPriming = isPriming || isPrimingRequired;
+
+    if (!isCurrentlyPriming && this.wasPriming) {
       this.wasPriming = false;
       settingsDB.data.lastPrime = new Date().toISOString();
       await settingsDB.write();
-      logger.info('[processPrimingState] Priming completed successfully');
-    } else if (isPriming && !this.wasPriming) {
+      logger.info(`[processPrimingState] Priming completed successfully (needsPrime: ${needsPrime})`);
+    } else if (isCurrentlyPriming && !this.wasPriming) {
       this.wasPriming = true;
-      logger.info('[processPrimingState] Priming started');
+      logger.info(`[processPrimingState] Priming started (priming: ${isPriming}, needsPrime: ${needsPrime})`);
+    }
+
+    // Log priming status changes for debugging
+    if (needsPrime > 0) {
+      logger.debug(`[processPrimingState] Pod 4 needsPrime level: ${needsPrime}`);
+    }
+  }
+
+  /**
+   * Parse a capwater log line and extract sensor data
+   */
+  private parseCapwaterLogLine(logLine: string): { rawLevel: number; calibratedEmpty: number; calibratedFull: number; timestamp: number } | null {
+    // Parse the log line: [frozen] -> FW: [capwater] Raw: 1.140402, Capwater calibrated. Empty: 0.84, Full: 1.13
+    const regex = /\[capwater\] Raw:\s*([0-9.]+).*Empty:\s*([0-9.]+).*Full:\s*([0-9.]+)/;
+    const match = logLine.match(regex);
+
+    if (!match) {
+      return null;
+    }
+
+    // Extract timestamp from the log line (Aug 20 23:25:55)
+    const timestampRegex = /^(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})/;
+    const timestampMatch = logLine.match(timestampRegex);
+
+    let timestamp = Math.floor(Date.now() / 1000); // Default to now
+    if (timestampMatch) {
+      try {
+        // Parse the syslog timestamp and convert to unix timestamp
+        const currentYear = new Date().getFullYear();
+        const logDate = new Date(`${timestampMatch[1]} ${currentYear}`);
+        timestamp = Math.floor(logDate.getTime() / 1000);
+      } catch {
+        // If parsing fails, use current timestamp
+      }
+    }
+
+    return {
+      rawLevel: Number.parseFloat(match[1]),
+      calibratedEmpty: Number.parseFloat(match[2]),
+      calibratedFull: Number.parseFloat(match[3]),
+      timestamp,
+    };
+  }
+
+  /**
+   * Backfill recent capwater readings from system logs on startup
+   */
+  private async backfillHistoricalWaterReadings(): Promise<void> {
+    try {
+      // Check if we already have recent readings (30 days = 720 hours)
+      const existingReadings = await getRecentWaterLevelReadings(720);
+
+      if (existingReadings.length > 0) {
+        // Check the time span of existing data
+        const oldestTimestamp = Math.min(...existingReadings.map(r => r.timestamp));
+        const newestTimestamp = Math.max(...existingReadings.map(r => r.timestamp));
+        const dataSpanHours = (newestTimestamp - oldestTimestamp) / 3600;
+        const dataSpanDays = dataSpanHours / 24;
+
+        if (dataSpanDays >= 5) {
+          logger.info(`Found ${existingReadings.length} existing water readings spanning ${dataSpanDays.toFixed(1)} days, skipping backfill`);
+          return;
+        } else {
+          logger.info(`Found ${existingReadings.length} existing water readings spanning only ${dataSpanDays.toFixed(1)} days (< 5 days), proceeding with backfill`);
+        }
+      } else {
+        logger.info('No existing water readings found, backfilling from system logs...');
+      }
+
+      const { exec } = await import('child_process');
+      const { promisify } = await import('util');
+      const execAsync = promisify(exec);
+
+      // Get all capwater readings from the last 30 days of logs (only frank process, not bun)
+      const { stdout } = await execAsync('journalctl --no-pager --since "30 days ago" | grep "frank\\[" | grep capwater');
+
+      if (!stdout.trim()) {
+        logger.info('No historical capwater readings found in system logs');
+        return;
+      }
+
+      const logLines = stdout.trim().split('\n');
+      let backfilledCount = 0;
+
+      for (const logLine of logLines) {
+        const parsed = this.parseCapwaterLogLine(logLine);
+        if (!parsed) continue;
+
+        // Assume not priming for historical data (we can't determine this from logs alone)
+        await storeWaterLevelReading({
+          timestamp: parsed.timestamp,
+          rawLevel: parsed.rawLevel,
+          calibratedEmpty: parsed.calibratedEmpty,
+          calibratedFull: parsed.calibratedFull,
+          isPriming: false,
+        });
+
+        backfilledCount++;
+      }
+
+      logger.info(`Backfilled ${backfilledCount} historical capwater readings from system logs`);
+    } catch (error) {
+      logger.error(`Failed to backfill historical water readings: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  private async processWaterLevelData() {
+    // Parse capwater sensor data from journalctl logs
+    try {
+      const { exec } = await import('child_process');
+      const { promisify } = await import('util');
+      const execAsync = promisify(exec);
+
+      // Get the latest capwater reading from system logs (from frank process, not bun)
+      const { stdout } = await execAsync('journalctl --no-pager --lines=1000 | grep "frank\\[" | grep capwater | tail -1');
+
+      if (!stdout.trim()) {
+        return;
+      }
+
+      const parsed = this.parseCapwaterLogLine(stdout);
+      if (!parsed) {
+        logger.debug('Could not parse capwater reading from log line');
+        return;
+      }
+
+      const isPriming = this.variableValues.priming === 'true' || this.variableValues.needsPrime !== '0';
+
+      await storeWaterLevelReading({
+        timestamp: Math.floor(Date.now() / 1000), // Use current timestamp for real-time readings
+        rawLevel: parsed.rawLevel,
+        calibratedEmpty: parsed.calibratedEmpty,
+        calibratedFull: parsed.calibratedFull,
+        isPriming,
+      });
+
+      logger.debug(`Stored capwater reading: raw=${parsed.rawLevel}, empty=${parsed.calibratedEmpty}, full=${parsed.calibratedFull}, priming=${isPriming}`);
+    } catch (error) {
+      logger.debug(`Failed to process capwater data: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -398,6 +547,7 @@ export class FrankenMonitor {
           await this.processAlarmDismiss();
           await this.processTTC();
           await this.processPrimingState();
+          await this.processWaterLevelData();
           // await this.updateWaterState(this.variableValues["waterLevel"] == "true");
           // await this.updatePrimeNeeded(parseInt(this.variableValues["needsPrime"], 10));
         }

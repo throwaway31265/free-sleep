@@ -6,6 +6,7 @@ import { useControlTempStore } from '@components/temperature/controlTempStore.ts
 import PowerButton from '@components/temperature/PowerButton.tsx';
 import Slider from '@components/temperature/Slider.tsx';
 import WaterNotification from '@components/temperature/WaterNotification.tsx';
+import LeakAlertNotification from '@components/LeakAlertNotification.tsx';
 import { Box } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useAppStore } from '@state/appStore.tsx';
@@ -167,6 +168,7 @@ function ControlTempPage() {
         >
           <AwayNotification settings={settings} />
           <WaterNotification deviceStatus={deviceStatus} />
+          <LeakAlertNotification />
           <AlarmDismissal deviceStatus={deviceStatus} refetch={refetch} />
 
           {isUpdating && (

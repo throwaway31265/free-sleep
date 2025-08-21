@@ -61,7 +61,7 @@ export default function VitalsSummaryCard({
         mt: 2,
       }}
     >
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }} gutterBottom>
         Health metrics
       </Typography>
       {isFetching && (

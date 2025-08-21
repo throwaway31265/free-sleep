@@ -25,6 +25,12 @@ export const DeviceStatusSchema = z
     right: SideStatusSchema,
     waterLevel: z.string(),
     isPriming: z.boolean(),
+    waterLevelRaw: z.object({
+      raw: z.number().optional(),
+      calibratedEmpty: z.number().optional(),
+      calibratedFull: z.number().optional(),
+      timestamp: z.number().optional(),
+    }).optional(),
     settings: z.object({
       v: z.number(),
       gainLeft: z.number(),
@@ -56,6 +62,12 @@ export const DeviceStatusUpdateSchema = z
     right: SideStatusUpdateSchema.optional(),
     waterLevel: z.string().optional(),
     isPriming: z.boolean().optional(),
+    waterLevelRaw: z.object({
+      raw: z.number().optional(),
+      calibratedEmpty: z.number().optional(),
+      calibratedFull: z.number().optional(),
+      timestamp: z.number().optional(),
+    }).optional(),
     settings: z
       .object({
         v: z.number().optional(),

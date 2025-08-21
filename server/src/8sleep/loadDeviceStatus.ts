@@ -32,6 +32,16 @@ const RawDeviceData = z.object({
     .string()
     .regex(/^(true|false)$/, { message: 'priming must be "true" or "false"' }),
   settings: z.string(),
+  // Optional raw water level data - these might not always be present
+  capwaterRaw: z.string().regex(/^-?\d+(\.\d+)?$/, {
+    message: 'capwaterRaw must be a numeric value in a string',
+  }).optional(),
+  capwaterEmpty: z.string().regex(/^-?\d+(\.\d+)?$/, {
+    message: 'capwaterEmpty must be a numeric value in a string',
+  }).optional(),
+  capwaterFull: z.string().regex(/^-?\d+(\.\d+)?$/, {
+    message: 'capwaterFull must be a numeric value in a string',
+  }).optional(),
 });
 
 type RawDeviceDataType = z.infer<typeof RawDeviceData>;
@@ -99,6 +109,16 @@ export async function loadDeviceStatus(
   const rightSideSecondsRemaining = Number(rawDeviceData.heatTimeR);
   await memoryDB.read();
 
+  // Extract raw water level data if available
+  const waterLevelRaw = rawDeviceData.capwaterRaw || rawDeviceData.capwaterEmpty || rawDeviceData.capwaterFull
+    ? {
+        raw: rawDeviceData.capwaterRaw ? Number.parseFloat(rawDeviceData.capwaterRaw) : undefined,
+        calibratedEmpty: rawDeviceData.capwaterEmpty ? Number.parseFloat(rawDeviceData.capwaterEmpty) : undefined,
+        calibratedFull: rawDeviceData.capwaterFull ? Number.parseFloat(rawDeviceData.capwaterFull) : undefined,
+        timestamp: Math.floor(Date.now() / 1000),
+      }
+    : undefined;
+
   return {
     left: {
       currentTemperatureF: calculateTempInF(rawDeviceData.heatLevelL),
@@ -116,6 +136,7 @@ export async function loadDeviceStatus(
     },
     waterLevel: rawDeviceData.waterLevel,
     isPriming: rawDeviceData.priming === 'true',
+    waterLevelRaw,
     settings: decodeSettings(rawDeviceData.settings),
   };
 }

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WaterLevelRouteImport } from './routes/water-level'
 import { Route as TemperatureRouteImport } from './routes/temperature'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SchedulesRouteImport } from './routes/schedules'
@@ -19,6 +20,11 @@ import { Route as DataVitalsRouteImport } from './routes/data/vitals'
 import { Route as DataSleepRouteImport } from './routes/data/sleep'
 import { Route as DataLogsRouteImport } from './routes/data/logs'
 
+const WaterLevelRoute = WaterLevelRouteImport.update({
+  id: '/water-level',
+  path: '/water-level',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TemperatureRoute = TemperatureRouteImport.update({
   id: '/temperature',
   path: '/temperature',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/schedules': typeof SchedulesRoute
   '/settings': typeof SettingsRoute
   '/temperature': typeof TemperatureRoute
+  '/water-level': typeof WaterLevelRoute
   '/data/logs': typeof DataLogsRoute
   '/data/sleep': typeof DataSleepRoute
   '/data/vitals': typeof DataVitalsRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/schedules': typeof SchedulesRoute
   '/settings': typeof SettingsRoute
   '/temperature': typeof TemperatureRoute
+  '/water-level': typeof WaterLevelRoute
   '/data/logs': typeof DataLogsRoute
   '/data/sleep': typeof DataSleepRoute
   '/data/vitals': typeof DataVitalsRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/schedules': typeof SchedulesRoute
   '/settings': typeof SettingsRoute
   '/temperature': typeof TemperatureRoute
+  '/water-level': typeof WaterLevelRoute
   '/data/logs': typeof DataLogsRoute
   '/data/sleep': typeof DataSleepRoute
   '/data/vitals': typeof DataVitalsRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/schedules'
     | '/settings'
     | '/temperature'
+    | '/water-level'
     | '/data/logs'
     | '/data/sleep'
     | '/data/vitals'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/schedules'
     | '/settings'
     | '/temperature'
+    | '/water-level'
     | '/data/logs'
     | '/data/sleep'
     | '/data/vitals'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/schedules'
     | '/settings'
     | '/temperature'
+    | '/water-level'
     | '/data/logs'
     | '/data/sleep'
     | '/data/vitals'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   SchedulesRoute: typeof SchedulesRoute
   SettingsRoute: typeof SettingsRoute
   TemperatureRoute: typeof TemperatureRoute
+  WaterLevelRoute: typeof WaterLevelRoute
   DataLogsRoute: typeof DataLogsRoute
   DataSleepRoute: typeof DataSleepRoute
   DataVitalsRoute: typeof DataVitalsRoute
@@ -149,6 +162,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/water-level': {
+      id: '/water-level'
+      path: '/water-level'
+      fullPath: '/water-level'
+      preLoaderRoute: typeof WaterLevelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/temperature': {
       id: '/temperature'
       path: '/temperature'
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   SchedulesRoute: SchedulesRoute,
   SettingsRoute: SettingsRoute,
   TemperatureRoute: TemperatureRoute,
+  WaterLevelRoute: WaterLevelRoute,
   DataLogsRoute: DataLogsRoute,
   DataSleepRoute: DataSleepRoute,
   DataVitalsRoute: DataVitalsRoute,

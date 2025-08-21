@@ -790,6 +790,17 @@ else
   echo "Passwordless permission for reboot granted to '$USERNAME'."
 fi
 
+# --------------------------------------------------------------------------------
+# Add user to systemd-journal group for log access
+
+echo "Adding '$USERNAME' to systemd-journal group for capwater sensor log access..."
+if groups "$USERNAME" | grep -q "\bsystemd-journal\b"; then
+  echo "User '$USERNAME' is already in systemd-journal group."
+else
+  sudo usermod -a -G systemd-journal "$USERNAME"
+  echo "User '$USERNAME' added to systemd-journal group successfully."
+fi
+
 echo ""
 
 # --------------------------------------------------------------------------------

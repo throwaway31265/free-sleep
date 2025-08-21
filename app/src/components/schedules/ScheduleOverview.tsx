@@ -1,13 +1,14 @@
 import { postSchedules } from '@api/schedules';
 import type { DayOfWeek, Schedules } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings';
-import { Add, Schedule } from '@mui/icons-material';
+import { Add, Schedule, Insights, TrendingUp } from '@mui/icons-material';
 import {
     Box,
     Button,
     Typography,
     useMediaQuery,
     useTheme,
+    Fab,
 } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import { LOWERCASE_DAYS } from './days.ts';
@@ -34,6 +35,7 @@ export default function ScheduleOverview({
   const displayCelsius = settings?.temperatureFormat === 'celsius';
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
 
   const sideSchedules = schedules?.[side];
 
@@ -57,15 +59,12 @@ export default function ScheduleOverview({
     );
   }
 
-  // Filter to only enabled schedules before grouping
-  const enabledSchedules = Object.fromEntries(
-    Object.entries(sideSchedules).filter(
-      ([_, schedule]) => schedule?.power?.enabled,
-    ),
-  ) as Record<DayOfWeek, any>;
-
-  const scheduleGroups = groupSchedulesBySettings(enabledSchedules);
-  const enabledGroups = scheduleGroups; // All groups are already enabled
+  // Group all schedules (both enabled and disabled)
+  const allScheduleGroups = groupSchedulesBySettings(sideSchedules);
+  
+  // Separate enabled and disabled groups
+  const enabledGroups = allScheduleGroups.filter(group => group.schedule?.power?.enabled);
+  const disabledGroups = allScheduleGroups.filter(group => !group.schedule?.power?.enabled);
 
   const getCurrentDayIndex = () => {
     const now = new Date();
@@ -141,29 +140,64 @@ export default function ScheduleOverview({
         bgcolor: '#000',
         color: '#fff',
         minHeight: '100vh',
-        px: { xs: 2, sm: 3 },
-        py: { xs: 2, sm: 4 },
+        px: { xs: 2, sm: 3, md: 4, lg: 6 },
+        py: { xs: 2, sm: 4, md: 5 },
         pb: { xs: 12, sm: 4 }, // Add bottom padding for mobile navigation
       }}
     >
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
+          flexDirection: { xs: 'column', md: 'row' },
           justifyContent: 'space-between',
-          alignItems: { xs: 'stretch', sm: 'center' },
-          mb: { xs: 3, sm: 4 },
-          gap: { xs: 2, sm: 0 },
+          alignItems: { xs: 'stretch', md: 'center' },
+          mb: { xs: 3, sm: 4, md: 5 },
+          gap: { xs: 2, sm: 2, md: 0 },
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Schedule sx={{ color: '#fff' }} />
-          <Typography
-            variant={isMobile ? 'h5' : 'h4'}
-            sx={{ color: '#fff', fontWeight: 'normal' }}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, md: 2 } }}>
+          <Box
+            sx={{
+              p: { xs: 1, md: 1.5 },
+              borderRadius: '16px',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            Schedule Overview
-          </Typography>
+            <Schedule sx={{ 
+              color: '#fff',
+              fontSize: { xs: '24px', md: '28px' }
+            }} />
+          </Box>
+          <Box>
+            <Typography
+              variant={isMobile ? 'h5' : isTablet ? 'h4' : 'h3'}
+              sx={{ 
+                color: '#fff', 
+                fontWeight: '600',
+                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.25rem', lg: '2.5rem' },
+                lineHeight: 1.2,
+              }}
+            >
+              Schedule Overview
+            </Typography>
+            {(enabledGroups.length > 0 || disabledGroups.length > 0) && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: { xs: '12px', sm: '14px', md: '15px' },
+                  mt: 0.5,
+                }}
+              >
+                {enabledGroups.length + disabledGroups.length} schedule{enabledGroups.length + disabledGroups.length !== 1 ? 's' : ''} 
+                {enabledGroups.length > 0 && `• ${enabledGroups.length} active`}
+                {disabledGroups.length > 0 && ` • ${disabledGroups.length} disabled`}
+              </Typography>
+            )}
+          </Box>
         </Box>
         <Button
           variant="contained"
@@ -174,13 +208,14 @@ export default function ScheduleOverview({
             backgroundColor: 'rgba(255, 255, 255, 0.1)',
             color: '#fff',
             borderRadius: '24px',
-            px: { xs: 4, sm: 3 },
-            py: { xs: 2, sm: 1.5 },
+            px: { xs: 4, sm: 3, md: 4 },
+            py: { xs: 2, sm: 1.5, md: 2 },
             textTransform: 'none',
-            fontSize: { xs: '18px', sm: '16px' },
+            fontSize: { xs: '18px', sm: '16px', md: '17px', lg: '18px' },
             fontWeight: 'normal',
             border: 'none',
-            minHeight: { xs: '56px', sm: 'auto' },
+            minHeight: { xs: '56px', sm: 'auto', md: '48px' },
+            minWidth: { md: '160px', lg: '180px' },
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 0.2)',
             },
@@ -190,26 +225,38 @@ export default function ScheduleOverview({
         </Button>
       </Box>
 
-      {enabledGroups.length === 0 ? (
+      {enabledGroups.length === 0 && disabledGroups.length === 0 ? (
         <Box
           sx={{
             textAlign: 'center',
-            py: { xs: 4, sm: 6 },
-            px: { xs: 2, sm: 0 },
+            py: { xs: 4, sm: 6, md: 8, lg: 10 },
+            px: { xs: 2, sm: 4, md: 6 },
             backgroundColor: 'rgba(255, 255, 255, 0.05)',
             borderRadius: '24px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
+            maxWidth: { lg: '800px' },
+            mx: { lg: 'auto' },
           }}
         >
           <Typography
             variant="h6"
-            sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 2 }}
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.8)', 
+              mb: 2,
+              fontSize: { xs: '1.25rem', sm: '1.3rem', md: '1.4rem' }
+            }}
           >
             No Schedules Enabled
           </Typography>
           <Typography
             variant="body2"
-            sx={{ color: 'rgba(255, 255, 255, 0.6)', mb: 3 }}
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.6)', 
+              mb: 3,
+              fontSize: { xs: '0.875rem', sm: '0.9rem', md: '1rem' },
+              maxWidth: '500px',
+              mx: 'auto'
+            }}
           >
             Create your first schedule to get started
           </Typography>
@@ -221,11 +268,12 @@ export default function ScheduleOverview({
               color: '#fff',
               borderColor: 'rgba(255, 255, 255, 0.3)',
               borderRadius: '24px',
-              px: { xs: 4, sm: 3 },
-              py: { xs: 2, sm: 1.5 },
+              px: { xs: 4, sm: 3, md: 4 },
+              py: { xs: 2, sm: 1.5, md: 2 },
               textTransform: 'none',
-              fontSize: { xs: '18px', sm: '16px' },
-              minHeight: { xs: '56px', sm: 'auto' },
+              fontSize: { xs: '18px', sm: '16px', md: '17px' },
+              minHeight: { xs: '56px', sm: 'auto', md: '48px' },
+              minWidth: { md: '160px' },
               '&:hover': {
                 borderColor: 'rgba(255, 255, 255, 0.5)',
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -236,20 +284,218 @@ export default function ScheduleOverview({
           </Button>
         </Box>
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {scheduleGroups.map((group) => (
-            <GroupedScheduleCard
-              key={group.id}
-              group={group}
-              currentDay={currentDay}
-              displayCelsius={displayCelsius}
-              onToggleSchedule={handleToggleSchedule}
-              onEditDay={onEditDay}
-              onEditGroup={onEditGroup}
-            />
-          ))}
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: { xs: 2, sm: 2.5, md: 3 },
+          maxWidth: { lg: '1200px' },
+          mx: { lg: 'auto' }
+        }}>
+          {/* Quick stats */}
+          {(enabledGroups.length > 0 || disabledGroups.length > 0) && (
+            <Box
+              sx={{
+                display: 'flex',
+                gap: { xs: 1, sm: 2 },
+                mb: { xs: 1, sm: 2 },
+                flexWrap: 'wrap',
+              }}
+            >
+              {enabledGroups.length > 0 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: { xs: 2, sm: 2.5 },
+                    py: { xs: 1, sm: 1.5 },
+                    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(76, 175, 80, 0.3)',
+                  }}
+                >
+                  <Insights sx={{ fontSize: 16, color: '#4CAF50' }} />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#4CAF50',
+                      fontSize: { xs: '11px', sm: '12px' },
+                      fontWeight: '600',
+                    }}
+                  >
+                    {enabledGroups.length} ACTIVE
+                  </Typography>
+                </Box>
+              )}
+              
+              {disabledGroups.length > 0 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: { xs: 2, sm: 2.5 },
+                    py: { xs: 1, sm: 1.5 },
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                  }}
+                >
+                  <Insights sx={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.6)' }} />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      fontSize: { xs: '11px', sm: '12px' },
+                      fontWeight: '600',
+                    }}
+                  >
+                    {disabledGroups.length} DISABLED
+                  </Typography>
+                </Box>
+              )}
+              
+              {enabledGroups.length > 0 && currentDayIndex >= 0 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: { xs: 2, sm: 2.5 },
+                    py: { xs: 1, sm: 1.5 },
+                    backgroundColor: 'rgba(33, 150, 243, 0.15)',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(33, 150, 243, 0.3)',
+                  }}
+                >
+                  <TrendingUp sx={{ fontSize: 16, color: '#2196F3' }} />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#2196F3',
+                      fontSize: { xs: '11px', sm: '12px' },
+                      fontWeight: '600',
+                    }}
+                  >
+                    TODAY: {LOWERCASE_DAYS[currentDayIndex].toUpperCase()}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
+          {/* Enabled Schedules */}
+          {enabledGroups.length > 0 && (
+            <>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: '#fff',
+                  fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                  fontWeight: '600',
+                  mb: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: '#4CAF50',
+                  }}
+                />
+                Active Schedules
+              </Typography>
+              {enabledGroups.map((group) => (
+                <GroupedScheduleCard
+                  key={group.id}
+                  group={group}
+                  currentDay={currentDay}
+                  displayCelsius={displayCelsius}
+                  onToggleSchedule={handleToggleSchedule}
+                  onEditDay={onEditDay}
+                  onEditGroup={onEditGroup}
+                />
+              ))}
+            </>
+          )}
+
+          {/* Disabled Schedules */}
+          {disabledGroups.length > 0 && (
+            <>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                  fontWeight: '600',
+                  mb: 1,
+                  mt: enabledGroups.length > 0 ? 3 : 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+                  }}
+                />
+                Disabled Schedules
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  fontSize: { xs: '13px', sm: '14px' },
+                  mb: 2,
+                }}
+              >
+                These schedules are configured but not running. Toggle them on to activate.
+              </Typography>
+              {disabledGroups.map((group) => (
+                <GroupedScheduleCard
+                  key={group.id}
+                  group={group}
+                  currentDay={currentDay}
+                  displayCelsius={displayCelsius}
+                  onToggleSchedule={handleToggleSchedule}
+                  onEditDay={onEditDay}
+                  onEditGroup={onEditGroup}
+                />
+              ))}
+            </>
+          )}
         </Box>
       )}
+      
+      {/* Floating Action Button for quick schedule creation */}
+      <Fab
+        onClick={onCreateNew}
+        sx={{
+          position: 'fixed',
+          bottom: { xs: 88, md: 32 }, // Account for mobile bottom navigation (56px) + padding
+          right: { xs: 16, sm: 32 },
+          backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          color: '#fff',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          '&:hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.25)',
+            transform: 'scale(1.1)',
+          },
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          zIndex: 1000,
+        }}
+        size={isMobile ? 'large' : 'medium'}
+      >
+        <Add sx={{ fontSize: { xs: 28, sm: 24 } }} />
+      </Fab>
     </Box>
   );
 }

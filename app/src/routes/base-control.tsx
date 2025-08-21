@@ -286,7 +286,7 @@ function BaseControlPage() {
       }}
     >
       <Typography
-        variant="h4"
+        variant="h3"
         component="h1"
         gutterBottom
         align="center"
@@ -294,6 +294,7 @@ function BaseControlPage() {
           color: '#fff',
           mb: { xs: 3, sm: 4 },
           fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+          fontWeight: 'bold',
         }}
       >
         Elevation

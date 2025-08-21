@@ -56,10 +56,17 @@ export default function PageContainer({
         gap: 2,
         margin: 0,
         justifyContent: 'center',
+        // Very narrow mobile devices (320px)
+        '@media (max-width: 360px)': {
+          width: '100%',
+          padding: '12px', // Optimized padding for very narrow screens
+          paddingBottom: 12,
+          gap: 1.5, // Reduced gap for narrow screens
+        },
         // Mobile (xs)
         [theme.breakpoints.down('sm')]: {
           width: '100%',
-          padding: 1,
+          padding: 2, // Increased from 1 to 2 for less cramped layout
           paddingBottom: 12, // Add bottom padding for mobile navigation (80px + extra spacing)
         },
         // Small tablets (sm)
@@ -88,11 +95,12 @@ export default function PageContainer({
         },
         // Extra large desktops (xl)
         [theme.breakpoints.up('xl')]: {
-          width: '75%',
+          width: '70%', // Reduced from 75% to better center content
           padding: 0,
           paddingTop: 8,
           paddingBottom: 12,
-          maxWidth: '1400px',
+          maxWidth: '1600px', // Increased from 1400px to better use wide screens
+          minWidth: '1200px', // Added minimum width to prevent content from becoming too narrow
         },
         ...sx,
       }}

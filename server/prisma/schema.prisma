@@ -11,7 +11,7 @@ generator client {
 }
 
 model sleep_records {
-  id                    Int      @id @default(autoincrement())
+  id                    Int    @id @default(autoincrement())
   side                  String
   entered_bed_at        Int
   left_bed_at           Int
@@ -37,3 +37,29 @@ model vitals {
   @@index([side, timestamp])
 }
 
+model water_level_readings {
+  id               Int      @id @default(autoincrement())
+  timestamp        Int // Unix timestamp
+  raw_level        Float // Raw capwater sensor value
+  calibrated_empty Float // Calibrated empty value at time of reading
+  calibrated_full  Float // Calibrated full value at time of reading
+  is_priming       Boolean  @default(false)
+  created_at       DateTime @default(now())
+
+  @@index([timestamp])
+}
+
+model leak_alerts {
+  id              Int       @id @default(autoincrement())
+  timestamp       Int // Unix timestamp when leak was detected
+  alert_type      String // "slow_leak", "fast_leak", "sensor_anomaly"
+  severity        String // "low", "medium", "high", "critical"
+  raw_level_start Float // Raw level at start of detection period
+  raw_level_end   Float // Raw level at end of detection period
+  hours_tracked   Float // Time period over which the leak was detected
+  rate_of_change  Float // Change per hour in raw level units
+  dismissed_at    DateTime?
+  created_at      DateTime  @default(now())
+
+  @@index([timestamp])
+}

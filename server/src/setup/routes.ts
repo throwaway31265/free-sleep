@@ -10,6 +10,7 @@ import vitals from '../routes/metrics/vitals.js';
 import schedules from '../routes/schedules/schedules.js';
 import settings from '../routes/settings/settings.js';
 import version from '../routes/version/version.js';
+import waterLevel from '../routes/waterLevel/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +22,7 @@ export default function (app: Express) {
   app.use('/api/', schedules);
   app.use('/api/', settings);
   app.use('/api/', version);
+  app.use('/api/', waterLevel);
   app.use('/api/metrics/', sleep);
   app.use('/api/metrics/', vitals);
   app.use('/api/logs', logs);

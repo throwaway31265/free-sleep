@@ -1,8 +1,8 @@
 import { postSchedules, useSchedules } from '@api/schedules';
 import type { DayOfWeek, Schedules } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings';
-import { ArrowBack } from '@mui/icons-material';
-import { Box, Button, Chip, Typography } from '@mui/material';
+import { ArrowBack, Schedule, CheckCircle, Warning } from '@mui/icons-material';
+import { Box, Button, Chip, Typography, Card, CardContent, Divider, Paper, useMediaQuery, useTheme } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import _ from 'lodash';
 import { useEffect } from 'react';
@@ -25,10 +25,12 @@ type ScheduleEditViewProps = {
 export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
   const { setIsUpdating, side, setError, clearError } = useAppStore();
   const { refetch } = useSchedules();
-  const { selectedSchedule, selectedDays, reloadScheduleData } =
+  const { selectedSchedule, selectedDays, reloadScheduleData, isValid } =
     useScheduleStore();
   const { data: settings } = useSettings();
   const displayCelsius = settings?.temperatureFormat === 'celsius';
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     reloadScheduleData();
@@ -91,55 +93,232 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
   const isGroupEdit = allSelectedDays.length > 1;
 
   return (
-    <Box>
-      <Box
+    <Box sx={{
+      bgcolor: '#000',
+      color: '#fff',
+      minHeight: '100vh',
+      pb: { xs: 12, sm: 4 },
+    }}>
+      {/* Header */}
+      <Paper
+        elevation={0}
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          mb: 2,
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          borderRadius: '24px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          mb: { xs: 3, sm: 4 },
+          p: { xs: 2, sm: 3, md: 4 },
         }}
       >
-        <Button startIcon={<ArrowBack />} onClick={onBack} sx={{ mr: 2 }}>
-          Back to Overview
-        </Button>
-
-        {isGroupEdit && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              Editing:
-            </Typography>
-            <Chip
-              label={formatGroupedDays(allSelectedDays)}
-              size="small"
-              color="primary"
-              variant="outlined"
-            />
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            justifyContent: 'space-between',
+            gap: { xs: 2, sm: 0 },
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Button 
+              startIcon={<ArrowBack />} 
+              onClick={onBack}
+              sx={{
+                color: '#fff',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                px: { xs: 2, sm: 3 },
+                py: { xs: 1.5, sm: 2 },
+                fontSize: { xs: '14px', sm: '16px' },
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                },
+              }}
+            >
+              {isMobile ? 'Back' : 'Back to Overview'}
+            </Button>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box
+                sx={{
+                  p: 1,
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Schedule sx={{ color: '#fff', fontSize: 20 }} />
+              </Box>
+              <Typography
+                variant="h5"
+                sx={{
+                  color: '#fff',
+                  fontWeight: '600',
+                  fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                }}
+              >
+                {isGroupEdit ? 'Edit Group Schedule' : 'Edit Schedule'}
+              </Typography>
+            </Box>
           </Box>
-        )}
-      </Box>
 
-      <MultiDaySelector />
-      <StartTimeSection displayCelsius={displayCelsius} />
-      <PowerOffTime />
-      <Box
+          {isGroupEdit && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: { xs: '12px', sm: '14px' }
+                }}
+              >
+                Editing:
+              </Typography>
+              <Chip
+                label={formatGroupedDays(allSelectedDays)}
+                size="small"
+                sx={{
+                  backgroundColor: 'rgba(33, 150, 243, 0.15)',
+                  color: '#2196F3',
+                  border: '1px solid rgba(33, 150, 243, 0.3)',
+                  fontSize: { xs: '11px', sm: '12px' },
+                }}
+              />
+            </Box>
+          )}
+        </Box>
+        
+        {/* Status indicator */}
+        <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          {isValid() ? (
+            <>
+              <CheckCircle sx={{ fontSize: 16, color: '#4CAF50' }} />
+              <Typography variant="caption" sx={{ color: '#4CAF50', fontSize: { xs: '11px', sm: '12px' } }}>
+                Schedule is valid and ready to save
+              </Typography>
+            </>
+          ) : (
+            <>
+              <Warning sx={{ fontSize: 16, color: '#FF9800' }} />
+              <Typography variant="caption" sx={{ color: '#FF9800', fontSize: { xs: '11px', sm: '12px' } }}>
+                Please complete required fields
+              </Typography>
+            </>
+          )}
+        </Box>
+      </Paper>
+
+      {/* Main Configuration */}
+      <Card
         sx={{
-          mt: 2,
-          display: 'flex',
-          justifyContent: 'space-between',
-          width: '100%',
-          mb: 2,
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          borderRadius: '24px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          mb: { xs: 3, sm: 4 },
         }}
       >
-        <EnabledSwitch />
-        <SaveButton onSave={handleSave} />
-      </Box>
+        <CardContent sx={{ p: { xs: 3, sm: 4, md: 5 } }}>
+          <Typography
+            variant="h6"
+            sx={{
+              color: '#fff',
+              fontWeight: '600',
+              mb: 3,
+              fontSize: { xs: '1.1rem', sm: '1.25rem' },
+            }}
+          >
+            Basic Settings
+          </Typography>
+          
+          <MultiDaySelector />
+          
+          <Divider sx={{ my: 3, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+          
+          <StartTimeSection displayCelsius={displayCelsius} />
+          
+          <Divider sx={{ my: 3, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+          
+          <PowerOffTime />
+        </CardContent>
+      </Card>
+      {/* Actions */}
+      <Paper
+        elevation={0}
+        sx={{
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          borderRadius: '24px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          mb: { xs: 3, sm: 4 },
+          p: { xs: 3, sm: 4 },
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'stretch', sm: 'center' },
+            justifyContent: 'space-between',
+            gap: { xs: 3, sm: 2 },
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <EnabledSwitch />
+            {selectedSchedule?.power.enabled && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: { xs: '12px', sm: '14px' },
+                }}
+              >
+                Schedule will run when enabled
+              </Typography>
+            )}
+          </Box>
+          
+          <SaveButton onSave={handleSave} />
+        </Box>
+      </Paper>
       {selectedSchedule?.power.enabled && (
-        <>
-          <TemperatureAdjustmentsAccordion displayCelsius={displayCelsius} />
-          <ElevationAdjustmentsAccordion />
-          <AlarmAccordion />
-        </>
+        <Card
+          sx={{
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '24px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+          }}
+        >
+          <CardContent sx={{ p: { xs: 3, sm: 4, md: 5 } }}>
+            <Typography
+              variant="h6"
+              sx={{
+                color: '#fff',
+                fontWeight: '600',
+                mb: 3,
+                fontSize: { xs: '1.1rem', sm: '1.25rem' },
+              }}
+            >
+              Advanced Settings
+            </Typography>
+            
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'rgba(255, 255, 255, 0.7)',
+                mb: 3,
+                fontSize: { xs: '13px', sm: '14px' },
+              }}
+            >
+              Optional features to customize your sleep experience
+            </Typography>
+            
+            <TemperatureAdjustmentsAccordion displayCelsius={displayCelsius} />
+            <Box sx={{ my: 2 }} />
+            <ElevationAdjustmentsAccordion />
+            <Box sx={{ my: 2 }} />
+            <AlarmAccordion />
+          </CardContent>
+        </Card>
       )}
     </Box>
   );

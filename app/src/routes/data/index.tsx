@@ -261,7 +261,17 @@ function DataPage() {
 
   return (
     <PageContainer sx={{ mt: 2 }}>
-      <Typography variant="h4" sx={{ mb: 3, textAlign: 'center' }}>
+      <Typography 
+        variant="h3" 
+        component="h1"
+        sx={{ 
+          mb: 4, 
+          textAlign: 'center',
+          fontWeight: 'bold',
+          color: 'primary.main',
+          fontSize: { xs: '1.75rem', sm: '2.125rem' }
+        }}
+      >
         Data Dashboard
       </Typography>
 

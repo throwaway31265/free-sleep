@@ -3,32 +3,20 @@ import {
   Box,
   Button,
   Chip,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  OutlinedInput,
-  Select,
-  type SelectChangeEvent,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import { daysOfWeek } from './ApplyToOtherDaysAccordion.tsx';
 import { useScheduleStore } from './scheduleStore.tsx';
 
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
 
 export default function MultiDaySelector() {
   const { selectedDays, toggleSelectedDay, selectedDay } = useScheduleStore();
   const { isUpdating } = useAppStore();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const selectedDaysList = Object.entries(selectedDays)
     .filter(([_, isSelected]) => isSelected)
@@ -37,21 +25,6 @@ export default function MultiDaySelector() {
   // Show all selected days (including current day if selected)
   const allSelectedDays = selectedDaysList;
 
-  const handleChange = (event: SelectChangeEvent<string[]>) => {
-    const value = event.target.value as string[];
-
-    // Reset all days first
-    Object.keys(selectedDays).forEach((day) => {
-      if (selectedDays[day as DayOfWeek]) {
-        toggleSelectedDay(day as DayOfWeek);
-      }
-    });
-
-    // Toggle the selected days (including current day)
-    value.forEach((day) => {
-      toggleSelectedDay(day as DayOfWeek);
-    });
-  };
 
   const handleDelete = (dayToDelete: string) => {
     toggleSelectedDay(dayToDelete as DayOfWeek);
@@ -94,76 +67,194 @@ export default function MultiDaySelector() {
 
   return (
     <Box sx={{ mb: 2 }}>
-      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+      <Typography
+        variant="subtitle2"
+        sx={{
+          color: 'rgba(255, 255, 255, 0.8)',
+          mb: 2,
+          fontSize: { xs: '14px', sm: '15px' },
+          fontWeight: '600',
+        }}
+      >
+        Days to Apply Schedule
+      </Typography>
+      
+      {/* Quick presets */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
         <Button
-          size="small"
+          size={isMobile ? 'medium' : 'small'}
           variant="outlined"
           onClick={() => handlePresetSelection('weekdays')}
           disabled={isUpdating}
+          sx={{
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            color: 'rgba(255, 255, 255, 0.8)',
+            borderRadius: '12px',
+            px: { xs: 2, sm: 2.5 },
+            py: { xs: 1, sm: 1.5 },
+            fontSize: { xs: '13px', sm: '14px' },
+            '&:hover': {
+              borderColor: 'rgba(255, 255, 255, 0.4)',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            },
+          }}
         >
-          Weekdays
+          Weekdays (M-F)
         </Button>
         <Button
-          size="small"
+          size={isMobile ? 'medium' : 'small'}
           variant="outlined"
           onClick={() => handlePresetSelection('weekends')}
           disabled={isUpdating}
+          sx={{
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            color: 'rgba(255, 255, 255, 0.8)',
+            borderRadius: '12px',
+            px: { xs: 2, sm: 2.5 },
+            py: { xs: 1, sm: 1.5 },
+            fontSize: { xs: '13px', sm: '14px' },
+            '&:hover': {
+              borderColor: 'rgba(255, 255, 255, 0.4)',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            },
+          }}
         >
           Weekends
         </Button>
         <Button
-          size="small"
+          size={isMobile ? 'medium' : 'small'}
           variant="outlined"
           onClick={() => handlePresetSelection('all')}
           disabled={isUpdating}
+          sx={{
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            color: 'rgba(255, 255, 255, 0.8)',
+            borderRadius: '12px',
+            px: { xs: 2, sm: 2.5 },
+            py: { xs: 1, sm: 1.5 },
+            fontSize: { xs: '13px', sm: '14px' },
+            '&:hover': {
+              borderColor: 'rgba(255, 255, 255, 0.4)',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            },
+          }}
         >
-          All Days
+          Every Day
         </Button>
       </Box>
-      <FormControl fullWidth>
-        <InputLabel>Days to Apply Schedule</InputLabel>
-        <Select
-          multiple
-          value={allSelectedDays}
-          onChange={handleChange}
-          input={<OutlinedInput label="Days to Apply Schedule" />}
-          disabled={isUpdating}
-          MenuProps={MenuProps}
-          renderValue={(selected) => (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {(selected as string[]).map((value) => (
-                <Chip
-                  key={value}
-                  label={value.charAt(0).toUpperCase() + value.slice(1)}
-                  size="small"
-                  variant={value === selectedDay ? 'filled' : 'outlined'}
-                  onDelete={() => handleDelete(value)}
-                  onMouseDown={(event) => {
-                    event.stopPropagation();
-                  }}
-                />
-              ))}
-            </Box>
-          )}
-        >
-          {daysOfWeek.map((day) => {
-            const lowerCaseDay = day.toLowerCase() as DayOfWeek;
-            return (
-              <MenuItem key={day} value={lowerCaseDay}>
-                {day} {lowerCaseDay === selectedDay && '(current)'}
-              </MenuItem>
-            );
-          })}
-        </Select>
-      </FormControl>
+      {/* Custom day selector */}
+      <Typography
+        variant="caption"
+        sx={{
+          color: 'rgba(255, 255, 255, 0.6)',
+          mb: 2,
+          display: 'block',
+          fontSize: { xs: '12px', sm: '13px' },
+        }}
+      >
+        Or select specific days:
+      </Typography>
+      
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: 1, mb: 3 }}>
+        {daysOfWeek.map((day) => {
+          const lowerCaseDay = day.toLowerCase() as DayOfWeek;
+          const isSelected = selectedDays[lowerCaseDay];
+          const isCurrent = lowerCaseDay === selectedDay;
+          
+          return (
+            <Button
+              key={day}
+              variant={isSelected ? 'contained' : 'outlined'}
+              onClick={() => toggleSelectedDay(lowerCaseDay)}
+              disabled={isUpdating}
+              size={isMobile ? 'medium' : 'small'}
+              sx={{
+                minHeight: { xs: '48px', sm: '40px' },
+                borderRadius: '12px',
+                fontSize: { xs: '12px', sm: '13px' },
+                fontWeight: '600',
+                backgroundColor: isSelected 
+                  ? isCurrent 
+                    ? 'rgba(33, 150, 243, 0.2)'
+                    : 'rgba(255, 255, 255, 0.1)'
+                  : 'transparent',
+                borderColor: isSelected 
+                  ? isCurrent 
+                    ? 'rgba(33, 150, 243, 0.5)'
+                    : 'rgba(255, 255, 255, 0.3)'
+                  : 'rgba(255, 255, 255, 0.2)',
+                color: isSelected 
+                  ? '#fff'
+                  : 'rgba(255, 255, 255, 0.7)',
+                '&:hover': {
+                  backgroundColor: isSelected 
+                    ? isCurrent 
+                      ? 'rgba(33, 150, 243, 0.3)'
+                      : 'rgba(255, 255, 255, 0.15)'
+                    : 'rgba(255, 255, 255, 0.05)',
+                  borderColor: 'rgba(255, 255, 255, 0.4)',
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Typography sx={{ fontSize: { xs: '12px', sm: '13px' }, fontWeight: '600' }}>
+                  {day.slice(0, 3)}
+                </Typography>
+                {isCurrent && (
+                  <Typography sx={{ fontSize: '9px', color: 'rgba(33, 150, 243, 0.8)', mt: 0.25 }}>
+                    TODAY
+                  </Typography>
+                )}
+              </Box>
+            </Button>
+          );
+        })}
+      </Box>
+      
+      {/* Selected summary */}
+      {allSelectedDays.length > 0 && (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
+          {allSelectedDays.map((day) => (
+            <Chip
+              key={day}
+              label={day.charAt(0).toUpperCase() + day.slice(1)}
+              size="small"
+              variant={day === selectedDay ? 'filled' : 'outlined'}
+              onDelete={() => handleDelete(day)}
+              sx={{
+                backgroundColor: day === selectedDay 
+                  ? 'rgba(33, 150, 243, 0.2)'
+                  : 'rgba(255, 255, 255, 0.1)',
+                borderColor: day === selectedDay 
+                  ? 'rgba(33, 150, 243, 0.5)'
+                  : 'rgba(255, 255, 255, 0.3)',
+                color: '#fff',
+                fontSize: { xs: '11px', sm: '12px' },
+                '& .MuiChip-deleteIcon': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&:hover': {
+                    color: '#fff',
+                  },
+                },
+              }}
+            />
+          ))}
+        </Box>
+      )}
 
-      {allSelectedDays.length > 1 && (
+      {allSelectedDays.length > 0 && (
         <Typography
           variant="caption"
-          color="text.secondary"
-          sx={{ mt: 1, display: 'block' }}
+          sx={{
+            color: allSelectedDays.length > 1 
+              ? 'rgba(33, 150, 243, 0.8)' 
+              : 'rgba(255, 255, 255, 0.6)',
+            display: 'block',
+            fontSize: { xs: '11px', sm: '12px' },
+            fontWeight: '500',
+          }}
         >
-          Schedule will be applied to {allSelectedDays.length} days
+          Schedule will be applied to {allSelectedDays.length} day{allSelectedDays.length !== 1 ? 's' : ''}
         </Typography>
       )}
     </Box>

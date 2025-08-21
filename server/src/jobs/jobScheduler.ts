@@ -8,12 +8,14 @@ import settingsDB from '../db/settings.js';
 import logger from '../logger.js';
 import { scheduleAlarm } from './alarmScheduler.js';
 import { scheduleElevations } from './baseScheduler.js';
+import { detectLeaks } from './leakDetection.js';
 import {
     schedulePowerOffAndSleepAnalysis,
     schedulePowerOn,
 } from './powerScheduler.js';
 import { schedulePrimingRebootAndCalibration } from './primeScheduler.js';
 import { scheduleTemperatures } from './temperatureScheduler.js';
+import { cleanupOldReadings } from '../db/waterLevelReadings.js';
 
 let isJobSetupRunning = false;
 
@@ -73,6 +75,26 @@ async function setupJobs() {
     });
   });
   schedulePrimingRebootAndCalibration(settingsData);
+
+  // Schedule leak detection to run every 30 minutes
+  schedule.scheduleJob('leak-detection', '*/30 * * * *', async () => {
+    logger.debug('Running scheduled leak detection');
+    try {
+      await detectLeaks();
+    } catch (error) {
+      logger.error(`Error in scheduled leak detection: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  });
+
+  // Schedule water level readings cleanup to run daily at 3 AM
+  schedule.scheduleJob('water-level-cleanup', '0 3 * * *', async () => {
+    logger.debug('Running scheduled water level readings cleanup');
+    try {
+      await cleanupOldReadings();
+    } catch (error) {
+      logger.error(`Error in scheduled cleanup: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  });
 
   logger.info('Done scheduling jobs!');
   isJobSetupRunning = false;

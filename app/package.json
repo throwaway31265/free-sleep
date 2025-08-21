@@ -38,6 +38,7 @@
     "react-circular-slider-svg": "^0.4.0",
     "react-dom": "^19.1.1",
     "react-resize-detector": "^12.1.0",
+    "recharts": "^3.1.2",
     "zod": "^4.0.14",
     "zustand": "^5.0.7"
   },
