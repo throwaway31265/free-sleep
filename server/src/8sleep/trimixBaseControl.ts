@@ -229,7 +229,7 @@ export class TriMixBaseControl {
     const configLoaded = await this.loadConfiguration();
     if (!configLoaded) {
       this.initializationAttempts++;
-      
+
       if (this.initializationAttempts <= this.maxInitializationAttempts) {
         logger.warn(`Failed to load base configuration. Attempt ${this.initializationAttempts}/${this.maxInitializationAttempts}. Retrying in 30s...`);
         setTimeout(() => this.initialize(), 30000);
@@ -241,7 +241,7 @@ export class TriMixBaseControl {
         return;
       }
     }
-    
+
     this._isConfigured = true;
     this.updateMemoryDBStatus();
     this.startBleProcess();
@@ -602,7 +602,7 @@ export class TriMixBaseControl {
     if (!this._isConfigured) {
       throw new Error('Base is not configured');
     }
-    
+
     logger.info('Setting base position:', position);
     try {
       const torsoAngle = this.getClosestAngle(position.head, torsoAngleMap);
@@ -638,7 +638,7 @@ export class TriMixBaseControl {
     if (!this._isConfigured) {
       throw new Error('Base is not configured');
     }
-    
+
     logger.info('Stopping all base movement');
     const command = createStopCommand();
     await this.sendPayload(command);
@@ -648,7 +648,7 @@ export class TriMixBaseControl {
     if (!this._isConfigured) {
       throw new Error('Base is not configured');
     }
-    
+
     await this.setPosition({ head: 0, feet: 0, feedRate: 50 });
   }
 }
