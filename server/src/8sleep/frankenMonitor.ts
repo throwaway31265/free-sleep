@@ -406,7 +406,7 @@ export class FrankenMonitor {
     const regex = /\[capwater\] Raw:\s*([0-9.]+).*Empty:\s*([0-9.]+).*Full:\s*([0-9.]+)/;
     const match = logLine.match(regex);
 
-  if (!match) {
+    if (!match) {
       return null;
     }
 
