@@ -514,7 +514,13 @@ fi
 
 echo "Running Prisma migrations..."
 # Ensure Bun is in PATH for nested spawns inside the npm script (dotenv -> bun x ...)
-sudo -u "$USERNAME" bash -lc "export BUN_INSTALL=/home/$USERNAME/.bun; export PATH=/home/$USERNAME/.bun/bin:$PATH; cd '$SERVER_DIR' && bun run migrate deploy"
+if sudo -u "$USERNAME" bash -lc "export BUN_INSTALL=/home/$USERNAME/.bun; export PATH=/home/$USERNAME/.bun/bin:$PATH; cd '$SERVER_DIR' && bun run migrate deploy"; then
+  echo "Prisma migrations completed successfully."
+else
+  echo "WARNING: Prisma migrations failed or were interrupted. This may happen if the database needs to be reset."
+  echo "The server will still start, but you may need to run migrations manually later."
+  echo "To reset and migrate manually, run: cd '$SERVER_DIR' && bun run migrate:reset && bun run migrate deploy"
+fi
 
 # --------------------------------------------------------------------------------
 # Create systemd service
