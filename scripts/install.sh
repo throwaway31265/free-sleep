@@ -351,12 +351,12 @@ fi
 # Install or update Bun
 # - We check once. If it’s not installed, install it.
 echo "Checking if Bun is installed for user '$USERNAME'..."
-if sudo -u "$USERNAME" bash -c 'command -v bun' >/dev/null 2>&1; then
+if sudo -u "$USERNAME" bash -l -c 'command -v bun' >/dev/null 2>&1; then
   echo "Bun is already installed for user '$USERNAME'."
 else
   echo "Bun is not installed. Installing for user '$USERNAME'..."
   sudo -u "$USERNAME" bash -c 'curl -fsSL https://bun.sh/install | bash'
-  # Ensure Bun environment variables are in the DAC user’s profile:
+  # Ensure Bun environment variables are in the DAC user's profile:
   if ! grep -q 'export BUN_INSTALL=' "/home/$USERNAME/.profile"; then
     echo -e '\nexport BUN_INSTALL="/home/dac/.bun"\nexport PATH="$BUN_INSTALL/bin:$PATH"\n' \
       >>"/home/$USERNAME/.profile"
