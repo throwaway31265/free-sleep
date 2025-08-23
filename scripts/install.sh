@@ -77,7 +77,7 @@ build_service_path() {
   local username="$1"
   local volta_detected="$2"
 
-  local service_path="/home/$username/.bun/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
+  local service_path="/home/$username/.bun/bin:/home/$username/free-sleep/server/node_modules/.bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
   if [ "$volta_detected" = true ]; then
     service_path="/home/$username/.volta/bin:$service_path"
   fi
