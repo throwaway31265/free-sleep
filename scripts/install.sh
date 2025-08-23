@@ -167,17 +167,8 @@ stop_services_for_installation() {
 
 # Start services after installation based on their previous state
 start_services_after_installation() {
-  echo "Restoring Free Sleep services to their previous state..."
-
-  if [ "$FREE_SLEEP_PREVIOUS_STATUS" = "running" ]; then
-    echo "Restarting free-sleep service (was previously running)..."
-    systemctl start free-sleep || echo "Failed to start free-sleep service"
-  fi
-
-  if [ "$FREE_SLEEP_STREAM_PREVIOUS_STATUS" = "running" ]; then
-    echo "Restarting free-sleep-stream service (was previously running)..."
-    systemctl start free-sleep-stream || echo "Failed to start free-sleep-stream service"
-  fi
+  systemctl start free-sleep || echo "Failed to start free-sleep service"
+  systemctl start free-sleep-stream || echo "Failed to start free-sleep-stream service"
 }
 
 echo "==================================================================="
