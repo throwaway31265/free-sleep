@@ -24,10 +24,7 @@ export const executePythonScript = ({
     const command = `sudo -u dac ${pythonExecutable} -B ${script} ${args.join(' ')}`;
     logger.info(`Executing: ${command}`);
 
-    exec(command, {
-      env: { ...process.env },
-      cwd: '/home/dac/free-sleep/biometrics'
-    }, (error, stdout, stderr) => {
+    exec(command, { env: { ...process.env } }, (error, stdout, stderr) => {
       if (error) {
         logger.error(`Execution error: ${error.message}`);
         reject(error);
