@@ -20,8 +20,8 @@ export const executePythonScript = ({
       reject(new Error(`Python executable not found: ${pythonExecutable}`));
       return;
     }
-    // Run Python scripts as dac user to ensure proper file permissions
-    const command = `sudo -u dac ${pythonExecutable} -B ${script} ${args.join(' ')}`;
+    // Run Python scripts directly (service already runs as dac user)
+    const command = `${pythonExecutable} -B ${script} ${args.join(' ')}`;
     logger.info(`Executing: ${command}`);
 
     exec(command, { env: { ...process.env } }, (error, stdout, stderr) => {
