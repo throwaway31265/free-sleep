@@ -739,12 +739,12 @@ EOF
   if ! crontab -l 2>/dev/null | grep -q "sync-time-with-internet.sh"; then
     # Get current crontab
     CURRENT_CRONTAB=$(crontab -l 2>/dev/null || true)
-    
+
     # Add PATH environment variable if not already present
     if ! echo "$CURRENT_CRONTAB" | grep -q "^PATH="; then
       CURRENT_CRONTAB="$CURRENT_CRONTAB"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     fi
-    
+
     # Add the cron job
     echo "$CURRENT_CRONTAB"$'\n'"$CRON_JOB" | crontab -
     echo "Periodic time sync cron job added (runs at 6 AM and 6 PM daily)."
