@@ -91,7 +91,9 @@ export async function dismissAlert(req: Request, res: Response): Promise<void> {
 
     res.json({
       success: true,
-      message: 'Alert dismissed successfully',
+      data: {
+        message: 'Alert dismissed successfully',
+      },
     });
   } catch (error) {
     logger.error(`Error dismissing leak alert: ${error instanceof Error ? error.message : String(error)}`);
@@ -100,7 +102,7 @@ export async function dismissAlert(req: Request, res: Response): Promise<void> {
       res.status(400).json({
         success: false,
         error: 'Invalid request body',
-        details: error.issues,
+        data: null,
       });
       return;
     }
@@ -108,6 +110,7 @@ export async function dismissAlert(req: Request, res: Response): Promise<void> {
     res.status(500).json({
       success: false,
       error: 'Failed to dismiss alert',
+      data: null,
     });
   }
 }
@@ -141,7 +144,7 @@ function calculateWaterPercentage(rawLevel: number, calibratedEmpty: number, cal
   const range = calibratedFull - calibratedEmpty;
   const levelAboveEmpty = rawLevel - calibratedEmpty;
   const percentage = (levelAboveEmpty / range) * 100;
-  
+
   // Clamp to 0-100% range
   return Math.max(0, Math.min(100, percentage));
 }
@@ -170,8 +173,8 @@ export async function getWaterLevelSummary(req: Request, res: Response): Promise
       // Calculate percentage using calibration values
       if (latestReading.calibratedEmpty !== undefined && latestReading.calibratedFull !== undefined) {
         currentLevelPercentage = calculateWaterPercentage(
-          latestReading.rawLevel, 
-          latestReading.calibratedEmpty, 
+          latestReading.rawLevel,
+          latestReading.calibratedEmpty,
           latestReading.calibratedFull
         );
       }
@@ -209,8 +212,8 @@ export async function getWaterLevelSummary(req: Request, res: Response): Promise
         calibration: latestReading ? {
           empty: latestReading.calibratedEmpty,
           full: latestReading.calibratedFull,
-          range: latestReading.calibratedFull && latestReading.calibratedEmpty 
-            ? latestReading.calibratedFull - latestReading.calibratedEmpty 
+          range: latestReading.calibratedFull && latestReading.calibratedEmpty
+            ? latestReading.calibratedFull - latestReading.calibratedEmpty
             : undefined,
         } : undefined,
       },

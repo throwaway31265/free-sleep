@@ -148,14 +148,30 @@ export default function LeakAlertNotification() {
 
   const dismissMutation = useMutation({
     mutationFn: dismissLeakAlert,
-    onSuccess: () => {
-      // Refetch alerts after dismissing
+    onMutate: async (timestamp) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['leak-alerts'] });
+
+      // Snapshot the previous value
+      const previousAlerts = queryClient.getQueryData(['leak-alerts']);
+
+      // Optimistically update to remove the dismissed alert
+      queryClient.setQueryData(['leak-alerts'], (old: LeakAlert[] | undefined) => {
+        return old ? old.filter(alert => alert.timestamp !== timestamp) : [];
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousAlerts };
+    },
+    onError: (err, timestamp, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(['leak-alerts'], context?.previousAlerts);
+      console.error('Failed to dismiss leak alert:', err);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
       queryClient.invalidateQueries({ queryKey: ['leak-alerts'] });
       queryClient.invalidateQueries({ queryKey: ['water-level-summary'] });
-    },
-    onError: (error) => {
-      console.error('Failed to dismiss leak alert:', error);
-      // Could add a toast notification here
     },
   });
 
