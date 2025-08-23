@@ -214,6 +214,9 @@ export class TriMixBaseControl {
   private bleProcess: ChildProcess | null = null;
   private inGattMenu = false;
   private notificationBuffer: number[] = [];
+  private _isConfigured = false;
+  private initializationAttempts = 0;
+  private maxInitializationAttempts = 3;
 
   constructor() {
     this.initialize();
@@ -225,10 +228,22 @@ export class TriMixBaseControl {
   async initialize(): Promise<void> {
     const configLoaded = await this.loadConfiguration();
     if (!configLoaded) {
-      logger.error('Failed to load base configuration. Retrying in 30s...');
-      setTimeout(() => this.initialize(), 30000);
-      return;
+      this.initializationAttempts++;
+      
+      if (this.initializationAttempts <= this.maxInitializationAttempts) {
+        logger.warn(`Failed to load base configuration. Attempt ${this.initializationAttempts}/${this.maxInitializationAttempts}. Retrying in 30s...`);
+        setTimeout(() => this.initialize(), 30000);
+        return;
+      } else {
+        logger.info('Base configuration file not found after maximum attempts. Base control will be disabled.');
+        this._isConfigured = false;
+        this.updateMemoryDBStatus();
+        return;
+      }
     }
+    
+    this._isConfigured = true;
+    this.updateMemoryDBStatus();
     this.startBleProcess();
   }
 
@@ -247,6 +262,27 @@ export class TriMixBaseControl {
     } catch (error) {
       return false;
     }
+  }
+
+  /**
+   * Updates the memory database with the current base configuration status.
+   */
+  private updateMemoryDBStatus(): void {
+    if (!memoryDB.data) return;
+
+    if (!memoryDB.data.baseStatus) {
+      memoryDB.data.baseStatus = {
+        head: 0,
+        feet: 0,
+        isMoving: false,
+        lastUpdate: new Date().toISOString(),
+        isConfigured: this._isConfigured,
+      };
+    } else {
+      memoryDB.data.baseStatus.isConfigured = this._isConfigured;
+      memoryDB.data.baseStatus.lastUpdate = new Date().toISOString();
+    }
+    memoryDB.write();
   }
 
   /**
@@ -559,15 +595,14 @@ export class TriMixBaseControl {
   }
 
   async isConfigured(): Promise<boolean> {
-    try {
-      await readFile(BASE_CONFIG_PATH, 'utf-8');
-      return true;
-    } catch {
-      return false;
-    }
+    return this._isConfigured;
   }
 
   async setPosition(position: BasePosition): Promise<void> {
+    if (!this._isConfigured) {
+      throw new Error('Base is not configured');
+    }
+    
     logger.info('Setting base position:', position);
     try {
       const torsoAngle = this.getClosestAngle(position.head, torsoAngleMap);
@@ -600,12 +635,20 @@ export class TriMixBaseControl {
   }
 
   async stop(): Promise<void> {
+    if (!this._isConfigured) {
+      throw new Error('Base is not configured');
+    }
+    
     logger.info('Stopping all base movement');
     const command = createStopCommand();
     await this.sendPayload(command);
   }
 
   async goToFlat(): Promise<void> {
+    if (!this._isConfigured) {
+      throw new Error('Base is not configured');
+    }
+    
     await this.setPosition({ head: 0, feet: 0, feedRate: 50 });
   }
 }
