@@ -262,7 +262,8 @@ function BaseControlPage() {
         }}
       >
         <Typography>
-          Elevation is unavailable on this device. It’s hidden from navigation because an elevation-capable base was not detected.
+          Elevation is unavailable on this device. It’s hidden from navigation
+          because an elevation-capable base was not detected.
         </Typography>
       </PageContainer>
     );
@@ -301,7 +302,9 @@ function BaseControlPage() {
       </Typography>
 
       {/* Bed Visualization */}
-      <Box sx={{ mb: { xs: 3, sm: 4 }, display: 'flex', justifyContent: 'center' }}>
+      <Box
+        sx={{ mb: { xs: 3, sm: 4 }, display: 'flex', justifyContent: 'center' }}
+      >
         <BedVisualization
           headPosition={position.head}
           feetPosition={position.feet}
@@ -409,7 +412,14 @@ function BaseControlPage() {
       )}
 
       {/* Preset Buttons */}
-      <Stack spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 3, sm: 4 }, width: '100%', maxWidth: { xs: '100%', sm: '500px' } }}>
+      <Stack
+        spacing={{ xs: 1.5, sm: 2 }}
+        sx={{
+          mb: { xs: 3, sm: 4 },
+          width: '100%',
+          maxWidth: { xs: '100%', sm: '500px' },
+        }}
+      >
         {Object.entries(presetTimes).map(([preset, time]) => {
           const IconComponent = presetIcons[preset as keyof typeof presetIcons];
           const isActive = activePreset === preset;
@@ -443,7 +453,9 @@ function BaseControlPage() {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ mr: { xs: 1.5, sm: 2 } }}>{IconComponent(isActive || canStop)}</Box>
+                <Box sx={{ mr: { xs: 1.5, sm: 2 } }}>
+                  {IconComponent(isActive || canStop)}
+                </Box>
                 {canStop
                   ? 'Stop'
                   : preset.charAt(0).toUpperCase() + preset.slice(1)}

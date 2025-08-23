@@ -2,8 +2,8 @@ import { useVersion } from '@api/version';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { Box, Chip, Typography } from '@mui/material';
 import Alert from '@mui/material/Alert';
-import { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
+import { useEffect, useMemo, useState } from 'react';
 
 export default function VersionInfo() {
   const { data: version, isLoading, error } = useVersion();
@@ -21,7 +21,7 @@ export default function VersionInfo() {
       try {
         const res = await fetch(
           `https://api.github.com/repos/throwaway31265/free-sleep/commits/${version.branch}`,
-          { signal: controller.signal }
+          { signal: controller.signal },
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
@@ -93,7 +93,7 @@ export default function VersionInfo() {
   return (
     <Box sx={{ textAlign: 'center', py: 2 }}>
       {isOutOfDate && (
-        <Alert severity="warning" sx={{ mb: 2, textAlign: 'left'}}>
+        <Alert severity="warning" sx={{ mb: 2, textAlign: 'left' }}>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
             Update available
           </Typography>
@@ -102,12 +102,25 @@ export default function VersionInfo() {
             <b> {version.branch}</b> is {remoteCommit}. To update, run the
             installer on your Free Sleep box:
           </Typography>
-          <Box sx={{ p: 1, bgcolor: 'background.default', borderRadius: 1, overflow: 'auto' }}>
-              <p>Main branch:</p>
-              <p>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/throwaway31265/free-sleep/main/scripts/install.sh)"</p>
+          <Box
+            sx={{
+              p: 1,
+              bgcolor: 'background.default',
+              borderRadius: 1,
+              overflow: 'auto',
+            }}
+          >
+            <p>Main branch:</p>
+            <p>
+              /bin/bash -c "$(curl -fsSL
+              https://raw.githubusercontent.com/throwaway31265/free-sleep/main/scripts/install.sh)"
+            </p>
 
-              <p># Beta branch (not recommended):</p>
-              <p>BRANCH=beta /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/throwaway31265/free-sleep/beta/scripts/install.sh)"</p>
+            <p># Beta branch (not recommended):</p>
+            <p>
+              BRANCH=beta /bin/bash -c "$(curl -fsSL
+              https://raw.githubusercontent.com/throwaway31265/free-sleep/beta/scripts/install.sh)"
+            </p>
           </Box>
         </Alert>
       )}

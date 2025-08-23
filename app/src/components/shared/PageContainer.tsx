@@ -1,7 +1,12 @@
-import { useDeviceStatus } from '@/api/deviceStatus';
-import { Alert, Container, type ContainerProps, type SxProps } from '@mui/material';
+import {
+  Alert,
+  Container,
+  type ContainerProps,
+  type SxProps,
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import type React from 'react';
+import { useDeviceStatus } from '@/api/deviceStatus';
 
 type PageContainerProps = {
   containerProps?: ContainerProps;

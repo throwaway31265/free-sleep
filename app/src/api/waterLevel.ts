@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import axiosInstance from '@api/api';
+import { z } from 'zod';
 
 // API response schemas
 const WaterLevelReadingSchema = z.object({
@@ -38,14 +38,18 @@ const WaterLevelSummarySchema = z.object({
   trend: z.enum(['stable', 'declining', 'rising']),
   changeRate: z.number(),
   activeAlerts: z.number(),
-  highestSeverityAlert: z.enum(['low', 'medium', 'high', 'critical']).nullable(),
+  highestSeverityAlert: z
+    .enum(['low', 'medium', 'high', 'critical'])
+    .nullable(),
   isMonitoring: z.boolean(),
   readingsCount: z.number(),
-  calibration: z.object({
-    empty: z.number().optional(),
-    full: z.number().optional(),
-    range: z.number().optional(),
-  }).optional(),
+  calibration: z
+    .object({
+      empty: z.number().optional(),
+      full: z.number().optional(),
+      range: z.number().optional(),
+    })
+    .optional(),
 });
 
 // API response wrappers
@@ -64,16 +68,20 @@ export type WaterLevelSummary = z.infer<typeof WaterLevelSummarySchema>;
 /**
  * Get recent water level readings
  */
-export async function getWaterLevelReadings(hours: number = 24): Promise<WaterLevelReading[]> {
+export async function getWaterLevelReadings(
+  hours = 24,
+): Promise<WaterLevelReading[]> {
   const { data } = await axiosInstance.get('water-level/readings', {
     params: { hours },
   });
 
-  const result = APIResponseSchema(z.object({
-    readings: z.array(WaterLevelReadingSchema),
-    hoursRequested: z.number(),
-    count: z.number(),
-  })).parse(data);
+  const result = APIResponseSchema(
+    z.object({
+      readings: z.array(WaterLevelReadingSchema),
+      hoursRequested: z.number(),
+      count: z.number(),
+    }),
+  ).parse(data);
 
   if (!result.success) {
     throw new Error(result.error || 'Failed to get water level readings');
@@ -88,10 +96,12 @@ export async function getWaterLevelReadings(hours: number = 24): Promise<WaterLe
 export async function getLeakAlerts(): Promise<LeakAlert[]> {
   const { data } = await axiosInstance.get('water-level/alerts');
 
-  const result = APIResponseSchema(z.object({
-    alerts: z.array(LeakAlertSchema),
-    count: z.number(),
-  })).parse(data);
+  const result = APIResponseSchema(
+    z.object({
+      alerts: z.array(LeakAlertSchema),
+      count: z.number(),
+    }),
+  ).parse(data);
 
   if (!result.success) {
     throw new Error(result.error || 'Failed to get leak alerts');
@@ -104,11 +114,15 @@ export async function getLeakAlerts(): Promise<LeakAlert[]> {
  * Dismiss a leak alert
  */
 export async function dismissLeakAlert(timestamp: number): Promise<void> {
-  const { data } = await axiosInstance.post('water-level/alerts/dismiss', { timestamp });
+  const { data } = await axiosInstance.post('water-level/alerts/dismiss', {
+    timestamp,
+  });
 
-  const result = APIResponseSchema(z.object({
-    message: z.string(),
-  })).parse(data);
+  const result = APIResponseSchema(
+    z.object({
+      message: z.string(),
+    }),
+  ).parse(data);
 
   if (!result.success) {
     throw new Error(result.error || 'Failed to dismiss leak alert');

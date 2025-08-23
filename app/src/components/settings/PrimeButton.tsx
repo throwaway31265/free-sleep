@@ -35,7 +35,8 @@ export default function PrimeButton({ refetch }: PrimeButtonProps) {
         } else if (error.response?.status === 500) {
           errorMessage = 'Server error. Please try again in a moment.';
         } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-          errorMessage = 'Network error. Please check your connection and try again.';
+          errorMessage =
+            'Network error. Please check your connection and try again.';
         }
 
         setError(errorMessage);

@@ -1,7 +1,26 @@
-import { Box, Card, CardContent, Typography, FormControl, InputLabel, Select, MenuItem, Chip } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import {
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Typography,
+} from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { getWaterLevelReadings, getWaterLevelSummary } from '../api/waterLevel';
 
 interface ChartDataPoint {
@@ -19,11 +38,13 @@ function formatTimestamp(timestamp: number): string {
     hour: '2-digit',
     minute: '2-digit',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   });
 }
 
-function getTrendColor(trend: string): 'success' | 'warning' | 'error' | 'default' {
+function getTrendColor(
+  trend: string,
+): 'success' | 'warning' | 'error' | 'default' {
   switch (trend) {
     case 'rising':
       return 'success';
@@ -49,23 +70,31 @@ function getTrendIcon(trend: string): string {
   }
 }
 
-function calculatePercentage(rawLevel: number, calibratedEmpty?: number, calibratedFull?: number): number | undefined {
+function calculatePercentage(
+  rawLevel: number,
+  calibratedEmpty?: number,
+  calibratedFull?: number,
+): number | undefined {
   if (calibratedEmpty === undefined || calibratedFull === undefined) {
     return undefined;
   }
-  
+
   const range = calibratedFull - calibratedEmpty;
   const levelAboveEmpty = rawLevel - calibratedEmpty;
   const percentage = (levelAboveEmpty / range) * 100;
-  
+
   return Math.max(0, Math.min(100, percentage));
 }
 
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    const percentage = calculatePercentage(data.rawLevel, data.calibratedEmpty, data.calibratedFull);
-    
+    const percentage = calculatePercentage(
+      data.rawLevel,
+      data.calibratedEmpty,
+      data.calibratedFull,
+    );
+
     return (
       <Box
         sx={{
@@ -83,7 +112,10 @@ const CustomTooltip = ({ active, payload }: any) => {
         <br />
         {percentage !== undefined && (
           <>
-            <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+            <Typography
+              variant="caption"
+              sx={{ fontWeight: 'bold', color: 'primary.main' }}
+            >
               Level: {percentage.toFixed(1)}%
             </Typography>
             <br />
@@ -140,11 +172,15 @@ export default function WaterLevelChart() {
   });
 
   // Transform readings for chart
-  const chartData: ChartDataPoint[] = readings.map(reading => ({
+  const chartData: ChartDataPoint[] = readings.map((reading) => ({
     timestamp: reading.timestamp,
     time: formatTimestamp(reading.timestamp),
     rawLevel: reading.rawLevel,
-    percentage: calculatePercentage(reading.rawLevel, reading.calibratedEmpty, reading.calibratedFull),
+    percentage: calculatePercentage(
+      reading.rawLevel,
+      reading.calibratedEmpty,
+      reading.calibratedFull,
+    ),
     calibratedEmpty: reading.calibratedEmpty,
     calibratedFull: reading.calibratedFull,
     isPriming: reading.isPriming,
@@ -171,8 +207,18 @@ export default function WaterLevelChart() {
   return (
     <Card>
       <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
+        >
+          <Typography
+            variant="h5"
+            sx={{ fontWeight: 'bold', color: 'primary.main' }}
+          >
             Water Level Trends
           </Typography>
 
@@ -200,7 +246,11 @@ export default function WaterLevelChart() {
               label={`Current: ${summary.currentLevel?.toFixed(1)}%` || 'N/A'}
               size="small"
               variant="outlined"
-              color={summary.currentLevel !== undefined && summary.currentLevel < 20 ? 'error' : 'default'}
+              color={
+                summary.currentLevel !== undefined && summary.currentLevel < 20
+                  ? 'error'
+                  : 'default'
+              }
             />
             <Chip
               label={`Raw: ${summary.rawLevel?.toFixed(4) || 'N/A'}`}
@@ -248,7 +298,10 @@ export default function WaterLevelChart() {
         )}
 
         {chartData.length === 0 ? (
-          <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+          <Typography
+            color="text.secondary"
+            sx={{ textAlign: 'center', py: 4 }}
+          >
             No water level data available for the selected time range.
           </Typography>
         ) : (
@@ -274,7 +327,7 @@ export default function WaterLevelChart() {
                     y={calibratedEmpty}
                     stroke="#ff9800"
                     strokeDasharray="5 5"
-                    label={{ value: "Empty", position: "left" }}
+                    label={{ value: 'Empty', position: 'left' }}
                   />
                 )}
                 {calibratedFull && (
@@ -282,7 +335,7 @@ export default function WaterLevelChart() {
                     y={calibratedFull}
                     stroke="#4caf50"
                     strokeDasharray="5 5"
-                    label={{ value: "Full", position: "left" }}
+                    label={{ value: 'Full', position: 'left' }}
                   />
                 )}
 
@@ -294,7 +347,14 @@ export default function WaterLevelChart() {
                   dot={(props: any) => {
                     const { payload, key, ...circleProps } = props;
                     if (payload?.isPriming) {
-                      return <circle {...circleProps} r={4} fill="#ff9800" stroke="#ff9800" />;
+                      return (
+                        <circle
+                          {...circleProps}
+                          r={4}
+                          fill="#ff9800"
+                          stroke="#ff9800"
+                        />
+                      );
                     }
                     return <circle {...circleProps} r={2} />;
                   }}
@@ -305,8 +365,13 @@ export default function WaterLevelChart() {
           </Box>
         )}
 
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-          🔵 Raw Water Level {calibratedEmpty && '🟠 Calibrated Empty'} {calibratedFull && '🟢 Calibrated Full'} 🟠 Priming Events
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ mt: 1, display: 'block' }}
+        >
+          🔵 Raw Water Level {calibratedEmpty && '🟠 Calibrated Empty'}{' '}
+          {calibratedFull && '🟢 Calibrated Full'} 🟠 Priming Events
         </Typography>
       </CardContent>
     </Card>

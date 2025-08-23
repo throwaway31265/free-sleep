@@ -1,10 +1,23 @@
-import { Alert, AlertTitle, Button, Box, Typography, IconButton } from '@mui/material';
-import { Warning, Error, Info, Close } from '@mui/icons-material';
+import { Close, Error, Info, Warning } from '@mui/icons-material';
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  IconButton,
+  Typography,
+} from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { getLeakAlerts, dismissLeakAlert, type LeakAlert } from '../api/waterLevel';
+import {
+  dismissLeakAlert,
+  getLeakAlerts,
+  type LeakAlert,
+} from '../api/waterLevel';
 
-function getSeverityColor(severity: LeakAlert['severity']): 'error' | 'warning' | 'info' {
+function getSeverityColor(
+  severity: LeakAlert['severity'],
+): 'error' | 'warning' | 'info' {
   switch (severity) {
     case 'critical':
     case 'high':
@@ -30,10 +43,15 @@ function getSeverityIcon(severity: LeakAlert['severity']) {
   }
 }
 
-function getAlertTitle(alertType: LeakAlert['alertType'], severity: LeakAlert['severity']): string {
+function getAlertTitle(
+  alertType: LeakAlert['alertType'],
+  severity: LeakAlert['severity'],
+): string {
   switch (alertType) {
     case 'fast_leak':
-      return severity === 'critical' ? 'Critical Water Leak Detected!' : 'Water Leak Detected';
+      return severity === 'critical'
+        ? 'Critical Water Leak Detected!'
+        : 'Water Leak Detected';
     case 'slow_leak':
       return 'Slow Water Level Drop Detected';
     case 'sensor_anomaly':
@@ -44,10 +62,20 @@ function getAlertTitle(alertType: LeakAlert['alertType'], severity: LeakAlert['s
 }
 
 function getAlertDescription(alert: LeakAlert): string {
-  const { alertType, severity, rateOfChange, hoursTracked, rawLevelStart, rawLevelEnd } = alert;
+  const {
+    alertType,
+    severity,
+    rateOfChange,
+    hoursTracked,
+    rawLevelStart,
+    rawLevelEnd,
+  } = alert;
 
   const levelChange = rawLevelEnd - rawLevelStart;
-  const timeSpan = hoursTracked > 1 ? `${hoursTracked.toFixed(1)} hours` : `${(hoursTracked * 60).toFixed(0)} minutes`;
+  const timeSpan =
+    hoursTracked > 1
+      ? `${hoursTracked.toFixed(1)} hours`
+      : `${(hoursTracked * 60).toFixed(0)} minutes`;
 
   switch (alertType) {
     case 'fast_leak':
@@ -105,7 +133,15 @@ function LeakAlertItem({ alert, onDismiss, isLoading }: LeakAlertItemProps) {
         {description}
       </Typography>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 1,
+        }}
+      >
         <Typography variant="caption" color="text.secondary">
           Detected: {alertTime}
         </Typography>
@@ -122,13 +158,21 @@ function LeakAlertItem({ alert, onDismiss, isLoading }: LeakAlertItemProps) {
       {isExpanded && (
         <Box sx={{ mt: 1, p: 1, bgcolor: 'background.paper', borderRadius: 1 }}>
           <Typography variant="caption" component="div">
-            <strong>Alert Type:</strong> {alert.alertType.replace('_', ' ')}<br />
-            <strong>Severity:</strong> {alert.severity}<br />
-            <strong>Time Period:</strong> {alert.hoursTracked.toFixed(1)} hours<br />
-            <strong>Rate of Change:</strong> {alert.rateOfChange.toFixed(4)} units/hour<br />
-            <strong>Level Start:</strong> {alert.rawLevelStart.toFixed(3)}<br />
-            <strong>Level End:</strong> {alert.rawLevelEnd.toFixed(3)}<br />
-            <strong>Total Change:</strong> {(alert.rawLevelEnd - alert.rawLevelStart).toFixed(3)} units
+            <strong>Alert Type:</strong> {alert.alertType.replace('_', ' ')}
+            <br />
+            <strong>Severity:</strong> {alert.severity}
+            <br />
+            <strong>Time Period:</strong> {alert.hoursTracked.toFixed(1)} hours
+            <br />
+            <strong>Rate of Change:</strong> {alert.rateOfChange.toFixed(4)}{' '}
+            units/hour
+            <br />
+            <strong>Level Start:</strong> {alert.rawLevelStart.toFixed(3)}
+            <br />
+            <strong>Level End:</strong> {alert.rawLevelEnd.toFixed(3)}
+            <br />
+            <strong>Total Change:</strong>{' '}
+            {(alert.rawLevelEnd - alert.rawLevelStart).toFixed(3)} units
           </Typography>
         </Box>
       )}
@@ -156,9 +200,14 @@ export default function LeakAlertNotification() {
       const previousAlerts = queryClient.getQueryData(['leak-alerts']);
 
       // Optimistically update to remove the dismissed alert
-      queryClient.setQueryData(['leak-alerts'], (old: LeakAlert[] | undefined) => {
-        return old ? old.filter(alert => alert.timestamp !== timestamp) : [];
-      });
+      queryClient.setQueryData(
+        ['leak-alerts'],
+        (old: LeakAlert[] | undefined) => {
+          return old
+            ? old.filter((alert) => alert.timestamp !== timestamp)
+            : [];
+        },
+      );
 
       // Return a context object with the snapshotted value
       return { previousAlerts };

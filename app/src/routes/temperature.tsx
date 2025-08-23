@@ -1,12 +1,12 @@
 import { useDeviceStatus } from '@api/deviceStatus';
 import { useSettings } from '@api/settings.ts';
+import LeakAlertNotification from '@components/LeakAlertNotification.tsx';
 import AlarmDismissal from '@components/temperature/AlarmDismissal.tsx';
 import AwayNotification from '@components/temperature/AwayNotification.tsx';
 import { useControlTempStore } from '@components/temperature/controlTempStore.tsx';
 import PowerButton from '@components/temperature/PowerButton.tsx';
 import Slider from '@components/temperature/Slider.tsx';
 import WaterNotification from '@components/temperature/WaterNotification.tsx';
-import LeakAlertNotification from '@components/LeakAlertNotification.tsx';
 import { Box } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useAppStore } from '@state/appStore.tsx';
@@ -37,7 +37,7 @@ function ControlTempPage() {
     refetch();
   }, [side]);
 
-    // Show loading state while data is being fetched
+  // Show loading state while data is being fetched
   if (isLoadingDevice || isLoadingSettings) {
     return (
       <PageContainer>
@@ -52,7 +52,7 @@ function ControlTempPage() {
               sm: '500px',
               md: '600px',
               lg: '700px',
-              xl: '800px'
+              xl: '800px',
             },
             mx: 'auto',
             px: { xs: 3, sm: 4, md: 5 },
@@ -86,7 +86,7 @@ function ControlTempPage() {
     return null;
   }
 
-    return (
+  return (
     <PageContainer>
       <Box
         sx={{
@@ -99,7 +99,7 @@ function ControlTempPage() {
             sm: '500px',
             md: '600px',
             lg: '700px',
-            xl: '800px'
+            xl: '800px',
           },
           mx: 'auto',
           px: { xs: 3, sm: 4, md: 5 },
@@ -133,7 +133,7 @@ function ControlTempPage() {
                 sm: '400px',
                 md: '480px',
                 lg: '520px',
-                xl: '560px'
+                xl: '560px',
               },
               aspectRatio: '1',
               display: 'flex',
@@ -147,7 +147,9 @@ function ControlTempPage() {
               currentTargetTemp={sideStatus?.targetTemperatureF || 55}
               refetch={refetch}
               currentTemperatureF={sideStatus?.currentTemperatureF || 55}
-              displayCelsius={settings?.temperatureFormat === 'celsius' || false}
+              displayCelsius={
+                settings?.temperatureFormat === 'celsius' || false
+              }
             />
           </Box>
 
@@ -172,11 +174,13 @@ function ControlTempPage() {
           <AlarmDismissal deviceStatus={deviceStatus} refetch={refetch} />
 
           {isUpdating && (
-            <Box sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              mt: { xs: 2, sm: 3 }
-            }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                mt: { xs: 2, sm: 3 },
+              }}
+            >
               <CircularProgress size={28} />
             </Box>
           )}

@@ -191,7 +191,7 @@ function LogsPage() {
             xs: '1fr',
             md: '300px 1fr',
             lg: '320px 1fr',
-            xl: '350px 1fr'
+            xl: '350px 1fr',
           },
           alignItems: 'start',
           height: 'fit-content',
@@ -224,7 +224,14 @@ function LogsPage() {
                 {logFiles.length > 0 ? (
                   logFiles.map((file) => (
                     <MenuItem key={file} value={file}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          width: '100%',
+                        }}
+                      >
                         <span>{getLogFileIcon(file)}</span>
                         <Box sx={{ flexGrow: 1 }}>
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -240,7 +247,9 @@ function LogsPage() {
                 ) : (
                   <MenuItem disabled>
                     <Typography variant="body2" color="text.secondary">
-                      {isLoading ? 'Loading log files...' : 'No log files available'}
+                      {isLoading
+                        ? 'Loading log files...'
+                        : 'No log files available'}
                     </Typography>
                   </MenuItem>
                 )}
@@ -252,7 +261,11 @@ function LogsPage() {
               <FiberManualRecordIcon
                 sx={{
                   fontSize: 12,
-                  color: isConnected ? 'success.main' : connectionError ? 'error.main' : 'warning.main'
+                  color: isConnected
+                    ? 'success.main'
+                    : connectionError
+                      ? 'error.main'
+                      : 'warning.main',
                 }}
               />
               <Typography variant="caption" color="text.secondary">
@@ -278,32 +291,36 @@ function LogsPage() {
                 <Chip
                   label="Live"
                   size="small"
-                  color={isConnected ? "success" : "default"}
-                  variant={isConnected ? "filled" : "outlined"}
+                  color={isConnected ? 'success' : 'default'}
+                  variant={isConnected ? 'filled' : 'outlined'}
                 />
               </Box>
             )}
 
             {/* Error Display */}
             {connectionError && (
-              <Box sx={{
-                p: 2,
-                borderRadius: 1,
-                bgcolor: 'error.main',
-                color: 'error.contrastText',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }}>
-                <Typography variant="body2">
-                  {connectionError}
-                </Typography>
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: 1,
+                  bgcolor: 'error.main',
+                  color: 'error.contrastText',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}
+              >
+                <Typography variant="body2">{connectionError}</Typography>
                 <Button
                   size="small"
                   variant="outlined"
                   onClick={handleRefreshLogFiles}
                   disabled={isLoading}
-                  sx={{ ml: 'auto', color: 'inherit', borderColor: 'currentColor' }}
+                  sx={{
+                    ml: 'auto',
+                    color: 'inherit',
+                    borderColor: 'currentColor',
+                  }}
                 >
                   Retry
                 </Button>
@@ -348,8 +365,16 @@ function LogsPage() {
 
         {/* Log Display Section */}
         <SectionCard
-          title={selectedLog ? `${formatFileName(selectedLog)} - Live Stream` : "Log Output"}
-          subheader={selectedLog ? "Real-time log monitoring with auto-scroll" : "Select a log file to begin monitoring"}
+          title={
+            selectedLog
+              ? `${formatFileName(selectedLog)} - Live Stream`
+              : 'Log Output'
+          }
+          subheader={
+            selectedLog
+              ? 'Real-time log monitoring with auto-scroll'
+              : 'Select a log file to begin monitoring'
+          }
         >
           {selectedLog ? (
             <Box
@@ -359,7 +384,8 @@ function LogsPage() {
                 height: `${Math.min(window.innerHeight - 400, 600)}px`,
                 overflowY: 'auto',
                 overflowX: 'auto',
-                fontFamily: '"Fira Code", "JetBrains Mono", "Monaco", "Cascadia Code", monospace',
+                fontFamily:
+                  '"Fira Code", "JetBrains Mono", "Monaco", "Cascadia Code", monospace',
                 fontSize: '13px',
                 lineHeight: 1.4,
                 whiteSpace: 'pre-wrap',
@@ -405,16 +431,20 @@ function LogsPage() {
                   <div ref={logsEndRef} />
                 </>
               ) : (
-                <Box sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100%',
-                  flexDirection: 'column',
-                  gap: 2
-                }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%',
+                    flexDirection: 'column',
+                    gap: 2,
+                  }}
+                >
                   <Typography variant="body2" color="text.secondary">
-                    {isConnected ? 'Waiting for log entries...' : 'Connecting to log stream...'}
+                    {isConnected
+                      ? 'Waiting for log entries...'
+                      : 'Connecting to log stream...'}
                   </Typography>
                   {connectionError && (
                     <Button
@@ -430,19 +460,29 @@ function LogsPage() {
               )}
             </Box>
           ) : (
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '300px',
-              flexDirection: 'column',
-              gap: 2
-            }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '300px',
+                flexDirection: 'column',
+                gap: 2,
+              }}
+            >
               <DescriptionIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
-              <Typography variant="body1" color="text.secondary" textAlign="center">
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                textAlign="center"
+              >
                 Select a log file from the left panel to begin monitoring
               </Typography>
-              <Typography variant="body2" color="text.secondary" textAlign="center">
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                textAlign="center"
+              >
                 Real-time updates will appear here automatically
               </Typography>
             </Box>

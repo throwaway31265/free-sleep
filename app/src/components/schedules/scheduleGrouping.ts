@@ -70,12 +70,11 @@ const normalizeScheduleForComparison = (schedule: DailySchedule): string => {
   return sortedJsonString;
 };
 
-
 export const groupSchedulesBySettings = (
   schedules: Record<DayOfWeek, DailySchedule>,
 ): ScheduleGroup[] => {
   const groups: Record<string, ScheduleGroup> = {};
-  
+
   // Group schedules by their full normalized comparison including elevation presets
   Object.entries(schedules).forEach(([day, schedule]) => {
     const dayOfWeek = day as DayOfWeek;

@@ -1,4 +1,4 @@
-import { Box, Slider, TextField, Typography, Paper } from '@mui/material';
+import { Box, Paper, Slider, TextField, Typography } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import { formatTemperature } from '@/components/temperature/TemperatureLabel';
 import { useScheduleStore } from './scheduleStore.tsx';
@@ -110,7 +110,7 @@ export default function StartTimeSection({
         >
           Target Temperature
         </Typography>
-        
+
         <Typography
           variant="h5"
           sx={{
@@ -121,9 +121,12 @@ export default function StartTimeSection({
             fontWeight: '600',
           }}
         >
-          {formatTemperature(selectedSchedule?.power?.onTemperature || 82, displayCelsius)}
+          {formatTemperature(
+            selectedSchedule?.power?.onTemperature || 82,
+            displayCelsius,
+          )}
         </Typography>
-        
+
         <Slider
           value={selectedSchedule?.power?.onTemperature || 82}
           onChange={(_, newValue) => {
@@ -171,7 +174,7 @@ export default function StartTimeSection({
             },
           }}
         />
-        
+
         <Typography
           variant="caption"
           sx={{

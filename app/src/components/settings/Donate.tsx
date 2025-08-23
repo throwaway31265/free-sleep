@@ -1,12 +1,12 @@
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CurrencyBitcoinIcon from '@mui/icons-material/CurrencyBitcoin';
 import {
-    Box,
-    IconButton,
-    InputAdornment,
-    TextField,
-    Tooltip,
-    Typography,
+  Box,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Tooltip,
+  Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useRef, useState } from 'react';
@@ -50,12 +50,20 @@ export default function Donate() {
         },
       }}
     >
-      <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Typography
+        variant="h6"
+        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+      >
         <CurrencyBitcoinIcon fontSize="large" />
         Fund Development
       </Typography>
-      <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center' }}>
-        Enjoying Free Sleep? Help support continued development and new features instead of paying $200/year for commercial alternatives!
+      <Typography
+        variant="body2"
+        color="textSecondary"
+        sx={{ textAlign: 'center' }}
+      >
+        Enjoying Free Sleep? Help support continued development and new features
+        instead of paying $200/year for commercial alternatives!
       </Typography>
       <TextField
         inputRef={textFieldRef}
@@ -83,10 +91,14 @@ export default function Donate() {
           ),
         }}
       />
-      <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center' }}>
+      <Typography
+        variant="body2"
+        color="textSecondary"
+        sx={{ textAlign: 'center' }}
+      >
         {copySuccess
           ? '✓ Bitcoin address copied to clipboard!'
-          : 'Click the address above to copy, then send any amount you\'d like'}
+          : "Click the address above to copy, then send any amount you'd like"}
       </Typography>
     </Box>
   );

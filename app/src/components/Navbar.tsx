@@ -1,5 +1,5 @@
-import { useVersion } from '@api/version';
 import { useBaseStatus } from '@api/baseControl';
+import { useVersion } from '@api/version';
 import AppBar from '@mui/material/AppBar';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
@@ -28,7 +28,9 @@ export default function Navbar() {
     );
   }, [baseStatus?.isConfigured]);
 
-  const currentTitle = visiblePages.find((page) => page.route === pathname)?.title;
+  const currentTitle = visiblePages.find(
+    (page) => page.route === pathname,
+  )?.title;
   const [mobileNavValue, setMobileNavValue] = React.useState(() => {
     const idx = visiblePages.findIndex((page) => page.route === pathname);
     return idx >= 0 ? idx : 0;
@@ -121,7 +123,7 @@ export default function Navbar() {
               <Button
                 key={route}
                 onClick={() => handleNavigation(route)}
-                sx={{ 
+                sx={{
                   color: 'white',
                   '&:focus': {
                     outline: '2px solid',
@@ -130,7 +132,7 @@ export default function Navbar() {
                   },
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  }
+                  },
                 }}
                 variant={pathname === route ? 'outlined' : 'text'}
                 disabled={isUpdating}

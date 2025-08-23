@@ -11,7 +11,8 @@ type PowerButtonProps = {
 };
 
 export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
-  const { isUpdating, setIsUpdating, side, setError, clearError } = useAppStore();
+  const { isUpdating, setIsUpdating, side, setError, clearError } =
+    useAppStore();
   const { data: settings } = useSettings();
   const isInAwayMode = settings?.[side]?.awayMode;
   const disabled = isUpdating || isInAwayMode;
@@ -45,7 +46,8 @@ export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
         } else if (error.response?.status === 500) {
           errorMessage = 'Server error. Please try again in a moment.';
         } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-          errorMessage = 'Network error. Please check your connection and try again.';
+          errorMessage =
+            'Network error. Please check your connection and try again.';
         }
 
         setError(errorMessage);

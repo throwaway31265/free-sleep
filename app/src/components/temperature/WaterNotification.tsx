@@ -35,7 +35,9 @@ export default function WaterNotification({
         {`Unhandled deviceStatus.waterLevel: '${deviceStatus?.waterLevel}'`}
         <br />
         Please create an issue and included the message above{' '}
-        <Link href="https://github.com/throwaway31265/free-sleep/issues">here</Link>
+        <Link href="https://github.com/throwaway31265/free-sleep/issues">
+          here
+        </Link>
       </Alert>
     );
   }

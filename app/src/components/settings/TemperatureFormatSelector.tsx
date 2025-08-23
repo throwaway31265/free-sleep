@@ -1,8 +1,8 @@
 import { type Settings, TEMPERATURES } from '@api/settingsSchema.ts';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Typography from '@mui/material/Typography';
 import { useAppStore } from '@state/appStore.tsx';
 import type { DeepPartial } from 'ts-essentials';
 
@@ -42,7 +42,11 @@ export default function TemperatureFormatSelector({
         fullWidth
       >
         {TEMPERATURES.map((format) => (
-          <ToggleButton value={format} key={format} sx={{ textTransform: 'capitalize' }}>
+          <ToggleButton
+            value={format}
+            key={format}
+            sx={{ textTransform: 'capitalize' }}
+          >
             {format === 'fahrenheit' ? 'Fahrenheit (°F)' : 'Celsius (°C)'}
           </ToggleButton>
         ))}

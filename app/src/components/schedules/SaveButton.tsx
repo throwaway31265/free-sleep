@@ -1,4 +1,9 @@
-import { Button, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
+import {
+  Button,
+  CircularProgress,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import { useScheduleStore } from './scheduleStore.tsx';
 
@@ -11,7 +16,7 @@ export default function SaveButton({ onSave }: SaveButtonProps) {
   const { changesPresent, isValid, selectedDays } = useScheduleStore();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
+
   if (!changesPresent) return null;
 
   const valid = isValid();
@@ -30,12 +35,16 @@ export default function SaveButton({ onSave }: SaveButtonProps) {
       onClick={onSave}
       disabled={isUpdating || !valid}
       size={isMobile ? 'large' : 'medium'}
-      startIcon={isUpdating ? <CircularProgress size={16} sx={{ color: 'inherit' }} /> : null}
+      startIcon={
+        isUpdating ? (
+          <CircularProgress size={16} sx={{ color: 'inherit' }} />
+        ) : null
+      }
       sx={{
-        backgroundColor: valid 
+        backgroundColor: valid
           ? 'rgba(76, 175, 80, 0.2)'
           : 'rgba(255, 255, 255, 0.1)',
-        borderColor: valid 
+        borderColor: valid
           ? 'rgba(76, 175, 80, 0.5)'
           : 'rgba(255, 255, 255, 0.2)',
         color: valid ? '#4CAF50' : 'rgba(255, 255, 255, 0.5)',
@@ -48,10 +57,10 @@ export default function SaveButton({ onSave }: SaveButtonProps) {
         border: '1px solid',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         '&:hover': {
-          backgroundColor: valid 
+          backgroundColor: valid
             ? 'rgba(76, 175, 80, 0.3)'
             : 'rgba(255, 255, 255, 0.1)',
-          borderColor: valid 
+          borderColor: valid
             ? 'rgba(76, 175, 80, 0.7)'
             : 'rgba(255, 255, 255, 0.3)',
           transform: valid ? 'translateY(-1px)' : 'none',
@@ -64,10 +73,9 @@ export default function SaveButton({ onSave }: SaveButtonProps) {
         },
       }}
     >
-      {isUpdating 
-        ? 'Saving...' 
-        : `Save${dayCount > 1 ? ` (${dayCount} days)` : ''}`
-      }
+      {isUpdating
+        ? 'Saving...'
+        : `Save${dayCount > 1 ? ` (${dayCount} days)` : ''}`}
     </Button>
   );
 }

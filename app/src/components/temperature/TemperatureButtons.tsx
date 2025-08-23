@@ -1,5 +1,5 @@
 import { postDeviceStatus } from '@api/deviceStatus.ts';
-import { MIN_TEMPERATURE_F, MAX_TEMPERATURE_F } from '@api/deviceStatusSchema';
+import { MAX_TEMPERATURE_F, MIN_TEMPERATURE_F } from '@api/deviceStatusSchema';
 import { useSettings } from '@api/settings.ts';
 import { Add, Remove } from '@mui/icons-material';
 import { Box, Button } from '@mui/material';
@@ -15,7 +15,8 @@ type TemperatureButtonsProps = {
 export default function TemperatureButtons({
   refetch,
 }: TemperatureButtonsProps) {
-  const { side, setIsUpdating, isUpdating, setError, clearError } = useAppStore();
+  const { side, setIsUpdating, isUpdating, setError, clearError } =
+    useAppStore();
   const { deviceStatus, setDeviceStatus, originalDeviceStatus } =
     useControlTempStore();
   const { data: settings } = useSettings();
@@ -71,12 +72,14 @@ export default function TemperatureButtons({
             if (error.response?.data?.details) {
               errorMessage = `Invalid temperature: ${error.response.data.details}`;
             } else {
-              errorMessage = 'Invalid temperature setting. Please check the value and try again.';
+              errorMessage =
+                'Invalid temperature setting. Please check the value and try again.';
             }
           } else if (error.response?.status === 500) {
             errorMessage = 'Server error. Please try again in a moment.';
           } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-            errorMessage = 'Network error. Please check your connection and try again.';
+            errorMessage =
+              'Network error. Please check your connection and try again.';
           }
 
           setError(errorMessage);

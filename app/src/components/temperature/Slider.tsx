@@ -34,7 +34,8 @@ export default function Slider({
   displayCelsius,
 }: SliderProps) {
   const { deviceStatus, setDeviceStatus } = useControlTempStore();
-  const { isUpdating, setIsUpdating, side, setError, clearError } = useAppStore();
+  const { isUpdating, setIsUpdating, side, setError, clearError } =
+    useAppStore();
   const { data: settings } = useSettings();
   const isInAwayMode = settings?.[side]?.awayMode;
   const disabled = isUpdating || isInAwayMode || !isOn;
@@ -64,12 +65,14 @@ export default function Slider({
           if (error.response?.data?.details) {
             errorMessage = `Invalid temperature: ${error.response.data.details}`;
           } else {
-            errorMessage = 'Invalid temperature setting. Please check the value and try again.';
+            errorMessage =
+              'Invalid temperature setting. Please check the value and try again.';
           }
         } else if (error.response?.status === 500) {
           errorMessage = 'Server error. Please try again in a moment.';
         } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-          errorMessage = 'Network error. Please check your connection and try again.';
+          errorMessage =
+            'Network error. Please check your connection and try again.';
         }
 
         setError(errorMessage);

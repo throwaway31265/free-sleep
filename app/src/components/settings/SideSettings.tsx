@@ -36,7 +36,9 @@ export default function SideSettings({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Typography variant="h6" color="primary">{title} Side</Typography>
+      <Typography variant="h6" color="primary">
+        {title} Side
+      </Typography>
       <TextField
         label="Custom Name"
         placeholder={`Enter name for ${side} side`}

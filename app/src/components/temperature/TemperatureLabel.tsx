@@ -119,7 +119,10 @@ export default function TemperatureLabel({
             color={theme.palette.grey[500]}
             variant="body2"
           >
-            Scale: {temperatureToScale(currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp)}
+            Scale:{' '}
+            {temperatureToScale(
+              currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp,
+            )}
           </Typography>
 
           {/* Currently at label */}

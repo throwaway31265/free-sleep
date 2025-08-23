@@ -2,11 +2,11 @@ import { postDeviceStatus } from '@api/deviceStatus.ts';
 import type { DeviceStatus } from '@api/deviceStatusSchema.ts';
 import AlarmIcon from '@mui/icons-material/Alarm';
 import {
-    Button,
-    Dialog,
-    DialogActions,
-    useMediaQuery,
-    useTheme,
+  Button,
+  Dialog,
+  DialogActions,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { keyframes } from '@mui/system';
 import { useAppStore } from '@state/appStore.tsx';
@@ -66,7 +66,8 @@ export default function AlarmDismissal({
         } else if (error.response?.status === 500) {
           errorMessage = 'Server error. Please try again in a moment.';
         } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-          errorMessage = 'Network error. Please check your connection and try again.';
+          errorMessage =
+            'Network error. Please check your connection and try again.';
         }
 
         setError(errorMessage);

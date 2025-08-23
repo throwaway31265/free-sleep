@@ -10,7 +10,8 @@ export default function DiscordLink() {
         Join Our Community
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Get help, share tips, request features, and connect with other Free Sleep users
+        Get help, share tips, request features, and connect with other Free
+        Sleep users
       </Typography>
       <Link
         href={discordInviteLink}
@@ -18,12 +19,14 @@ export default function DiscordLink() {
         rel="noopener noreferrer"
         sx={{ textDecoration: 'none' }}
       >
-        <Box sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          '&:hover img': { transform: 'scale(1.05)' }
-        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            '&:hover img': { transform: 'scale(1.05)' },
+          }}
+        >
           <img
             src={discordIcon}
             alt="Join our Discord community"

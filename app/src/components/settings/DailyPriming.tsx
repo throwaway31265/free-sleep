@@ -31,8 +31,13 @@ export default function DailyPriming({
         }
         label="Automatic Daily Priming"
       />
-      <Typography variant="caption" color="text.secondary" sx={{ ml: 4, mt: -1 }}>
-        Automatically prime the system daily to prevent air bubbles and maintain water flow
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ ml: 4, mt: -1 }}
+      >
+        Automatically prime the system daily to prevent air bubbles and maintain
+        water flow
       </Typography>
       {settings?.primePodDaily?.enabled && (
         <TextField

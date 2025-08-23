@@ -11,7 +11,6 @@ import { useAppStore } from '@state/appStore.tsx';
 import { daysOfWeek } from './ApplyToOtherDaysAccordion.tsx';
 import { useScheduleStore } from './scheduleStore.tsx';
 
-
 export default function MultiDaySelector() {
   const { selectedDays, toggleSelectedDay, selectedDay } = useScheduleStore();
   const { isUpdating } = useAppStore();
@@ -24,7 +23,6 @@ export default function MultiDaySelector() {
 
   // Show all selected days (including current day if selected)
   const allSelectedDays = selectedDaysList;
-
 
   const handleDelete = (dayToDelete: string) => {
     toggleSelectedDay(dayToDelete as DayOfWeek);
@@ -78,7 +76,7 @@ export default function MultiDaySelector() {
       >
         Days to Apply Schedule
       </Typography>
-      
+
       {/* Quick presets */}
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
         <Button
@@ -154,13 +152,20 @@ export default function MultiDaySelector() {
       >
         Or select specific days:
       </Typography>
-      
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: 1, mb: 3 }}>
+
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+          gap: 1,
+          mb: 3,
+        }}
+      >
         {daysOfWeek.map((day) => {
           const lowerCaseDay = day.toLowerCase() as DayOfWeek;
           const isSelected = selectedDays[lowerCaseDay];
           const isCurrent = lowerCaseDay === selectedDay;
-          
+
           return (
             <Button
               key={day}
@@ -173,22 +178,20 @@ export default function MultiDaySelector() {
                 borderRadius: '12px',
                 fontSize: { xs: '12px', sm: '13px' },
                 fontWeight: '600',
-                backgroundColor: isSelected 
-                  ? isCurrent 
+                backgroundColor: isSelected
+                  ? isCurrent
                     ? 'rgba(33, 150, 243, 0.2)'
                     : 'rgba(255, 255, 255, 0.1)'
                   : 'transparent',
-                borderColor: isSelected 
-                  ? isCurrent 
+                borderColor: isSelected
+                  ? isCurrent
                     ? 'rgba(33, 150, 243, 0.5)'
                     : 'rgba(255, 255, 255, 0.3)'
                   : 'rgba(255, 255, 255, 0.2)',
-                color: isSelected 
-                  ? '#fff'
-                  : 'rgba(255, 255, 255, 0.7)',
+                color: isSelected ? '#fff' : 'rgba(255, 255, 255, 0.7)',
                 '&:hover': {
-                  backgroundColor: isSelected 
-                    ? isCurrent 
+                  backgroundColor: isSelected
+                    ? isCurrent
                       ? 'rgba(33, 150, 243, 0.3)'
                       : 'rgba(255, 255, 255, 0.15)'
                     : 'rgba(255, 255, 255, 0.05)',
@@ -196,12 +199,29 @@ export default function MultiDaySelector() {
                 },
               }}
             >
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Typography sx={{ fontSize: { xs: '12px', sm: '13px' }, fontWeight: '600' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: { xs: '12px', sm: '13px' },
+                    fontWeight: '600',
+                  }}
+                >
                   {day.slice(0, 3)}
                 </Typography>
                 {isCurrent && (
-                  <Typography sx={{ fontSize: '9px', color: 'rgba(33, 150, 243, 0.8)', mt: 0.25 }}>
+                  <Typography
+                    sx={{
+                      fontSize: '9px',
+                      color: 'rgba(33, 150, 243, 0.8)',
+                      mt: 0.25,
+                    }}
+                  >
                     TODAY
                   </Typography>
                 )}
@@ -210,7 +230,7 @@ export default function MultiDaySelector() {
           );
         })}
       </Box>
-      
+
       {/* Selected summary */}
       {allSelectedDays.length > 0 && (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
@@ -222,12 +242,14 @@ export default function MultiDaySelector() {
               variant={day === selectedDay ? 'filled' : 'outlined'}
               onDelete={() => handleDelete(day)}
               sx={{
-                backgroundColor: day === selectedDay 
-                  ? 'rgba(33, 150, 243, 0.2)'
-                  : 'rgba(255, 255, 255, 0.1)',
-                borderColor: day === selectedDay 
-                  ? 'rgba(33, 150, 243, 0.5)'
-                  : 'rgba(255, 255, 255, 0.3)',
+                backgroundColor:
+                  day === selectedDay
+                    ? 'rgba(33, 150, 243, 0.2)'
+                    : 'rgba(255, 255, 255, 0.1)',
+                borderColor:
+                  day === selectedDay
+                    ? 'rgba(33, 150, 243, 0.5)'
+                    : 'rgba(255, 255, 255, 0.3)',
                 color: '#fff',
                 fontSize: { xs: '11px', sm: '12px' },
                 '& .MuiChip-deleteIcon': {
@@ -246,15 +268,17 @@ export default function MultiDaySelector() {
         <Typography
           variant="caption"
           sx={{
-            color: allSelectedDays.length > 1 
-              ? 'rgba(33, 150, 243, 0.8)' 
-              : 'rgba(255, 255, 255, 0.6)',
+            color:
+              allSelectedDays.length > 1
+                ? 'rgba(33, 150, 243, 0.8)'
+                : 'rgba(255, 255, 255, 0.6)',
             display: 'block',
             fontSize: { xs: '11px', sm: '12px' },
             fontWeight: '500',
           }}
         >
-          Schedule will be applied to {allSelectedDays.length} day{allSelectedDays.length !== 1 ? 's' : ''}
+          Schedule will be applied to {allSelectedDays.length} day
+          {allSelectedDays.length !== 1 ? 's' : ''}
         </Typography>
       )}
     </Box>

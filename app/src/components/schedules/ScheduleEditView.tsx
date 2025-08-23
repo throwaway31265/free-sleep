@@ -1,8 +1,19 @@
 import { postSchedules, useSchedules } from '@api/schedules';
 import type { DayOfWeek, Schedules } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings';
-import { ArrowBack, Schedule, CheckCircle, Warning } from '@mui/icons-material';
-import { Box, Button, Chip, Typography, Card, CardContent, Divider, Paper, useMediaQuery, useTheme } from '@mui/material';
+import { ArrowBack, CheckCircle, Schedule, Warning } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Divider,
+  Paper,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import _ from 'lodash';
 import { useEffect } from 'react';
@@ -70,12 +81,14 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
           if (error.response?.data?.details) {
             errorMessage = `Invalid schedule: ${error.response.data.details}`;
           } else {
-            errorMessage = 'Invalid schedule settings. Please check the configuration and try again.';
+            errorMessage =
+              'Invalid schedule settings. Please check the configuration and try again.';
           }
         } else if (error.response?.status === 500) {
           errorMessage = 'Server error. Please try again in a moment.';
         } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-          errorMessage = 'Network error. Please check your connection and try again.';
+          errorMessage =
+            'Network error. Please check your connection and try again.';
         }
 
         setError(errorMessage);
@@ -93,12 +106,14 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
   const isGroupEdit = allSelectedDays.length > 1;
 
   return (
-    <Box sx={{
-      bgcolor: '#000',
-      color: '#fff',
-      minHeight: '100vh',
-      pb: { xs: 12, sm: 4 },
-    }}>
+    <Box
+      sx={{
+        bgcolor: '#000',
+        color: '#fff',
+        minHeight: '100vh',
+        pb: { xs: 12, sm: 4 },
+      }}
+    >
       {/* Header */}
       <Paper
         elevation={0}
@@ -120,8 +135,8 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Button 
-              startIcon={<ArrowBack />} 
+            <Button
+              startIcon={<ArrowBack />}
               onClick={onBack}
               sx={{
                 color: '#fff',
@@ -137,7 +152,7 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
             >
               {isMobile ? 'Back' : 'Back to Overview'}
             </Button>
-            
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <Box
                 sx={{
@@ -166,11 +181,11 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
 
           {isGroupEdit && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography 
-                variant="body2" 
-                sx={{ 
+              <Typography
+                variant="body2"
+                sx={{
                   color: 'rgba(255, 255, 255, 0.7)',
-                  fontSize: { xs: '12px', sm: '14px' }
+                  fontSize: { xs: '12px', sm: '14px' },
                 }}
               >
                 Editing:
@@ -188,20 +203,26 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
             </Box>
           )}
         </Box>
-        
+
         {/* Status indicator */}
         <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
           {isValid() ? (
             <>
               <CheckCircle sx={{ fontSize: 16, color: '#4CAF50' }} />
-              <Typography variant="caption" sx={{ color: '#4CAF50', fontSize: { xs: '11px', sm: '12px' } }}>
+              <Typography
+                variant="caption"
+                sx={{ color: '#4CAF50', fontSize: { xs: '11px', sm: '12px' } }}
+              >
                 Schedule is valid and ready to save
               </Typography>
             </>
           ) : (
             <>
               <Warning sx={{ fontSize: 16, color: '#FF9800' }} />
-              <Typography variant="caption" sx={{ color: '#FF9800', fontSize: { xs: '11px', sm: '12px' } }}>
+              <Typography
+                variant="caption"
+                sx={{ color: '#FF9800', fontSize: { xs: '11px', sm: '12px' } }}
+              >
                 Please complete required fields
               </Typography>
             </>
@@ -230,15 +251,15 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
           >
             Basic Settings
           </Typography>
-          
+
           <MultiDaySelector />
-          
+
           <Divider sx={{ my: 3, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
-          
+
           <StartTimeSection displayCelsius={displayCelsius} />
-          
+
           <Divider sx={{ my: 3, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
-          
+
           <PowerOffTime />
         </CardContent>
       </Card>
@@ -276,7 +297,7 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
               </Typography>
             )}
           </Box>
-          
+
           <SaveButton onSave={handleSave} />
         </Box>
       </Paper>
@@ -300,7 +321,7 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
             >
               Advanced Settings
             </Typography>
-            
+
             <Typography
               variant="body2"
               sx={{
@@ -311,7 +332,7 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
             >
               Optional features to customize your sleep experience
             </Typography>
-            
+
             <TemperatureAdjustmentsAccordion displayCelsius={displayCelsius} />
             <Box sx={{ my: 2 }} />
             <ElevationAdjustmentsAccordion />

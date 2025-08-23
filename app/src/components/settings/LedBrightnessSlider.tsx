@@ -43,12 +43,14 @@ export default function LedBrightnessSlider() {
           if (error.response?.data?.details) {
             errorMessage = `Invalid LED setting: ${error.response.data.details}`;
           } else {
-            errorMessage = 'Invalid LED brightness setting. Please check the value and try again.';
+            errorMessage =
+              'Invalid LED brightness setting. Please check the value and try again.';
           }
         } else if (error.response?.status === 500) {
           errorMessage = 'Server error. Please try again in a moment.';
         } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-          errorMessage = 'Network error. Please check your connection and try again.';
+          errorMessage =
+            'Network error. Please check your connection and try again.';
         }
 
         setError(errorMessage);

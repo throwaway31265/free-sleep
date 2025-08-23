@@ -25,7 +25,8 @@ export default function PrimeControl() {
         Manual Priming Control
       </Typography>
       <Typography variant="caption" color="text.secondary">
-        Manually prime the system to clear air bubbles and ensure proper water circulation
+        Manually prime the system to clear air bubbles and ensure proper water
+        circulation
       </Typography>
       {deviceStatus?.isPriming ? (
         <PrimingNotification />
@@ -39,7 +40,11 @@ export default function PrimeControl() {
           }}
         >
           <PrimeButton refetch={refetch} />
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mt: 2, textAlign: 'center' }}
+          >
             Last primed: {formattedLastPrime}
             {timeAgo && (
               <Typography

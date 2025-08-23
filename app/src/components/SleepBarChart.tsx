@@ -92,21 +92,22 @@ function createScales({
   // X scale: one band per "entered_bed_at"
   const xScale = d3
     .scaleBand<string>()
-    .domain(Array.isArray(data) && data?.map((d) => d.entered_bed_at) || [])
+    .domain((Array.isArray(data) && data?.map((d) => d.entered_bed_at)) || [])
     .range([0, width])
     .padding(0.5);
 
   // 1) Collect all shifted hours from data
   const allShiftedHours: number[] = [];
-  Array.isArray(data) && data.forEach((rec) => {
-    rec.present_intervals.forEach(([startStr, endStr]) => {
-      const startHour = dateToHourOfDay(startStr);
-      const endHour = dateToHourOfDay(endStr);
+  Array.isArray(data) &&
+    data.forEach((rec) => {
+      rec.present_intervals.forEach(([startStr, endStr]) => {
+        const startHour = dateToHourOfDay(startStr);
+        const endHour = dateToHourOfDay(endStr);
 
-      // Include unshifted values to prevent min from shifting incorrectly
-      allShiftedHours.push(shiftHour(startHour), shiftHour(endHour));
+        // Include unshifted values to prevent min from shifting incorrectly
+        allShiftedHours.push(shiftHour(startHour), shiftHour(endHour));
+      });
     });
-  });
 
   if (allShiftedHours.length === 0) {
     // Fallback: show 6 PM -> 6 PM

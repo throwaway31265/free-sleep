@@ -11,7 +11,5 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 });
 
 function RootComponent() {
-  return (
-      <Layout />
-  );
+  return <Layout />;
 }

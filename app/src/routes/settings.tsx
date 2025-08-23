@@ -1,5 +1,5 @@
-import { postSettings, useSettings } from '@api/settings.ts';
 import { useBaseStatus } from '@api/baseControl';
+import { postSettings, useSettings } from '@api/settings.ts';
 import type { Settings } from '@api/settingsSchema.ts';
 import DailyPriming from '@components/settings/DailyPriming.tsx';
 import DailyReboot from '@components/settings/DailyReboot.tsx';
@@ -13,13 +13,12 @@ import SideSettings from '@components/settings/SideSettings.tsx';
 import TemperatureFormatSelector from '@components/settings/TemperatureFormatSelector.tsx';
 import TimeZoneSelector from '@components/settings/TimeZoneSelector.tsx';
 import VersionInfo from '@components/settings/VersionInfo.tsx';
+import Box from '@mui/material/Box';
 import { useAppStore } from '@state/appStore.tsx';
 import { createFileRoute } from '@tanstack/react-router';
 import type { DeepPartial } from 'ts-essentials';
 import PageContainer from '@/components/shared/PageContainer.tsx';
 import SectionCard from '@/components/shared/SectionCard.tsx';
-import Box from '@mui/material/Box';
-
 
 function SettingsPage() {
   const { data: settings, refetch } = useSettings();
@@ -48,12 +47,14 @@ function SettingsPage() {
           if (error.response?.data?.details) {
             errorMessage = `Invalid settings: ${error.response.data.details}`;
           } else {
-            errorMessage = 'Invalid settings. Please check the values and try again.';
+            errorMessage =
+              'Invalid settings. Please check the values and try again.';
           }
         } else if (error.response?.status === 500) {
           errorMessage = 'Server error. Please try again in a moment.';
         } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-          errorMessage = 'Network error. Please check your connection and try again.';
+          errorMessage =
+            'Network error. Please check your connection and try again.';
         }
 
         setError(errorMessage);
@@ -68,15 +69,20 @@ function SettingsPage() {
   return (
     <PageContainer sx={{ mb: 15, mt: 2 }}>
       {baseStatus?.isConfigured === false && (
-        <div role="alert" style={{
-          padding: '12px 16px',
-          borderRadius: 8,
-          background: 'rgba(255, 255, 255, 0.08)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          marginBottom: 16,
-          color: '#fff',
-        }}>
-          Elevation controls are disabled because no compatible elevation base was detected on your 8 Sleep. If you add one later, restart the server and the Elevation page will appear.
+        <div
+          role="alert"
+          style={{
+            padding: '12px 16px',
+            borderRadius: 8,
+            background: 'rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            marginBottom: 16,
+            color: '#fff',
+          }}
+        >
+          Elevation controls are disabled because no compatible elevation base
+          was detected on your 8 Sleep. If you add one later, restart the server
+          and the Elevation page will appear.
         </div>
       )}
 
@@ -94,7 +100,10 @@ function SettingsPage() {
           subheader="Configure display preferences and regional settings"
         >
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <TimeZoneSelector settings={settings} updateSettings={updateSettings} />
+            <TimeZoneSelector
+              settings={settings}
+              updateSettings={updateSettings}
+            />
             <TemperatureFormatSelector
               settings={settings}
               updateSettings={updateSettings}

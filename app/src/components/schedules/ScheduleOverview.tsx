@@ -1,14 +1,14 @@
 import { postSchedules } from '@api/schedules';
 import type { DayOfWeek, Schedules } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings';
-import { Add, Schedule, Insights, TrendingUp } from '@mui/icons-material';
+import { Add, Insights, Schedule, TrendingUp } from '@mui/icons-material';
 import {
-    Box,
-    Button,
-    Typography,
-    useMediaQuery,
-    useTheme,
-    Fab,
+  Box,
+  Button,
+  Fab,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import { LOWERCASE_DAYS } from './days.ts';
@@ -61,10 +61,14 @@ export default function ScheduleOverview({
 
   // Group all schedules (both enabled and disabled)
   const allScheduleGroups = groupSchedulesBySettings(sideSchedules);
-  
+
   // Separate enabled and disabled groups
-  const enabledGroups = allScheduleGroups.filter(group => group.schedule?.power?.enabled);
-  const disabledGroups = allScheduleGroups.filter(group => !group.schedule?.power?.enabled);
+  const enabledGroups = allScheduleGroups.filter(
+    (group) => group.schedule?.power?.enabled,
+  );
+  const disabledGroups = allScheduleGroups.filter(
+    (group) => !group.schedule?.power?.enabled,
+  );
 
   const getCurrentDayIndex = () => {
     const now = new Date();
@@ -110,7 +114,7 @@ export default function ScheduleOverview({
       await postSchedules(payload);
       await new Promise((resolve) => setTimeout(resolve, 500));
       onRefresh();
-        } catch (error: any) {
+    } catch (error: any) {
       console.error('Failed to toggle schedule:', error);
 
       // Extract meaningful error message for user
@@ -120,12 +124,14 @@ export default function ScheduleOverview({
         if (error.response?.data?.details) {
           errorMessage = `Invalid schedule: ${error.response.data.details}`;
         } else {
-          errorMessage = 'Invalid schedule settings. Please check the configuration and try again.';
+          errorMessage =
+            'Invalid schedule settings. Please check the configuration and try again.';
         }
       } else if (error.response?.status === 500) {
         errorMessage = 'Server error. Please try again in a moment.';
       } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-        errorMessage = 'Network error. Please check your connection and try again.';
+        errorMessage =
+          'Network error. Please check your connection and try again.';
       }
 
       setError(errorMessage);
@@ -155,7 +161,9 @@ export default function ScheduleOverview({
           gap: { xs: 2, sm: 2, md: 0 },
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, md: 2 } }}>
+        <Box
+          sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, md: 2 } }}
+        >
           <Box
             sx={{
               p: { xs: 1, md: 1.5 },
@@ -166,18 +174,25 @@ export default function ScheduleOverview({
               justifyContent: 'center',
             }}
           >
-            <Schedule sx={{ 
-              color: '#fff',
-              fontSize: { xs: '24px', md: '28px' }
-            }} />
+            <Schedule
+              sx={{
+                color: '#fff',
+                fontSize: { xs: '24px', md: '28px' },
+              }}
+            />
           </Box>
           <Box>
             <Typography
               variant={isMobile ? 'h5' : isTablet ? 'h4' : 'h3'}
-              sx={{ 
-                color: '#fff', 
+              sx={{
+                color: '#fff',
                 fontWeight: '600',
-                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.25rem', lg: '2.5rem' },
+                fontSize: {
+                  xs: '1.5rem',
+                  sm: '2rem',
+                  md: '2.25rem',
+                  lg: '2.5rem',
+                },
                 lineHeight: 1.2,
               }}
             >
@@ -192,9 +207,11 @@ export default function ScheduleOverview({
                   mt: 0.5,
                 }}
               >
-                {enabledGroups.length + disabledGroups.length} schedule{enabledGroups.length + disabledGroups.length !== 1 ? 's' : ''} 
+                {enabledGroups.length + disabledGroups.length} schedule
+                {enabledGroups.length + disabledGroups.length !== 1 ? 's' : ''}
                 {enabledGroups.length > 0 && `• ${enabledGroups.length} active`}
-                {disabledGroups.length > 0 && ` • ${disabledGroups.length} disabled`}
+                {disabledGroups.length > 0 &&
+                  ` • ${disabledGroups.length} disabled`}
               </Typography>
             )}
           </Box>
@@ -240,22 +257,22 @@ export default function ScheduleOverview({
         >
           <Typography
             variant="h6"
-            sx={{ 
-              color: 'rgba(255, 255, 255, 0.8)', 
+            sx={{
+              color: 'rgba(255, 255, 255, 0.8)',
               mb: 2,
-              fontSize: { xs: '1.25rem', sm: '1.3rem', md: '1.4rem' }
+              fontSize: { xs: '1.25rem', sm: '1.3rem', md: '1.4rem' },
             }}
           >
             No Schedules Enabled
           </Typography>
           <Typography
             variant="body2"
-            sx={{ 
-              color: 'rgba(255, 255, 255, 0.6)', 
+            sx={{
+              color: 'rgba(255, 255, 255, 0.6)',
               mb: 3,
               fontSize: { xs: '0.875rem', sm: '0.9rem', md: '1rem' },
               maxWidth: '500px',
-              mx: 'auto'
+              mx: 'auto',
             }}
           >
             Create your first schedule to get started
@@ -284,13 +301,15 @@ export default function ScheduleOverview({
           </Button>
         </Box>
       ) : (
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: { xs: 2, sm: 2.5, md: 3 },
-          maxWidth: { lg: '1200px' },
-          mx: { lg: 'auto' }
-        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: { xs: 2, sm: 2.5, md: 3 },
+            maxWidth: { lg: '1200px' },
+            mx: { lg: 'auto' },
+          }}
+        >
           {/* Quick stats */}
           {(enabledGroups.length > 0 || disabledGroups.length > 0) && (
             <Box
@@ -327,7 +346,7 @@ export default function ScheduleOverview({
                   </Typography>
                 </Box>
               )}
-              
+
               {disabledGroups.length > 0 && (
                 <Box
                   sx={{
@@ -341,7 +360,9 @@ export default function ScheduleOverview({
                     border: '1px solid rgba(255, 255, 255, 0.2)',
                   }}
                 >
-                  <Insights sx={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.6)' }} />
+                  <Insights
+                    sx={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.6)' }}
+                  />
                   <Typography
                     variant="caption"
                     sx={{
@@ -354,7 +375,7 @@ export default function ScheduleOverview({
                   </Typography>
                 </Box>
               )}
-              
+
               {enabledGroups.length > 0 && currentDayIndex >= 0 && (
                 <Box
                   sx={{
@@ -456,7 +477,8 @@ export default function ScheduleOverview({
                   mb: 2,
                 }}
               >
-                These schedules are configured but not running. Toggle them on to activate.
+                These schedules are configured but not running. Toggle them on
+                to activate.
               </Typography>
               {disabledGroups.map((group) => (
                 <GroupedScheduleCard
@@ -473,7 +495,7 @@ export default function ScheduleOverview({
           )}
         </Box>
       )}
-      
+
       {/* Floating Action Button for quick schedule creation */}
       <Fab
         onClick={onCreateNew}

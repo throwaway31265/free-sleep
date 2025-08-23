@@ -1,11 +1,11 @@
-import { Switch, Box, Typography } from '@mui/material';
+import { Box, Switch, Typography } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import { useScheduleStore } from './scheduleStore.tsx';
 
 export default function EnabledSwitch() {
   const { isUpdating } = useAppStore();
   const { selectedSchedule, updateSelectedSchedule } = useScheduleStore();
-  
+
   const isEnabled = selectedSchedule?.power.enabled || false;
 
   return (
@@ -17,11 +17,11 @@ export default function EnabledSwitch() {
           gap: 1.5,
           p: 2,
           borderRadius: '16px',
-          backgroundColor: isEnabled 
+          backgroundColor: isEnabled
             ? 'rgba(76, 175, 80, 0.1)'
             : 'rgba(255, 255, 255, 0.05)',
           border: '1px solid',
-          borderColor: isEnabled 
+          borderColor: isEnabled
             ? 'rgba(76, 175, 80, 0.3)'
             : 'rgba(255, 255, 255, 0.1)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -73,10 +73,9 @@ export default function EnabledSwitch() {
               display: 'block',
             }}
           >
-            {isEnabled 
+            {isEnabled
               ? 'Schedule will run automatically'
-              : 'Schedule is paused'
-            }
+              : 'Schedule is paused'}
           </Typography>
         </Box>
       </Box>

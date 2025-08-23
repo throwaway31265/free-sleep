@@ -22,7 +22,7 @@ export default function SectionCard({
         borderRadius: 3,
         boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
         border: '1px solid rgba(255,255,255,0.1)',
-        ...sx
+        ...sx,
       }}
     >
       <CardHeader
@@ -39,19 +39,19 @@ export default function SectionCard({
             fontSize: '0.875rem',
             color: 'text.secondary',
             mt: 0.5,
-          }
+          },
         }}
       />
-      <CardContent sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 3,
-        pt: 1,
-      }}>
+      <CardContent
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 3,
+          pt: 1,
+        }}
+      >
         {children}
       </CardContent>
     </Card>
   );
 }
-
-

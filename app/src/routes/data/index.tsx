@@ -1,13 +1,16 @@
+import { useSleepRecords } from '@api/sleep.ts';
+import { useVitalsSummary } from '@api/vitals.ts';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import BedIcon from '@mui/icons-material/Bed';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import {
+  Alert,
   Box,
   Button,
-  Typography,
   CircularProgress,
-  Alert
+  Typography,
 } from '@mui/material';
+import { useAppStore } from '@state/appStore.tsx';
 import {
   createFileRoute,
   Outlet,
@@ -16,9 +19,6 @@ import {
 } from '@tanstack/react-router';
 import moment from 'moment-timezone';
 import { useMemo } from 'react';
-import { useSleepRecords } from '@api/sleep.ts';
-import { useVitalsSummary } from '@api/vitals.ts';
-import { useAppStore } from '@state/appStore.tsx';
 import PageContainer from '@/components/shared/PageContainer.tsx';
 import SectionCard from '@/components/shared/SectionCard.tsx';
 
@@ -45,10 +45,17 @@ const RecentSleepCard = () => {
     endTime,
   });
 
-  const lastNight = sleepRecords && sleepRecords.length > 0 ? sleepRecords[sleepRecords.length - 1] : null;
-  const avgSleepDuration = Array.isArray(sleepRecords) && sleepRecords.length > 0
-    ? sleepRecords.reduce((sum, record) => sum + (record.sleep_period_seconds / 60), 0) / sleepRecords.length
-    : 0;
+  const lastNight =
+    sleepRecords && sleepRecords.length > 0
+      ? sleepRecords[sleepRecords.length - 1]
+      : null;
+  const avgSleepDuration =
+    Array.isArray(sleepRecords) && sleepRecords.length > 0
+      ? sleepRecords.reduce(
+          (sum, record) => sum + record.sleep_period_seconds / 60,
+          0,
+        ) / sleepRecords.length
+      : 0;
 
   const formatDuration = (minutes: number) => {
     if (!minutes || isNaN(minutes)) {
@@ -60,10 +67,7 @@ const RecentSleepCard = () => {
   };
 
   return (
-    <SectionCard
-      title="Recent Sleep"
-      subheader="Last 7 days of sleep data"
-    >
+    <SectionCard title="Recent Sleep" subheader="Last 7 days of sleep data">
       {isLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
           <CircularProgress />
@@ -72,10 +76,18 @@ const RecentSleepCard = () => {
         <Alert severity="info">No sleep data available</Alert>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 2 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+              gap: 2,
+            }}
+          >
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h6" color="primary">
-                {lastNight ? formatDuration(lastNight.sleep_period_seconds / 60) : '--'}
+                {lastNight
+                  ? formatDuration(lastNight.sleep_period_seconds / 60)
+                  : '--'}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 Last Night
@@ -91,7 +103,7 @@ const RecentSleepCard = () => {
             </Box>
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h6" color="primary">
-                {Array.isArray(sleepRecords) && sleepRecords.length || 0}
+                {(Array.isArray(sleepRecords) && sleepRecords.length) || 0}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 Sleep Sessions
@@ -112,7 +124,9 @@ const RecentSleepCard = () => {
           {lastNight && (
             <Box sx={{ pt: 1, borderTop: 1, borderColor: 'divider' }}>
               <Typography variant="body2" color="text.secondary">
-                Last sleep: {moment(lastNight.entered_bed_at).format('MMM D, h:mm A')} - {moment(lastNight.left_bed_at).format('h:mm A')}
+                Last sleep:{' '}
+                {moment(lastNight.entered_bed_at).format('MMM D, h:mm A')} -{' '}
+                {moment(lastNight.left_bed_at).format('h:mm A')}
               </Typography>
             </Box>
           )}
@@ -142,10 +156,7 @@ const RecentVitalsCard = () => {
   });
 
   return (
-    <SectionCard
-      title="Health Metrics"
-      subheader="Last 24 hours"
-    >
+    <SectionCard title="Health Metrics" subheader="Last 24 hours">
       {isLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
           <CircularProgress />
@@ -154,7 +165,13 @@ const RecentVitalsCard = () => {
         <Alert severity="info">No vitals data available</Alert>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 2 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
+              gap: 2,
+            }}
+          >
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h6" color="error.main">
                 {vitalsSummary.avgHeartRate || '--'}
@@ -200,10 +217,7 @@ const QuickActions = () => {
   const navigate = useNavigate();
 
   return (
-    <SectionCard
-      title="Quick Access"
-      subheader="Navigate to detailed views"
-    >
+    <SectionCard title="Quick Access" subheader="Navigate to detailed views">
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Button
           variant="outlined"
@@ -253,7 +267,8 @@ const QuickActions = () => {
 function DataPage() {
   const location = useLocation();
   // Check if we are on a child route (like /data/sleep or /data/logs)
-  const isChildRoute = location.pathname !== '/data' && location.pathname !== '/data/';
+  const isChildRoute =
+    location.pathname !== '/data' && location.pathname !== '/data/';
 
   if (isChildRoute) {
     return <Outlet />;
@@ -261,15 +276,15 @@ function DataPage() {
 
   return (
     <PageContainer sx={{ mt: 2 }}>
-      <Typography 
-        variant="h3" 
+      <Typography
+        variant="h3"
         component="h1"
-        sx={{ 
-          mb: 4, 
+        sx={{
+          mb: 4,
           textAlign: 'center',
           fontWeight: 'bold',
           color: 'primary.main',
-          fontSize: { xs: '1.75rem', sm: '2.125rem' }
+          fontSize: { xs: '1.75rem', sm: '2.125rem' },
         }}
       >
         Data Dashboard
@@ -282,7 +297,7 @@ function DataPage() {
           gridTemplateColumns: {
             xs: '1fr',
             md: '1fr 1fr',
-            lg: 'repeat(3, 1fr)'
+            lg: 'repeat(3, 1fr)',
           },
           alignItems: 'start',
           width: '100%',

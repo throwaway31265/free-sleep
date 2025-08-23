@@ -1,8 +1,8 @@
 import { Box, Typography } from '@mui/material';
 import { createFileRoute } from '@tanstack/react-router';
+import LeakAlertNotification from '@/components/LeakAlertNotification.tsx';
 import PageContainer from '@/components/shared/PageContainer.tsx';
 import WaterLevelChart from '@/components/WaterLevelChart.tsx';
-import LeakAlertNotification from '@/components/LeakAlertNotification.tsx';
 
 function WaterLevelPage() {
   return (
@@ -27,7 +27,7 @@ function WaterLevelPage() {
             color: 'primary.main',
             fontWeight: 'bold',
             mb: 4,
-            fontSize: { xs: '1.75rem', sm: '2.125rem' }
+            fontSize: { xs: '1.75rem', sm: '2.125rem' },
           }}
         >
           Water Level Monitoring
@@ -42,7 +42,8 @@ function WaterLevelPage() {
             mb: 2,
           }}
         >
-          Monitor your 8 Sleep system's water levels and detect potential leaks before they become major issues.
+          Monitor your 8 Sleep system's water levels and detect potential leaks
+          before they become major issues.
         </Typography>
 
         {/* Leak alerts at the top for visibility */}
@@ -72,32 +73,67 @@ function WaterLevelPage() {
           </Typography>
 
           <Typography variant="body2" color="text.secondary" paragraph>
-            This system tracks the raw water level sensor values from your 8 Sleep pod to detect potential leaks
-            before your tank goes completely empty. The monitoring system analyzes trends over time and can
-            detect both slow leaks (gradual drainage) and fast leaks (rapid water loss).
+            This system tracks the raw water level sensor values from your 8
+            Sleep pod to detect potential leaks before your tank goes completely
+            empty. The monitoring system analyzes trends over time and can
+            detect both slow leaks (gradual drainage) and fast leaks (rapid
+            water loss).
           </Typography>
 
           <Typography variant="body2" color="text.secondary" paragraph>
             <strong>What the chart shows:</strong>
           </Typography>
-          <Typography variant="body2" color="text.secondary" component="ul" sx={{ ml: 2 }}>
-            <li><strong>Blue Line:</strong> Raw water level sensor readings</li>
-            <li><strong>Orange Dashed Line:</strong> Calibrated "empty" level</li>
-            <li><strong>Green Dashed Line:</strong> Calibrated "full" level</li>
-            <li><strong>Orange Dots:</strong> Readings taken during priming cycles</li>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            component="ul"
+            sx={{ ml: 2 }}
+          >
+            <li>
+              <strong>Blue Line:</strong> Raw water level sensor readings
+            </li>
+            <li>
+              <strong>Orange Dashed Line:</strong> Calibrated "empty" level
+            </li>
+            <li>
+              <strong>Green Dashed Line:</strong> Calibrated "full" level
+            </li>
+            <li>
+              <strong>Orange Dots:</strong> Readings taken during priming cycles
+            </li>
           </Typography>
 
-          <Typography variant="body2" color="text.secondary" paragraph sx={{ mt: 2 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            paragraph
+            sx={{ mt: 2 }}
+          >
             <strong>Alert Types:</strong>
           </Typography>
-          <Typography variant="body2" color="text.secondary" component="ul" sx={{ ml: 2 }}>
-            <li><strong>Slow Leak:</strong> Gradual water level decrease over hours</li>
-            <li><strong>Fast Leak:</strong> Rapid water loss indicating a significant leak</li>
-            <li><strong>Sensor Anomaly:</strong> Unusual sensor readings that may indicate calibration issues</li>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            component="ul"
+            sx={{ ml: 2 }}
+          >
+            <li>
+              <strong>Slow Leak:</strong> Gradual water level decrease over
+              hours
+            </li>
+            <li>
+              <strong>Fast Leak:</strong> Rapid water loss indicating a
+              significant leak
+            </li>
+            <li>
+              <strong>Sensor Anomaly:</strong> Unusual sensor readings that may
+              indicate calibration issues
+            </li>
           </Typography>
 
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            The system checks for leaks every 30 minutes and maintains 30 days of water level history.
+            The system checks for leaks every 30 minutes and maintains 30 days
+            of water level history.
           </Typography>
         </Box>
       </Box>
