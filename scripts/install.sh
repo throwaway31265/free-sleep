@@ -666,6 +666,9 @@ setup_periodic_time_sync() {
 #!/bin/bash
 # Periodic time sync script for pods with blocked internet
 
+# Set PATH to ensure all system binaries can be found when run from cron
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 SCRIPT_DIR="/home/dac/free-sleep/scripts"
 LOG_FILE="/persistent/free-sleep-data/logs/time-sync.log"
 
@@ -734,8 +737,16 @@ EOF
 
   # Check if cron job already exists
   if ! crontab -l 2>/dev/null | grep -q "sync-time-with-internet.sh"; then
+    # Get current crontab
+    CURRENT_CRONTAB=$(crontab -l 2>/dev/null || true)
+    
+    # Add PATH environment variable if not already present
+    if ! echo "$CURRENT_CRONTAB" | grep -q "^PATH="; then
+      CURRENT_CRONTAB="$CURRENT_CRONTAB"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    fi
+    
     # Add the cron job
-    (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+    echo "$CURRENT_CRONTAB"$'\n'"$CRON_JOB" | crontab -
     echo "Periodic time sync cron job added (runs at 6 AM and 6 PM daily)."
   else
     echo "Periodic time sync cron job already exists."

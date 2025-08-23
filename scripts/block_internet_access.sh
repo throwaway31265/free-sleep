@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Set PATH to ensure iptables and ip6tables can be found when run from cron
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 # IPv4 Rules
 echo "Configuring IPv4 rules..."
 
