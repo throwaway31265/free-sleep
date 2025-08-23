@@ -100,10 +100,14 @@ After=network.target
 ExecStart=/home/$username/.bun/bin/bun run dev
 WorkingDirectory=$server_dir
 Restart=always
+RestartSec=5
 User=$username
 Environment=NODE_ENV=production
 Environment=BUN_INSTALL=/home/$username/.bun
 Environment=PATH=$service_path
+# Prevent rapid restart loops during installation
+StartLimitInterval=60
+StartLimitBurst=3
 
 [Install]
 WantedBy=multi-user.target
@@ -160,6 +164,20 @@ stop_services_for_installation() {
       if systemctl is-active "$service" >/dev/null 2>&1; then
         echo "Stopping $service service..."
         systemctl stop "$service" || true
+
+        # Wait for service to fully stop to prevent directory conflicts
+        echo "Waiting for $service to fully stop..."
+        local timeout=10
+        while [ $timeout -gt 0 ] && systemctl is-active "$service" >/dev/null 2>&1; do
+          sleep 1
+          timeout=$((timeout - 1))
+        done
+
+        if systemctl is-active "$service" >/dev/null 2>&1; then
+          echo "WARNING: $service did not stop cleanly, forcing stop..."
+          systemctl kill "$service" || true
+          sleep 2
+        fi
       fi
     fi
   done
