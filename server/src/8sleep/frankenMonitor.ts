@@ -526,7 +526,6 @@ export class FrankenMonitor {
         isPriming,
       });
 
-      logger.debug(`Stored capwater reading: raw=${parsed.rawLevel}, empty=${parsed.calibratedEmpty}, full=${parsed.calibratedFull}, priming=${isPriming}`);
     } catch (error) {
       logger.debug(`Failed to process capwater data: ${error instanceof Error ? error.message : String(error)}`);
     }

@@ -44,7 +44,6 @@ export async function storeWaterLevelReading(reading: WaterLevelReading): Promis
       },
     });
 
-    logger.debug(`Stored water level reading: raw=${reading.rawLevel}, timestamp=${reading.timestamp}`);
   } catch (error) {
     logger.error(`Failed to store water level reading: ${error instanceof Error ? error.message : String(error)}`);
   }
