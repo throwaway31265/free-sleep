@@ -380,10 +380,10 @@ CURRENT_NODE_VERSION=""
 VOLTA_DETECTED=false
 
 # Check if Volta is managing Node.js for the user
-if sudo -u "$USERNAME" bash -l -c 'command -v volta' >/dev/null 2>&1; then
+if sudo -u "$USERNAME" bash -c 'command -v volta' >/dev/null 2>&1; then
   VOLTA_DETECTED=true
   echo "Volta detected for user '$USERNAME'."
-  CURRENT_NODE_VERSION=$(sudo -u "$USERNAME" bash -l -c 'node -v 2>/dev/null | sed "s/v//"' || echo "")
+  CURRENT_NODE_VERSION=$(sudo -u "$USERNAME" bash -c 'node -v 2>/dev/null | sed "s/v//"' || echo "")
 else
   # Check system Node.js
   if command -v node >/dev/null 2>&1; then
@@ -395,7 +395,7 @@ if [ "$CURRENT_NODE_VERSION" = "$NODE_VERSION" ]; then
   echo "Node.js v$NODE_VERSION is already installed. Skipping update."
 elif [ "$VOLTA_DETECTED" = true ]; then
   echo "Using Volta to install Node.js v$NODE_VERSION for user '$USERNAME'..."
-  sudo -u "$USERNAME" bash -l -c "volta install node@$NODE_VERSION"
+  sudo -u "$USERNAME" bash -c "volta install node@$NODE_VERSION"
   echo "Node.js updated successfully via Volta."
 else
   echo "Installing system Node.js to version $NODE_VERSION..."
@@ -417,7 +417,7 @@ fi
 # Verify installation
 echo "Current Node.js version:"
 if [ "$VOLTA_DETECTED" = true ]; then
-  sudo -u "$USERNAME" bash -l -c 'node -v' || echo "Node.js not found"
+  sudo -u "$USERNAME" bash -c 'node -v' || echo "Node.js not found"
 else
   node -v || echo "Node.js not found"
 fi
@@ -856,7 +856,7 @@ cat /persistent/free-sleep-data/dac_sock_path.txt 2>/dev/null || echo "No dac.so
 echo ""
 echo "Current versions:"
 if [ "$VOLTA_DETECTED" = true ]; then
-  echo "  - Node.js: $(sudo -u "$USERNAME" bash -l -c 'node -v' 2>/dev/null || echo 'Not found') (managed by Volta)"
+  echo "  - Node.js: $(sudo -u "$USERNAME" bash -c 'node -v' 2>/dev/null || echo 'Not found') (managed by Volta)"
 else
   echo "  - Node.js: $(node -v 2>/dev/null || echo 'Not found') (system)"
 fi
