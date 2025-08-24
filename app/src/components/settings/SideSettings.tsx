@@ -135,7 +135,6 @@ export default function SideSettings({
           sx={{ minWidth: 260 }}
           slotProps={{
             textField: (() => {
-              const hasReturn = !!awayReturnLocal;
               const invalid = !!(awayStartLocal && awayReturnLocal && awayReturnLocal.isBefore(awayStartLocal));
               return invalid
                 ? { error: true, helperText: 'Start must be before Return' }
