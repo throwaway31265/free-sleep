@@ -33,10 +33,10 @@ export const executePythonScript = ({
         reject(error);
         return;
       }
-      if (stderr) {
-        logger.error(`Python stderr: ${stderr}`);
-        reject(new Error(`Python stderr: ${stderr}`));
-        return;
+      // Python libraries often write logs to stderr even on success.
+      // Treat non-empty stderr as a warning, not a failure, unless exit code != 0 above.
+      if (stderr && stderr.trim().length > 0) {
+        logger.warn(`Python stderr: ${stderr}`);
       }
       if (stdout) {
         logger.info(`Python stdout: ${stdout}`);

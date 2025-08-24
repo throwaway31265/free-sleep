@@ -52,6 +52,8 @@ export class FrankenMonitor {
   private isRunning = false;
   private wasPriming = false;
   private currentBasePreset: keyof typeof BASE_PRESETS = 'relax';
+  // Track last processed capwater log signature to avoid duplicate inserts
+  private lastCapwaterSignature: string | null = null;
 
   public async start() {
     if (this.isRunning) {
@@ -464,7 +466,10 @@ export class FrankenMonitor {
       const execAsync = promisify(exec);
 
       // Get all capwater readings from the last 30 days of logs (only frank process, not bun)
-      const { stdout } = await execAsync('journalctl --no-pager --since "30 days ago" | grep "frank\\[" | grep capwater');
+      // Only match lines that include the canonical capwater data pattern
+      const { stdout } = await execAsync(
+        'journalctl --no-pager --since "30 days ago" | grep "frank\\[" | grep -E "\\[capwater\\] Raw:"'
+      );
 
       if (!stdout.trim()) {
         logger.info('No historical capwater readings found in system logs');
@@ -504,27 +509,43 @@ export class FrankenMonitor {
       const execAsync = promisify(exec);
 
       // Get the latest capwater reading from system logs (from frank process, not bun)
-      const { stdout } = await execAsync('journalctl --no-pager --lines=1000 | grep "frank\\[" | grep capwater | tail -1');
+      // Only match lines that include the canonical capwater data pattern
+      const { stdout } = await execAsync(
+        'journalctl --no-pager --lines=1000 | grep "frank\\[" | grep -E "\\[capwater\\] Raw:" | tail -1'
+      );
 
       if (!stdout.trim()) {
         return;
       }
 
-      const parsed = this.parseCapwaterLogLine(stdout);
+      const line = stdout.trim();
+      const parsed = this.parseCapwaterLogLine(line);
       if (!parsed) {
-        logger.debug('Could not parse capwater reading from log line');
+        // Log the offending line (truncated) to aid debugging but keep noise low
+        const sample = line.length > 200 ? `${line.slice(0, 200)}…` : line;
+        logger.debug(`Could not parse capwater reading from log line: ${sample}`);
         return;
       }
 
       const isPriming = this.variableValues.priming === 'true' || this.variableValues.needsPrime !== '0';
 
+      // Build a signature from the parsed values and the source timestamp
+      const signature = `${parsed.timestamp}|${parsed.rawLevel}|${parsed.calibratedEmpty}|${parsed.calibratedFull}`;
+      if (this.lastCapwaterSignature === signature) {
+        // No new data since last check; skip storing duplicates
+        return;
+      }
+
       await storeWaterLevelReading({
-        timestamp: Math.floor(Date.now() / 1000), // Use current timestamp for real-time readings
+        // Use the parsed log timestamp so we only insert on actual new readings
+        timestamp: parsed.timestamp,
         rawLevel: parsed.rawLevel,
         calibratedEmpty: parsed.calibratedEmpty,
         calibratedFull: parsed.calibratedFull,
         isPriming,
       });
+
+      this.lastCapwaterSignature = signature;
 
     } catch (error) {
       logger.debug(`Failed to process capwater data: ${error instanceof Error ? error.message : String(error)}`);

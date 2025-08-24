@@ -11,6 +11,9 @@ import logger from '../../logger.js';
 // Validation schemas
 const GetReadingsQuerySchema = z.object({
   hours: z.string().regex(/^\d+$/).transform(Number).optional().default(24),
+  maxPoints: z
+    .preprocess((v) => (v === undefined ? 1000 : v), z.coerce.number().int().min(10).max(20000))
+    .optional(),
 });
 
 const DismissAlertBodySchema = z.object({
@@ -23,16 +26,31 @@ const DismissAlertBodySchema = z.object({
  */
 export async function getWaterLevelReadings(req: Request, res: Response): Promise<void> {
   try {
-    const { hours } = GetReadingsQuerySchema.parse(req.query);
+    const { hours, maxPoints = 1000 } = GetReadingsQuerySchema.parse(req.query);
 
     const readings = await getRecentWaterLevelReadings(hours);
+
+    // Downsample uniformly if too many points to avoid UI lag
+    let sampled = readings;
+    if (sampled.length > maxPoints) {
+      const step = Math.ceil(sampled.length / maxPoints);
+      const downsampled: typeof sampled = [];
+      for (let i = 0; i < sampled.length; i += step) {
+        downsampled.push(sampled[i]);
+      }
+      // Ensure the last point is included
+      if (downsampled[downsampled.length - 1]?.timestamp !== sampled[sampled.length - 1]?.timestamp) {
+        downsampled.push(sampled[sampled.length - 1]);
+      }
+      sampled = downsampled;
+    }
 
     res.json({
       success: true,
       data: {
-        readings,
+        readings: sampled,
         hoursRequested: hours,
-        count: readings.length,
+        count: sampled.length,
       },
     });
   } catch (error) {
