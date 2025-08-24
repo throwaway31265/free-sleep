@@ -16,7 +16,7 @@ import {
 import { schedulePrimingRebootAndCalibration } from './primeScheduler.js';
 import { scheduleTemperatures } from './temperatureScheduler.js';
 import { cleanupOldReadings } from '../db/waterLevelReadings.js';
-import { scheduleAwayResumes } from './awayScheduler.js';
+import { scheduleAway } from './awayScheduler.js';
 
 let isJobSetupRunning = false;
 
@@ -76,8 +76,8 @@ async function setupJobs() {
     });
   });
   schedulePrimingRebootAndCalibration(settingsData);
-  // Schedule away-mode automatic resumes
-  scheduleAwayResumes(settingsData);
+  // Schedule away-mode automatic start and resume
+  scheduleAway(settingsData);
 
   // Schedule leak detection to run every 30 minutes
   schedule.scheduleJob('leak-detection', '*/30 * * * *', async () => {

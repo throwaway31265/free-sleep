@@ -68,10 +68,12 @@ The server exposes RESTful endpoints for interaction:
   "rebootDaily": true,
   "left": {
     "awayMode": false,
+    "awayStart": null,
     "awayReturn": null
   },
   "right": {
     "awayMode": true,
+    "awayStart": null,
     "awayReturn": "2025-01-10T22:00:00.000Z"
   },
   "primePodDaily": {
@@ -91,10 +93,12 @@ The server exposes RESTful endpoints for interaction:
   "rebootDaily": true,
   "left": {
     "awayMode": false,
+    "awayStart": null,
     "awayReturn": null
   },
   "right": {
     "awayMode": true,
+    "awayStart": "2025-01-05T20:00:00.000Z",
     "awayReturn": "2025-01-10T22:00:00.000Z"
   },
   "primePodDaily": {

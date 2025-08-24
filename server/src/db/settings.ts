@@ -12,11 +12,13 @@ const defaultData: Settings = {
   left: {
     name: 'Left',
     awayMode: false,
+    awayStart: null,
     awayReturn: null,
   },
   right: {
     name: 'Right',
     awayMode: false,
+    awayStart: null,
     awayReturn: null,
   },
   lastPrime: undefined,
