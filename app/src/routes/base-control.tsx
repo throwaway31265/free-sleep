@@ -1,8 +1,8 @@
 import {
-  useBaseStatus,
-  useSetBasePosition,
-  useSetBasePreset,
-  useStopBase,
+    useBaseStatus,
+    useSetBasePosition,
+    useSetBasePreset,
+    useStopBase,
 } from '@api/baseControl';
 import BedVisualization from '@components/BedVisualization';
 import AddIcon from '@mui/icons-material/Add';
@@ -255,7 +255,7 @@ function BaseControlPage() {
         sx={{
           bgcolor: '#000',
           color: '#fff',
-          minHeight: '100vh',
+          minHeight: 'calc(100vh - 80px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -282,7 +282,7 @@ function BaseControlPage() {
         maxWidth: { xs: '100%', sm: '500px', md: '400px' },
         bgcolor: '#000',
         color: '#fff',
-        minHeight: '100vh',
+        minHeight: 'calc(100vh - 80px)',
         px: { xs: 2, sm: 3 },
       }}
     >

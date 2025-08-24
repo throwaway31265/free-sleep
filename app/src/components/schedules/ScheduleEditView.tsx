@@ -3,16 +3,16 @@ import type { DayOfWeek, Schedules } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings';
 import { ArrowBack, CheckCircle, Schedule, Warning } from '@mui/icons-material';
 import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Divider,
-  Paper,
-  Typography,
-  useMediaQuery,
-  useTheme,
+    Box,
+    Button,
+    Card,
+    CardContent,
+    Chip,
+    Divider,
+    Paper,
+    Typography,
+    useMediaQuery,
+    useTheme,
 } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import _ from 'lodash';
@@ -110,7 +110,7 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
       sx={{
         bgcolor: '#000',
         color: '#fff',
-        minHeight: '100vh',
+        minHeight: 'calc(100vh - 80px)',
         pb: { xs: 12, sm: 4 },
       }}
     >

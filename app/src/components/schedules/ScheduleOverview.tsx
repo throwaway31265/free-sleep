@@ -145,7 +145,7 @@ export default function ScheduleOverview({
       sx={{
         bgcolor: '#000',
         color: '#fff',
-        minHeight: '100vh',
+        minHeight: 'calc(100vh - 80px)',
         px: { xs: 2, sm: 3, md: 4, lg: 6 },
         py: { xs: 2, sm: 4, md: 5 },
         pb: { xs: 12, sm: 4 }, // Add bottom padding for mobile navigation
@@ -501,7 +501,7 @@ export default function ScheduleOverview({
         onClick={onCreateNew}
         sx={{
           position: 'fixed',
-          bottom: { xs: 88, md: 32 }, // Account for mobile bottom navigation (56px) + padding
+          bottom: { xs: 96, md: 82 }, // Account for mobile bottom navigation (80px) + padding
           right: { xs: 16, sm: 32 },
           backgroundColor: 'rgba(255, 255, 255, 0.15)',
           color: '#fff',
