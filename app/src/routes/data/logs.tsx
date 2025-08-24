@@ -381,7 +381,8 @@ function LogsPage() {
               ref={logsContainerRef}
               onScroll={handleScroll}
               sx={{
-                height: `${Math.min(window.innerHeight - 400, 600)}px`,
+                height: { xs: 300, sm: 380, md: 480, lg: 560 },
+                maxHeight: 600,
                 overflowY: 'auto',
                 overflowX: 'auto',
                 fontFamily:

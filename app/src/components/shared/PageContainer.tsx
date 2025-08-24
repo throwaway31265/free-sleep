@@ -29,7 +29,7 @@ export default function PageContainer({
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: '90vh',
+          flexGrow: 1,
           padding: 4,
         }}
       >

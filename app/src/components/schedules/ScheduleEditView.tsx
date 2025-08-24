@@ -110,7 +110,6 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
       sx={{
         bgcolor: '#000',
         color: '#fff',
-        minHeight: 'calc(100vh - 80px)',
         pb: { xs: 12, sm: 4 },
       }}
     >

@@ -45,7 +45,7 @@ export default function RouteErrorComponent({ error }: ErrorComponentProps) {
         py: 6,
         px: 3,
         color: '#fff',
-        minHeight: '50vh',
+        flexGrow: 1,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',

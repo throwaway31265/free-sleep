@@ -145,7 +145,6 @@ export default function ScheduleOverview({
       sx={{
         bgcolor: '#000',
         color: '#fff',
-        minHeight: 'calc(100vh - 80px)',
         px: { xs: 2, sm: 3, md: 4, lg: 6 },
         py: { xs: 2, sm: 4, md: 5 },
         pb: { xs: 12, sm: 4 }, // Add bottom padding for mobile navigation

@@ -60,8 +60,11 @@ const darkTheme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
+        'html, body, #app': {
+          height: '100%',
+          width: '100%',
+        },
         body: {
-          minHeight: '100vh',
           width: '100%',
           overscrollBehavior: 'none',
           overflowX: 'hidden',

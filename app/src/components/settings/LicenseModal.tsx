@@ -33,7 +33,7 @@ const LicenseModal: React.FC = () => {
             left: '50%',
             transform: 'translate(-50%, -50%)',
             width: '80%',
-            maxHeight: '80vh',
+            maxHeight: 640,
             bgcolor: 'background.paper',
             boxShadow: 24,
             p: 4,
@@ -57,7 +57,7 @@ const LicenseModal: React.FC = () => {
               whiteSpace: 'pre-wrap',
               wordWrap: 'break-word',
               overflowY: 'auto',
-              maxHeight: '60vh',
+              maxHeight: 480,
               lineHeight: '1.6',
             }}
           >

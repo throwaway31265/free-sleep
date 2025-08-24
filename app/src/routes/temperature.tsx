@@ -110,7 +110,6 @@ function ControlTempPage() {
             mx: 'auto',
             px: { xs: 3, sm: 4, md: 5 },
             py: { xs: 3, sm: 4, md: 6 },
-            minHeight: 'calc(100vh - 80px)',
             gap: { xs: 4, sm: 5, md: 6 },
           }}
         >
@@ -157,7 +156,6 @@ function ControlTempPage() {
           mx: 'auto',
           px: { xs: 3, sm: 4, md: 5 },
           py: { xs: 3, sm: 4, md: 6 },
-          minHeight: 'calc(100vh - 80px)',
           gap: { xs: 4, sm: 5, md: 6 },
         }}
       >

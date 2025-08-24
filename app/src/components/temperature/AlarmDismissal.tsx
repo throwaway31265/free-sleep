@@ -89,14 +89,14 @@ export default function AlarmDismissal({
               justifyContent: 'center',
               alignItems: 'center',
               textAlign: 'center',
-              maxWidth: '85vw',
-              maxHeight: '35vh',
+              maxWidth: '90%',
+              maxHeight: 320,
               borderRadius: '10px',
               margin: 0,
             }
           : {
               width: '50%',
-              height: '200px',
+              height: 200,
             },
       }}
     >

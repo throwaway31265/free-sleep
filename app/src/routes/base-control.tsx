@@ -255,7 +255,6 @@ function BaseControlPage() {
         sx={{
           bgcolor: '#000',
           color: '#fff',
-          minHeight: 'calc(100vh - 80px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -282,7 +281,6 @@ function BaseControlPage() {
         maxWidth: { xs: '100%', sm: '500px', md: '400px' },
         bgcolor: '#000',
         color: '#fff',
-        minHeight: 'calc(100vh - 80px)',
         px: { xs: 2, sm: 3 },
       }}
     >

@@ -10,7 +10,7 @@ export default function Layout() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100vh',
+        minHeight: '100%',
         position: 'relative',
       }}
     >
