@@ -143,11 +143,12 @@ export default function ScheduleOverview({
   return (
     <Box
       sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: { xs: 2.5, sm: 3, md: 4 },
         bgcolor: '#000',
         color: '#fff',
         px: { xs: 2, sm: 3, md: 4, lg: 6 },
-        py: { xs: 2, sm: 4, md: 5 },
-        pb: { xs: 12, sm: 4 }, // Add bottom padding for mobile navigation
       }}
     >
       <Box
@@ -156,7 +157,6 @@ export default function ScheduleOverview({
           flexDirection: { xs: 'column', md: 'row' },
           justifyContent: 'space-between',
           alignItems: { xs: 'stretch', md: 'center' },
-          mb: { xs: 3, sm: 4, md: 5 },
           gap: { xs: 2, sm: 2, md: 0 },
         }}
       >

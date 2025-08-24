@@ -65,21 +65,18 @@ export default function PageContainer({
         '@media (max-width: 360px)': {
           width: '100%',
           padding: '12px', // Optimized padding for very narrow screens
-          paddingBottom: 12,
           gap: 1.5, // Reduced gap for narrow screens
         },
         // Mobile (xs)
         [theme.breakpoints.down('sm')]: {
           width: '100%',
           padding: 2, // Increased from 1 to 2 for less cramped layout
-          paddingBottom: 12, // Add bottom padding for mobile navigation (80px + extra spacing)
         },
         // Small tablets (sm)
         [theme.breakpoints.between('sm', 'md')]: {
           width: '90%',
           padding: 0,
           paddingTop: 4,
-          paddingBottom: 12, // Add bottom padding for mobile navigation on tablets
           maxWidth: '700px',
         },
         // Medium tablets and small desktops (md)
@@ -87,7 +84,6 @@ export default function PageContainer({
           width: '85%',
           padding: 0,
           paddingTop: 6,
-          paddingBottom: 12,
           maxWidth: '900px',
         },
         // Large desktops (lg)
@@ -95,7 +91,6 @@ export default function PageContainer({
           width: '80%',
           padding: 0,
           paddingTop: 6,
-          paddingBottom: 12,
           maxWidth: '1200px',
         },
         // Extra large desktops (xl)
@@ -103,7 +98,6 @@ export default function PageContainer({
           width: '70%', // Reduced from 75% to better center content
           padding: 0,
           paddingTop: 8,
-          paddingBottom: 12,
           maxWidth: '1600px', // Increased from 1400px to better use wide screens
           minWidth: '1200px', // Added minimum width to prevent content from becoming too narrow
         },

@@ -9,7 +9,7 @@ export const Route = createFileRoute('/data/vitals')({
 
 function VitalsPage() {
   return (
-    <PageContainer sx={{ mb: 15, gap: 1 }}>
+    <PageContainer sx={{ gap: 1 }}>
       <Header title="Vitals" icon={<FavoriteIcon />} />
     </PageContainer>
   );

@@ -109,7 +109,6 @@ function ControlTempPage() {
             },
             mx: 'auto',
             px: { xs: 3, sm: 4, md: 5 },
-            py: { xs: 3, sm: 4, md: 6 },
             gap: { xs: 4, sm: 5, md: 6 },
           }}
         >
@@ -155,7 +154,6 @@ function ControlTempPage() {
           },
           mx: 'auto',
           px: { xs: 3, sm: 4, md: 5 },
-          py: { xs: 3, sm: 4, md: 6 },
           gap: { xs: 4, sm: 5, md: 6 },
         }}
       >
@@ -178,7 +176,6 @@ function ControlTempPage() {
             flexGrow: 1,
             justifyContent: 'center',
             gap: { xs: 4, sm: 5, md: 6 },
-            py: { xs: 2, sm: 3, md: 4 },
           }}
         >
           {/* Temperature slider */}
@@ -222,7 +219,6 @@ function ControlTempPage() {
             alignItems: 'center',
             width: '100%',
             gap: { xs: 2, sm: 2.5 },
-            pb: { xs: 4, sm: 6 },
           }}
         >
           <AwayNotification settings={settings} />

@@ -108,9 +108,11 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
   return (
     <Box
       sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: { xs: 2.5, sm: 3, md: 4 },
         bgcolor: '#000',
         color: '#fff',
-        pb: { xs: 12, sm: 4 },
       }}
     >
       {/* Header */}
@@ -120,7 +122,6 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
           backgroundColor: 'rgba(255, 255, 255, 0.05)',
           borderRadius: '24px',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          mb: { xs: 3, sm: 4 },
           p: { xs: 2, sm: 3, md: 4 },
         }}
       >
@@ -235,7 +236,6 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
           backgroundColor: 'rgba(255, 255, 255, 0.05)',
           borderRadius: '24px',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          mb: { xs: 3, sm: 4 },
         }}
       >
         <CardContent sx={{ p: { xs: 3, sm: 4, md: 5 } }}>
@@ -269,7 +269,6 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
           backgroundColor: 'rgba(255, 255, 255, 0.05)',
           borderRadius: '24px',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          mb: { xs: 3, sm: 4 },
           p: { xs: 3, sm: 4 },
         }}
       >
