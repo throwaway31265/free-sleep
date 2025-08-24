@@ -87,7 +87,7 @@ export default function SideSettings({
         <Switch
           disabled={isUpdating}
           checked={settings?.[side]?.awayMode || false}
-          onChange={(event, checked) =>
+          onChange={(__event, checked) =>
             updateSettings({ [side]: { awayMode: checked } })
           }
         />
