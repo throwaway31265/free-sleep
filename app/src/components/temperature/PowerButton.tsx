@@ -16,12 +16,16 @@ export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
   const { data: settings } = useSettings();
   const isInAwayMode = settings?.[side]?.awayMode;
   const disabled = isUpdating || isInAwayMode;
+  const otherSide = side === 'right' ? 'left' : 'right';
+  const linkBoth = settings?.linkBothSides && !settings?.[otherSide]?.awayMode;
 
   const handleOnClick = () => {
     const sideStatus: Partial<SideStatus> = { isOn: !isOn };
     const deviceStatus: DeepPartial<DeviceStatus> = {};
-
     deviceStatus[side] = sideStatus;
+    if (linkBoth) {
+      deviceStatus[otherSide] = { isOn: sideStatus.isOn };
+    }
 
     setIsUpdating(true);
     clearError(); // Clear any previous errors

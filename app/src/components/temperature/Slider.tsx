@@ -39,6 +39,8 @@ export default function Slider({
   const { data: settings } = useSettings();
   const isInAwayMode = settings?.[side]?.awayMode;
   const disabled = isUpdating || isInAwayMode || !isOn;
+  const otherSide = side === 'right' ? 'left' : 'right';
+  const linkBoth = settings?.linkBothSides && !settings?.[otherSide]?.awayMode;
   const { width, ref } = useResizeDetector();
   const theme = useTheme();
   const sliderColor = getTemperatureColor(
@@ -49,7 +51,15 @@ export default function Slider({
 
     setIsUpdating(true);
     clearError(); // Clear any previous errors
-    await postDeviceStatus(deviceStatus)
+    // If link is enabled, mirror update to the other side as well
+    const payload = { ...deviceStatus } as any;
+    if (linkBoth) {
+      const t = deviceStatus?.[side]?.targetTemperatureF;
+      if (t !== undefined) {
+        payload[otherSide] = { targetTemperatureF: t };
+      }
+    }
+    await postDeviceStatus(payload)
       .then(() => {
         // Wait 1 second before refreshing the device status
         return new Promise((resolve) => setTimeout(resolve, 1_000));

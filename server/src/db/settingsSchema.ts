@@ -20,6 +20,7 @@ const SideSettingsSchema = z
 export const SettingsSchema = z
   .object({
     timeZone: z.enum(TIME_ZONES).nullable(),
+    linkBothSides: z.boolean(),
     left: SideSettingsSchema,
     right: SideSettingsSchema,
     lastPrime: z.string().datetime().optional(),
@@ -39,6 +40,7 @@ export type Settings = z.infer<typeof SettingsSchema>;
 export const SettingsUpdateSchema = z
   .object({
     timeZone: z.enum(TIME_ZONES).nullable().optional(),
+    linkBothSides: z.boolean().optional(),
     left: z.object({
       name: z.string().min(1).max(20).optional(),
       awayMode: z.boolean().optional(),

@@ -66,6 +66,7 @@ The server exposes RESTful endpoints for interaction:
   "timeZone": "America/New_York",
   "temperatureFormat": "fahrenheit",
   "rebootDaily": true,
+  "linkBothSides": false,
   "left": {
     "awayMode": false,
     "awayStart": null,
@@ -91,6 +92,7 @@ The server exposes RESTful endpoints for interaction:
   "timeZone": "America/New_York",
   "temperatureFormat": "fahrenheit",
   "rebootDaily": true,
+  "linkBothSides": true,
   "left": {
     "awayMode": false,
     "awayStart": null,

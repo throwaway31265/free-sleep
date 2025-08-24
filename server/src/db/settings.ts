@@ -9,6 +9,7 @@ const defaultData: Settings = {
   timeZone: null,
   temperatureFormat: 'fahrenheit',
   rebootDaily: true,
+  linkBothSides: false,
   left: {
     name: 'Left',
     awayMode: false,

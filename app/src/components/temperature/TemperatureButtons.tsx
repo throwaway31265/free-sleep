@@ -21,6 +21,8 @@ export default function TemperatureButtons({
     useControlTempStore();
   const { data: settings } = useSettings();
   const isInAwayMode = settings?.[side]?.awayMode;
+  const otherSide = side === 'right' ? 'left' : 'right';
+  const linkBoth = settings?.linkBothSides && !settings?.[otherSide]?.awayMode;
   const currentTemp = deviceStatus?.[side]?.targetTemperatureF ?? 0;
   const disabled = isUpdating || isInAwayMode;
   const decreaseDisabled = disabled || currentTemp <= MIN_TEMPERATURE_F;
@@ -52,11 +54,17 @@ export default function TemperatureButtons({
     const timer = setTimeout(async () => {
       setIsUpdating(true);
       clearError(); // Clear any previous errors
-      await postDeviceStatus({
+      const payload: any = {
         [side]: {
           targetTemperatureF: deviceStatus[side].targetTemperatureF,
         },
-      })
+      };
+      if (linkBoth) {
+        payload[otherSide] = {
+          targetTemperatureF: deviceStatus[side].targetTemperatureF,
+        };
+      }
+      await postDeviceStatus(payload)
         .then(() => {
           // Wait 1 second before refreshing the device status
           return new Promise((resolve) => setTimeout(resolve, 1_000));

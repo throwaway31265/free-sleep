@@ -1,4 +1,4 @@
-import { useDeviceStatus } from '@api/deviceStatus';
+import { postDeviceStatus, useDeviceStatus } from '@api/deviceStatus';
 import { useSettings } from '@api/settings.ts';
 import LeakAlertNotification from '@components/LeakAlertNotification.tsx';
 import AlarmDismissal from '@components/temperature/AlarmDismissal.tsx';
@@ -6,12 +6,14 @@ import AwayNotification from '@components/temperature/AwayNotification.tsx';
 import { useControlTempStore } from '@components/temperature/controlTempStore.tsx';
 import PowerButton from '@components/temperature/PowerButton.tsx';
 import Slider from '@components/temperature/Slider.tsx';
+import LinkToggle from '@components/temperature/LinkToggle.tsx';
 import WaterNotification from '@components/temperature/WaterNotification.tsx';
 import { Box } from '@mui/material';
+import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useAppStore } from '@state/appStore.tsx';
 import { createFileRoute } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import PageContainer from '@/components/shared/PageContainer.tsx';
 import SideControl from '../components/SideControl.tsx';
 
@@ -23,7 +25,7 @@ function ControlTempPage() {
   } = useDeviceStatus();
   const { setOriginalDeviceStatus, deviceStatus } = useControlTempStore();
   const { data: settings, isLoading: isLoadingSettings } = useSettings();
-  const { isUpdating, side } = useAppStore();
+  const { isUpdating, side, setIsUpdating, clearError, setError } = useAppStore();
 
   useEffect(() => {
     if (!deviceStatusOriginal) return;
@@ -36,6 +38,57 @@ function ControlTempPage() {
   useEffect(() => {
     refetch();
   }, [side]);
+
+  // Auto-sync when: (1) link is turned on with both sides active, or
+  // (2) the other side exits away mode while link is enabled.
+  const prev = useRef({
+    link: settings?.linkBothSides ?? false,
+    leftAway: settings?.left?.awayMode ?? false,
+    rightAway: settings?.right?.awayMode ?? false,
+  });
+
+  useEffect(() => {
+    if (!settings || !deviceStatus) return;
+    const otherSide = side === 'right' ? 'left' : 'right';
+    const link = settings.linkBothSides;
+    const leftAway = settings.left.awayMode;
+    const rightAway = settings.right.awayMode;
+
+    const linkJustEnabled = !prev.current.link && link;
+    const otherSideJustResumed =
+      (otherSide === 'left'
+        ? prev.current.leftAway && !leftAway
+        : prev.current.rightAway && !rightAway) && link;
+
+    if (linkJustEnabled || otherSideJustResumed) {
+      // Only sync if both sides are not away now
+      if (!leftAway && !rightAway) {
+        const from = side; // sync from the current control side
+        const to = otherSide;
+        const fromStatus = deviceStatus[from];
+        if (fromStatus) {
+          const payload: any = {};
+          // Push on/off and current target temp
+          payload[to] = {
+            isOn: fromStatus.isOn,
+            targetTemperatureF: fromStatus.targetTemperatureF,
+          };
+          setIsUpdating(true);
+          clearError();
+          postDeviceStatus(payload)
+            .then(() => new Promise((r) => setTimeout(r, 600)))
+            .then(() => refetch())
+            .catch((error) => {
+              console.error(error);
+              setError('Failed to sync other side while lock is enabled');
+            })
+            .finally(() => setIsUpdating(false));
+        }
+      }
+    }
+
+    prev.current = { link, leftAway, rightAway };
+  }, [settings, deviceStatus, side]);
 
   // Show loading state while data is being fetched
   if (isLoadingDevice || isLoadingSettings) {
@@ -110,6 +163,12 @@ function ControlTempPage() {
       >
         {/* Top navigation */}
         <SideControl title={'Temperature'} />
+        <LinkToggle />
+        {settings.linkBothSides && settings[(side === 'right' ? 'left' : 'right')].awayMode && (
+          <Alert severity="info">
+            Lock is enabled, but the other side is in Away. Changes will only apply to this side until Away is turned off.
+          </Alert>
+        )}
 
         {/* Temperature control section */}
         <Box
