@@ -10,6 +10,8 @@ const SideSettingsSchema = z
   .object({
     name: z.string().min(1).max(20),
     awayMode: z.boolean(),
+    // Optional ISO datetime when away mode should automatically end
+    awayReturn: z.string().datetime().nullable().optional(),
   })
   .strict();
 
@@ -38,10 +40,12 @@ export const SettingsUpdateSchema = z
     left: z.object({
       name: z.string().min(1).max(20).optional(),
       awayMode: z.boolean().optional(),
+      awayReturn: z.string().datetime().nullable().optional(),
     }).strict().optional(),
     right: z.object({
       name: z.string().min(1).max(20).optional(),
       awayMode: z.boolean().optional(),
+      awayReturn: z.string().datetime().nullable().optional(),
     }).strict().optional(),
     lastPrime: z.string().datetime().optional(),
     primePodDaily: z

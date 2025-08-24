@@ -67,10 +67,12 @@ The server exposes RESTful endpoints for interaction:
   "temperatureFormat": "fahrenheit",
   "rebootDaily": true,
   "left": {
-    "awayMode": false
+    "awayMode": false,
+    "awayReturn": null
   },
   "right": {
-    "awayMode": true
+    "awayMode": true,
+    "awayReturn": "2025-01-10T22:00:00.000Z"
   },
   "primePodDaily": {
     "enabled": true,
@@ -88,10 +90,12 @@ The server exposes RESTful endpoints for interaction:
   "temperatureFormat": "fahrenheit",
   "rebootDaily": true,
   "left": {
-    "awayMode": false
+    "awayMode": false,
+    "awayReturn": null
   },
   "right": {
-    "awayMode": true
+    "awayMode": true,
+    "awayReturn": "2025-01-10T22:00:00.000Z"
   },
   "primePodDaily": {
     "enabled": true,

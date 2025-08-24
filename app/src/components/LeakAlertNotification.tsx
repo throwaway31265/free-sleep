@@ -212,7 +212,7 @@ export default function LeakAlertNotification() {
       // Return a context object with the snapshotted value
       return { previousAlerts };
     },
-    onError: (err, timestamp, context) => {
+    onError: (err, __timestamp, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       queryClient.setQueryData(['leak-alerts'], context?.previousAlerts);
       console.error('Failed to dismiss leak alert:', err);

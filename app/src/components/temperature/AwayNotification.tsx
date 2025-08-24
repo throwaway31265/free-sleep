@@ -14,16 +14,14 @@ export default function AwayNotification({ settings }: AwayNotificationProps) {
   if (settings?.[side]?.awayMode && settings?.[otherSide]?.awayMode) {
     return (
       <Alert severity="info">
-        Both sides are in away mode, temperature settings will apply to both
-        sides
+        Both sides are in away mode. Temperature control is disabled.
       </Alert>
     );
   }
   if (settings?.[otherSide]?.awayMode) {
     return (
       <Alert severity="info">
-        Other side is in away mode, temperature settings will apply to both
-        sides
+        Other side is in away mode. Their side is off.
       </Alert>
     );
   }

@@ -12,10 +12,12 @@ const defaultData: Settings = {
   left: {
     name: 'Left',
     awayMode: false,
+    awayReturn: null,
   },
   right: {
     name: 'Right',
     awayMode: false,
+    awayReturn: null,
   },
   lastPrime: undefined,
   primePodDaily: {

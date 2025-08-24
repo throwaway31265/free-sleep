@@ -19,25 +19,30 @@ const updateSide = async (
 ) => {
   await settingsDB.read();
   const settings = settingsDB.data;
-  if (side === 'left') {
-    if (settings.left.awayMode) {
-      throw new Error('Left side is in away mode, not updating side');
+  const isAway = side === 'left' ? settings.left.awayMode : settings.right.awayMode;
+  // If the side is in away mode, only allow safe operations that ensure it's off
+  // or clearing alarms. Block any attempt to turn on or change temperatures.
+  if (isAway) {
+    const { isOn, targetTemperatureF, secondsRemaining, isAlarmVibrating } =
+      sideStatus;
+    const attemptingUnsafeChange =
+      (isOn !== undefined && isOn !== false) ||
+      targetTemperatureF !== undefined ||
+      secondsRemaining !== undefined;
+    if (attemptingUnsafeChange) {
+      throw new Error(
+        `${side.charAt(0).toUpperCase() + side.slice(1)} side is in away mode, not updating side`,
+      );
     }
-  } else {
-    if (settings.right.awayMode) {
-      throw new Error('Right side is in away mode, not updating side');
-    }
+    // Allow turning off and clearing alarms below
   }
-  const controlBothSides = settings.left.awayMode || settings.right.awayMode;
-  const updateLeft = side === 'left' || controlBothSides;
-  const updateRight = side === 'right' || controlBothSides;
+  // Only update the requested side. Do not mirror updates when the
+  // other side is in away mode; away mode means that side is "off".
+  const updateLeft = side === 'left';
+  const updateRight = side === 'right';
 
   const { isOn, targetTemperatureF, secondsRemaining, isAlarmVibrating } =
     sideStatus;
-
-  if (controlBothSides) {
-    logger.debug('One side is in away mode, updating both sides...');
-  }
 
   if (isOn !== undefined) {
     const onDuration = isOn ? '43200' : '0';

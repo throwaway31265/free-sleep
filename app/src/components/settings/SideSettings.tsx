@@ -34,6 +34,32 @@ export default function SideSettings({
     }
   };
 
+  const formatForInput = (iso?: string | null) => {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      const mm = pad(d.getMonth() + 1);
+      const dd = pad(d.getDate());
+      const hh = pad(d.getHours());
+      const min = pad(d.getMinutes());
+      return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+    } catch {
+      return '';
+    }
+  };
+
+  const handleAwayReturnChange = (value: string) => {
+    // value from datetime-local is in local time; convert to ISO
+    if (!value) {
+      updateSettings({ [side]: { awayReturn: null } });
+      return;
+    }
+    const iso = new Date(value).toISOString();
+    updateSettings({ [side]: { awayReturn: iso } });
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Typography variant="h6" color="primary">
@@ -65,6 +91,23 @@ export default function SideSettings({
           }
         />
       </Grid>
+      {settings?.[side]?.awayMode && (
+        <Grid container alignItems="center" justifyContent="space-between">
+          <Box>
+            <Typography>Away Return</Typography>
+            <Typography variant="caption" color="text.secondary">
+              When to automatically resume schedules
+            </Typography>
+          </Box>
+          <TextField
+            type="datetime-local"
+            value={formatForInput(settings?.[side]?.awayReturn)}
+            onChange={(e) => handleAwayReturnChange(e.target.value)}
+            disabled={isUpdating}
+            sx={{ minWidth: 220 }}
+          />
+        </Grid>
+      )}
     </Box>
   );
 }
