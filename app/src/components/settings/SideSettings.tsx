@@ -2,7 +2,9 @@ import type { Settings } from '@api/settingsSchema.ts';
 import { Box, TextField, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import Switch from '@mui/material/Switch';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { type Side, useAppStore } from '@state/appStore.tsx';
+import moment, { type Moment } from 'moment';
 import { useEffect, useState } from 'react';
 import type { DeepPartial } from 'ts-essentials';
 
@@ -34,30 +36,29 @@ export default function SideSettings({
     }
   };
 
-  const formatForInput = (iso?: string | null) => {
-    if (!iso) return '';
+  const formatForDatePicker = (iso?: string | null): Moment | null => {
+    if (!iso) return null;
     try {
-      const d = new Date(iso);
-      const pad = (n: number) => String(n).padStart(2, '0');
-      const yyyy = d.getFullYear();
-      const mm = pad(d.getMonth() + 1);
-      const dd = pad(d.getDate());
-      const hh = pad(d.getHours());
-      const min = pad(d.getMinutes());
-      return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+      return moment(iso);
     } catch {
-      return '';
+      return null;
     }
   };
 
-  const handleAwayReturnChange = (value: string) => {
-    // value from datetime-local is in local time; convert to ISO
-    if (!value) {
-      updateSettings({ [side]: { awayReturn: null } });
-      return;
-    }
-    const iso = new Date(value).toISOString();
-    updateSettings({ [side]: { awayReturn: iso } });
+  // Local state for the DateTimePicker to avoid posting on every change
+  const [awayReturnLocal, setAwayReturnLocal] = useState<Moment | null>(
+    formatForDatePicker(settings?.[side]?.awayReturn),
+  );
+  // Keep local picker state in sync when settings change externally
+  useEffect(() => {
+    setAwayReturnLocal(formatForDatePicker(settings?.[side]?.awayReturn));
+  }, [settings, side]);
+
+  const commitAwayReturn = (value: Moment | null) => {
+    const currentIso = settings?.[side]?.awayReturn || null;
+    const nextIso = value ? value.toISOString() : null;
+    if (currentIso === nextIso) return;
+    updateSettings({ [side]: { awayReturn: nextIso } });
   };
 
   return (
@@ -86,8 +87,8 @@ export default function SideSettings({
         <Switch
           disabled={isUpdating}
           checked={settings?.[side]?.awayMode || false}
-          onChange={(event) =>
-            updateSettings({ [side]: { awayMode: event.target.checked } })
+          onChange={(event, checked) =>
+            updateSettings({ [side]: { awayMode: checked } })
           }
         />
       </Grid>
@@ -99,12 +100,14 @@ export default function SideSettings({
               When to automatically resume schedules
             </Typography>
           </Box>
-          <TextField
-            type="datetime-local"
-            value={formatForInput(settings?.[side]?.awayReturn)}
-            onChange={(e) => handleAwayReturnChange(e.target.value)}
+          <DateTimePicker
+            label="Away Return Time"
+            value={awayReturnLocal}
+            onChange={(value) => setAwayReturnLocal(value as Moment | null)}
+            onAccept={(value) => commitAwayReturn((value as Moment) ?? null)}
+            onClose={() => commitAwayReturn(awayReturnLocal)}
             disabled={isUpdating}
-            sx={{ minWidth: 220 }}
+            sx={{ minWidth: 260 }}
           />
         </Grid>
       )}
