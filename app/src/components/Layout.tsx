@@ -16,7 +16,15 @@ export default function Layout() {
     >
       <ErrorDisplay />
       {/* Renders current route */}
-      <Box sx={{ flexGrow: 1, paddingBottom: { xs: '80px', md: '80px' } }}>
+      <Box
+        sx={{
+          flexGrow: 1,
+          paddingBottom: {
+            xs: 'calc(56px + env(safe-area-inset-bottom))',
+            md: '64px',
+          },
+        }}
+      >
         <Outlet />
       </Box>
       <Navbar />

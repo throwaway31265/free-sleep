@@ -71,6 +71,49 @@ const darkTheme = createTheme({
         },
       },
     },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          // Reduce default min width and padding to fit more buttons on mobile
+          minWidth: 44,
+          padding: '6px 10px',
+          '@media (max-width:600px)': {
+            minWidth: 40,
+            padding: '6px 8px',
+          },
+        },
+        sizeSmall: {
+          padding: '4px 8px',
+          '@media (max-width:600px)': {
+            padding: '3px 6px',
+          },
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          padding: 6,
+          '@media (max-width:600px)': {
+            padding: 4,
+          },
+        },
+      },
+    },
+    MuiBottomNavigationAction: {
+      styleOverrides: {
+        root: {
+          paddingLeft: 6,
+          paddingRight: 6,
+          minWidth: 44,
+          '@media (max-width:600px)': {
+            paddingLeft: 4,
+            paddingRight: 4,
+            minWidth: 40,
+          },
+        },
+      },
+    },
   },
 });
 

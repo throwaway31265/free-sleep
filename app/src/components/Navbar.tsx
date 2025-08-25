@@ -93,9 +93,10 @@ export default function Navbar() {
           bottom: 0, // Stick it to the bottom
           left: 0,
           right: 0,
+          height: 64,
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ minHeight: 64 }}>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             {currentTitle || 'Free sleep'}
             {version?.branch && (
@@ -153,7 +154,8 @@ export default function Navbar() {
           bottom: 0,
           left: 0,
           right: 0,
-          height: '80px',
+          height: { xs: 56, sm: 60 },
+          pb: 'env(safe-area-inset-bottom)',
           justifyContent: 'space-between',
           borderTop: `1px solid ${theme.palette.grey[700]}`,
           backgroundColor: theme.palette.background.default,
@@ -166,6 +168,20 @@ export default function Navbar() {
           sx={{
             width: '100%',
             backgroundColor: theme.palette.background.default,
+            height: { xs: 56, sm: 60 },
+            '& .MuiBottomNavigationAction-root': {
+              paddingTop: 0.5,
+              paddingBottom: 0.5,
+              px: { xs: 0.5, sm: 0.75 },
+              minWidth: 48,
+              maxWidth: { xs: 96, sm: 120 },
+              '& .MuiBottomNavigationAction-label': {
+                fontSize: '0.65rem',
+              },
+              '& .MuiSvgIcon-root': {
+                fontSize: { xs: 22, sm: 24 },
+              },
+            },
             '& .Mui-selected': {
               color: theme.palette.grey[100],
             },
