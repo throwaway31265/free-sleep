@@ -181,11 +181,6 @@ export default function Navbar() {
               '& .MuiSvgIcon-root': {
                 fontSize: { xs: 22, sm: 24 },
               },
-            },
-            '& .Mui-selected': {
-              color: theme.palette.grey[100],
-            },
-            '& .MuiBottomNavigationAction-root': {
               color: theme.palette.grey[500],
               '&:focus': {
                 outline: '2px solid',
@@ -193,6 +188,9 @@ export default function Navbar() {
                 outlineOffset: '2px',
                 borderRadius: '8px',
               },
+            },
+            '& .Mui-selected': {
+              color: theme.palette.grey[100],
             },
           }}
         >
