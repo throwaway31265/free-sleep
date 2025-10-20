@@ -10,6 +10,7 @@ const defaultData: Settings = {
   temperatureFormat: 'fahrenheit',
   rebootDaily: true,
   linkBothSides: false,
+  alarmButtonBehavior: 'dismiss',
   left: {
     name: 'Left',
     awayMode: false,

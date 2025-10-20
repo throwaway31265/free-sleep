@@ -1,6 +1,7 @@
-import { postDeviceStatus } from '@api/deviceStatus.ts';
+import { postDeviceStatus, postSnoozeAlarm } from '@api/deviceStatus.ts';
 import type { DeviceStatus } from '@api/deviceStatusSchema.ts';
 import AlarmIcon from '@mui/icons-material/Alarm';
+import SnoozeIcon from '@mui/icons-material/Snooze';
 import {
   Button,
   Dialog,
@@ -78,6 +79,42 @@ export default function AlarmDismissal({
       });
   };
 
+  const handleSnooze = () => {
+    setIsUpdating(true);
+    clearError(); // Clear any previous errors
+    postSnoozeAlarm(side)
+      .then(() => {
+        // Wait 1 second before refreshing the device status
+        return new Promise((resolve) => setTimeout(resolve, 1_000));
+      })
+      .then(() => refetch())
+      .catch((error) => {
+        console.error(error);
+
+        // Extract meaningful error message for user
+        let errorMessage = 'Failed to snooze alarm';
+
+        if (error.response?.status === 400) {
+          if (error.response?.data?.details) {
+            errorMessage = `Invalid snooze request: ${error.response.data.details}`;
+          } else {
+            errorMessage = 'Invalid snooze request. Please try again.';
+          }
+        } else if (error.response?.status === 500) {
+          errorMessage = 'Server error. Please try again in a moment.';
+        } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+          errorMessage =
+            'Network error. Please check your connection and try again.';
+        }
+
+        setError(errorMessage);
+      })
+      .finally(() => {
+        setIsUpdating(false);
+        setDismissed(true);
+      });
+  };
+
   return (
     <Dialog
       open={dismissed ? false : deviceStatus?.[side]?.isAlarmVibrating || false}
@@ -107,13 +144,28 @@ export default function AlarmDismissal({
           alignItems: 'center',
           justifyContent: 'center',
           height: '100%',
+          gap: 2,
         }}
       >
         <AlarmIcon
           fontSize="large"
-          sx={{ mb: 4, animation: `${pulse} 2s infinite` }}
+          sx={{ mb: 2, animation: `${pulse} 2s infinite` }}
         />
-        <Button onClick={handleDismiss} color="error" variant="contained">
+        <Button
+          onClick={handleSnooze}
+          color="warning"
+          variant="contained"
+          startIcon={<SnoozeIcon />}
+          sx={{ minWidth: 200 }}
+        >
+          Snooze (9 min)
+        </Button>
+        <Button
+          onClick={handleDismiss}
+          color="error"
+          variant="outlined"
+          sx={{ minWidth: 200 }}
+        >
           Dismiss Alarm
         </Button>
       </DialogActions>

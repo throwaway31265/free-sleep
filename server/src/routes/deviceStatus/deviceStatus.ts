@@ -1,6 +1,8 @@
 import express, { type Request, type Response } from 'express';
 import type { DeepPartial } from 'ts-essentials';
+import { z } from 'zod';
 import { getFranken } from '../../8sleep/frankenServer.js';
+import { getFrankenMonitor } from '../../server.js';
 import logger from '../../logger.js';
 import {
   type DeviceStatus,
@@ -34,6 +36,42 @@ router.post('/deviceStatus', async (req: Request, res: Response) => {
     res.status(204).end();
   } catch (error) {
     logger.error(error);
+    res.status(500).json({ error });
+  }
+});
+
+const SnoozeAlarmSchema = z.object({
+  side: z.enum(['left', 'right']),
+}).strict();
+
+router.post('/deviceStatus/snooze', async (req: Request, res: Response) => {
+  const { body } = req;
+  const validationResult = SnoozeAlarmSchema.safeParse(body);
+
+  if (!validationResult.success) {
+    logger.error('Invalid snooze alarm request:', validationResult.error);
+    res.status(400).json({
+      error: 'Invalid request data',
+      details: validationResult?.error?.message,
+    });
+    return;
+  }
+
+  try {
+    const frankenMonitor = getFrankenMonitor();
+    if (!frankenMonitor) {
+      logger.error('FrankenMonitor not initialized');
+      res.status(500).json({ error: 'FrankenMonitor not initialized' });
+      return;
+    }
+
+    const { side } = validationResult.data;
+    const times = { [side.charAt(0)]: Math.floor(Date.now() / 1000) };
+
+    await frankenMonitor.dismissNotification(times, true);
+    res.status(204).end();
+  } catch (error) {
+    logger.error('Error snoozing alarm:', error);
     res.status(500).json({ error });
   }
 });

@@ -1,6 +1,7 @@
 import { useBaseStatus } from '@api/baseControl';
 import { postSettings, useSettings } from '@api/settings.ts';
 import type { Settings } from '@api/settingsSchema.ts';
+import AlarmButtonBehavior from '@components/settings/AlarmButtonBehavior.tsx';
 import DailyPriming from '@components/settings/DailyPriming.tsx';
 import DailyReboot from '@components/settings/DailyReboot.tsx';
 import DiscordLink from '@components/settings/DiscordLink.tsx';
@@ -135,6 +136,7 @@ function SettingsPage() {
         >
           <DailyReboot settings={settings} updateSettings={updateSettings} />
           <DailyPriming settings={settings} updateSettings={updateSettings} />
+          <AlarmButtonBehavior settings={settings} updateSettings={updateSettings} />
           <PrimeControl />
         </SectionCard>
 

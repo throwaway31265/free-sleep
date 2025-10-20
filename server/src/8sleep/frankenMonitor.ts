@@ -159,7 +159,10 @@ export class FrankenMonitor {
 
   private async tryNotifyDismiss(dismiss: { [i: string]: number }) {
     if (this.dismissNotification === undefined) return;
-    await this.dismissNotification(dismiss, true); // TODO: Get user preference for snooze
+    // Read user preference for alarm button behavior
+    await settingsDB.read();
+    const shouldSnooze = settingsDB.data.alarmButtonBehavior === 'snooze';
+    await this.dismissNotification(dismiss, shouldSnooze);
   }
 
   private async processAlarmDismiss() {

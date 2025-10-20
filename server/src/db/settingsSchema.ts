@@ -6,6 +6,10 @@ export const TEMPERATURES = ['celsius', 'fahrenheit'] as const;
 const Temperatures = z.enum(TEMPERATURES);
 export type TemperatureFormat = z.infer<typeof Temperatures>;
 
+export const ALARM_BUTTON_BEHAVIORS = ['dismiss', 'snooze'] as const;
+const AlarmButtonBehaviors = z.enum(ALARM_BUTTON_BEHAVIORS);
+export type AlarmButtonBehavior = z.infer<typeof AlarmButtonBehaviors>;
+
 const SideSettingsSchema = z
   .object({
     name: z.string().min(1).max(20),
@@ -30,6 +34,7 @@ export const SettingsSchema = z
     }),
     temperatureFormat: Temperatures,
     rebootDaily: z.boolean(),
+    alarmButtonBehavior: AlarmButtonBehaviors,
   })
   .strict();
 
@@ -62,6 +67,7 @@ export const SettingsUpdateSchema = z
       .optional(),
     temperatureFormat: Temperatures.optional(),
     rebootDaily: z.boolean().optional(),
+    alarmButtonBehavior: AlarmButtonBehaviors.optional(),
   })
   .strict();
 

@@ -14,6 +14,10 @@ const app = express();
 let server: Server | undefined;
 let frankenMonitor: FrankenMonitor | undefined;
 
+export function getFrankenMonitor(): FrankenMonitor | undefined {
+  return frankenMonitor;
+}
+
 // Graceful Shutdown Function
 async function gracefulShutdown(signal: string) {
   logger.debug(`\nReceived ${signal}. Initiating graceful shutdown...`);

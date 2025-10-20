@@ -22,3 +22,7 @@ export const useDeviceStatus = () =>
 export const postDeviceStatus = (deviceStatus: DeepPartial<DeviceStatus>) => {
   return axios.post('/deviceStatus', deviceStatus);
 };
+
+export const postSnoozeAlarm = (side: 'left' | 'right') => {
+  return axios.post('/deviceStatus/snooze', { side });
+};
