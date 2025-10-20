@@ -188,7 +188,7 @@ export class FrankenMonitor {
     );
 
     // Decrease by 10 (one level)
-    const newLevel = Math.max(0, currentLevel - 10).toString();
+    const newLevel = Math.max(-100, currentLevel - 10).toString();
 
     logger.debug(
       `[doubleTap] times: ${JSON.stringify(times)} | side: ${tappedSide} | currentLevel: ${currentLevel} | newLevel: ${newLevel}`,
