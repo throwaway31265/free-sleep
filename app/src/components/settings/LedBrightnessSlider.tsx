@@ -1,11 +1,16 @@
 import { postDeviceStatus, useDeviceStatus } from '@api/deviceStatus.ts';
 import type { DeviceStatus } from '@api/deviceStatusSchema.ts';
-import { Box, Slider, Typography } from '@mui/material';
+import type { Settings } from '@api/settingsSchema.ts';
+import { Alert, Box, Slider, Typography } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 
-export default function LedBrightnessSlider() {
+type LedBrightnessSliderProps = {
+  settings?: Settings;
+};
+
+export default function LedBrightnessSlider({ settings }: LedBrightnessSliderProps) {
   const { isUpdating, setIsUpdating, setError, clearError } = useAppStore();
   const { data: deviceStatus, refetch } = useDeviceStatus();
   const [settingsCopy, setSettingsCopy] = useState<
@@ -59,14 +64,25 @@ export default function LedBrightnessSlider() {
         setIsUpdating(false);
       });
   };
+
+  const isNightModeEnabled = settings?.ledNightMode?.enabled || false;
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
         LED Brightness Control
       </Typography>
       <Typography variant="caption" color="text.secondary" sx={{ mt: -1 }}>
-        Adjust the brightness of status LEDs on your device
+        {isNightModeEnabled
+          ? 'Brightness is managed by Night Mode (see below)'
+          : 'Adjust the brightness of status LEDs on your device'}
       </Typography>
+      {isNightModeEnabled && (
+        <Alert severity="info" sx={{ mt: 1 }}>
+          Manual control is disabled while Night Mode is active. Configure
+          brightness schedules in the Night Mode settings below.
+        </Alert>
+      )}
       <Slider
         value={settingsCopy?.ledBrightness || 0}
         onChangeCommitted={handleSave}
@@ -83,8 +99,12 @@ export default function LedBrightnessSlider() {
           { value: 50, label: '50%' },
           { value: 100, label: '100%' },
         ]}
-        disabled={isUpdating}
-        sx={{ width: '100%', mt: 1 }}
+        disabled={isUpdating || isNightModeEnabled}
+        sx={{
+          width: '100%',
+          mt: 1,
+          opacity: isNightModeEnabled ? 0.5 : 1,
+        }}
         valueLabelDisplay="auto"
         valueLabelFormat={(value) => `${value}%`}
       />

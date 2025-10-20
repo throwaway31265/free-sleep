@@ -8,6 +8,7 @@ import DiscordLink from '@components/settings/DiscordLink.tsx';
 import Divider from '@components/settings/Divider.tsx';
 import Donate from '@components/settings/Donate.tsx';
 import LedBrightnessSlider from '@components/settings/LedBrightnessSlider.tsx';
+import LedNightModeControl from '@components/settings/LedNightModeControl.tsx';
 import LicenseModal from '@components/settings/LicenseModal.tsx';
 import PrimeControl from '@components/settings/PrimeControl.tsx';
 import SideSettings from '@components/settings/SideSettings.tsx';
@@ -110,7 +111,11 @@ function SettingsPage() {
               updateSettings={updateSettings}
             />
           </Box>
-          <LedBrightnessSlider />
+          <LedBrightnessSlider settings={settings} />
+          <LedNightModeControl
+            settings={settings}
+            updateSettings={updateSettings}
+          />
         </SectionCard>
 
         <SectionCard

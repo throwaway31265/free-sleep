@@ -28,6 +28,13 @@ const defaultData: Settings = {
     enabled: false,
     time: '14:00',
   },
+  ledNightMode: {
+    enabled: false,
+    dayBrightness: 50,
+    nightBrightness: 10,
+    nightStartTime: '22:00',
+    nightEndTime: '07:00',
+  },
 };
 
 const file = new JSONFile<Settings>(`${config.lowDbFolder}settingsDB.json`);

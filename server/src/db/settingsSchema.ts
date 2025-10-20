@@ -35,6 +35,19 @@ export const SettingsSchema = z
     temperatureFormat: Temperatures,
     rebootDaily: z.boolean(),
     alarmButtonBehavior: AlarmButtonBehaviors,
+    ledNightMode: z.object({
+      enabled: z.boolean(),
+      dayBrightness: z.number().int().min(0).max(100),
+      nightBrightness: z.number().int().min(0).max(100),
+      nightStartTime: TimeSchema,
+      nightEndTime: TimeSchema,
+    }).optional().default({
+      enabled: false,
+      dayBrightness: 50,
+      nightBrightness: 10,
+      nightStartTime: '22:00',
+      nightEndTime: '07:00',
+    }),
   })
   .strict();
 
@@ -68,6 +81,15 @@ export const SettingsUpdateSchema = z
     temperatureFormat: Temperatures.optional(),
     rebootDaily: z.boolean().optional(),
     alarmButtonBehavior: AlarmButtonBehaviors.optional(),
+    ledNightMode: z
+      .object({
+        enabled: z.boolean().optional(),
+        dayBrightness: z.number().int().min(0).max(100).optional(),
+        nightBrightness: z.number().int().min(0).max(100).optional(),
+        nightStartTime: TimeSchema.optional(),
+        nightEndTime: TimeSchema.optional(),
+      })
+      .optional(),
   })
   .strict();
 

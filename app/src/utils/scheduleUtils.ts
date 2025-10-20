@@ -83,3 +83,21 @@ export function formatTime12Hour(time: Time): string {
   const displayHours = hours % 12 || 12;
   return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
+
+export function isNightTime(
+  nightStartTime: Time,
+  nightEndTime: Time,
+  timezone: string | null,
+): boolean {
+  const now = moment.tz(timezone || 'UTC');
+  const currentMinutes = now.hours() * 60 + now.minutes();
+
+  const startMinutes = parseTimeToMinutes(nightStartTime);
+  const endMinutes = parseTimeToMinutes(nightEndTime);
+
+  if (startMinutes < endMinutes) {
+    return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+  } else {
+    return currentMinutes >= startMinutes || currentMinutes < endMinutes;
+  }
+}
