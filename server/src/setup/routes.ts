@@ -30,8 +30,7 @@ export default function (app: Express) {
   app.use(express.static(path.join(__dirname, '../../public')));
 
   // Catch-all route to serve the React app for any unknown route
-  // Use a RegExp to avoid path-to-regexp parsing issues in Express 5
-  app.get(/.*/, (req, res) => {
+  app.get('{*splat}', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../../public', 'index.html'));
   });
 }
