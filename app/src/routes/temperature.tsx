@@ -1,10 +1,13 @@
 import { postDeviceStatus, useDeviceStatus } from '@api/deviceStatus';
+import { useSchedules } from '@api/schedules';
+import type { DayOfWeek } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings.ts';
 import LeakAlertNotification from '@components/LeakAlertNotification.tsx';
 import AlarmDismissal from '@components/temperature/AlarmDismissal.tsx';
 import AwayNotification from '@components/temperature/AwayNotification.tsx';
 import { useControlTempStore } from '@components/temperature/controlTempStore.tsx';
 import PowerButton from '@components/temperature/PowerButton.tsx';
+import ScheduleStatusBar from '@components/temperature/ScheduleStatusBar.tsx';
 import Slider from '@components/temperature/Slider.tsx';
 import LinkToggle from '@components/temperature/LinkToggle.tsx';
 import WaterNotification from '@components/temperature/WaterNotification.tsx';
@@ -13,9 +16,24 @@ import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useAppStore } from '@state/appStore.tsx';
 import { createFileRoute } from '@tanstack/react-router';
+import moment from 'moment-timezone';
 import { useEffect, useRef } from 'react';
 import PageContainer from '@/components/shared/PageContainer.tsx';
 import SideControl from '../components/SideControl.tsx';
+
+const getAdjustedDayOfWeek = (timezone: string | null): DayOfWeek => {
+  const now = moment.tz(timezone || 'UTC');
+  const currentHour = now.hour();
+
+  if (currentHour < 5) {
+    return now
+      .subtract(1, 'day')
+      .format('dddd')
+      .toLocaleLowerCase() as DayOfWeek;
+  } else {
+    return now.format('dddd').toLocaleLowerCase() as DayOfWeek;
+  }
+};
 
 function ControlTempPage() {
   const {
@@ -25,6 +43,7 @@ function ControlTempPage() {
   } = useDeviceStatus();
   const { setOriginalDeviceStatus, deviceStatus } = useControlTempStore();
   const { data: settings, isLoading: isLoadingSettings } = useSettings();
+  const { data: schedules } = useSchedules();
   const { isUpdating, side, setIsUpdating, clearError, setError } = useAppStore();
 
   useEffect(() => {
@@ -137,6 +156,8 @@ function ControlTempPage() {
     return null;
   }
 
+  const currentDay = getAdjustedDayOfWeek(settings.timeZone);
+
   return (
     <PageContainer>
       <Box
@@ -159,6 +180,7 @@ function ControlTempPage() {
       >
         {/* Top navigation */}
         <SideControl title={'Temperature'} />
+        {schedules && <ScheduleStatusBar schedules={schedules} currentDay={currentDay} />}
         <LinkToggle />
         {settings.linkBothSides && settings[(side === 'right' ? 'left' : 'right')].awayMode && (
           <Alert severity="info">
