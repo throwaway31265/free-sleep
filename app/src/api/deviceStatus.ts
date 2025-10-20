@@ -41,3 +41,7 @@ export const postDeviceStatus = (deviceStatus: DeepPartial<DeviceStatus>) => {
 export const postSnoozeAlarm = (side: 'left' | 'right') => {
   return axios.post('/deviceStatus/snooze', { side });
 };
+
+export const dismissPrimeNotification = () => {
+  return axios.post('/deviceStatus/dismissPrimeNotification');
+};

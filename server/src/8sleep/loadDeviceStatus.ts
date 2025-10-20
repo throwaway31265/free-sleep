@@ -147,6 +147,7 @@ export async function loadDeviceStatus(
       humidity: roomClimate.humidity,
       timestamp: roomClimate.timestamp,
     } : undefined,
+    primeCompletedNotification: memoryDB.data.primeCompletedNotification,
     settings: decodeSettings(rawDeviceData.settings),
   };
 }

@@ -1,8 +1,9 @@
-import { postDeviceStatus, useDeviceStatus } from '@api/deviceStatus';
+import { dismissPrimeNotification, postDeviceStatus, useDeviceStatus } from '@api/deviceStatus';
 import { useSchedules } from '@api/schedules';
 import type { DayOfWeek } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings.ts';
 import LeakAlertNotification from '@components/LeakAlertNotification.tsx';
+import PrimeCompleteNotification from '@components/settings/PrimeCompleteNotification.tsx';
 import AlarmDismissal from '@components/temperature/AlarmDismissal.tsx';
 import AwayNotification from '@components/temperature/AwayNotification.tsx';
 import { useControlTempStore } from '@components/temperature/controlTempStore.tsx';
@@ -19,7 +20,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { useAppStore } from '@state/appStore.tsx';
 import { createFileRoute } from '@tanstack/react-router';
 import moment from 'moment-timezone';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import PageContainer from '@/components/shared/PageContainer.tsx';
 import SideControl from '../components/SideControl.tsx';
 
@@ -47,6 +48,7 @@ function ControlTempPage() {
   const { data: settings, isLoading: isLoadingSettings } = useSettings();
   const { data: schedules } = useSchedules();
   const { isUpdating, side, setIsUpdating, clearError, setError } = useAppStore();
+  const [isDismissingPrimeNotification, setIsDismissingPrimeNotification] = useState(false);
 
   useEffect(() => {
     if (!deviceStatusOriginal) return;
@@ -248,6 +250,21 @@ function ControlTempPage() {
           }}
         >
           <AwayNotification settings={settings} />
+          <PrimeCompleteNotification
+            deviceStatus={deviceStatus}
+            onDismiss={async () => {
+              setIsDismissingPrimeNotification(true);
+              try {
+                await dismissPrimeNotification();
+                await refetch();
+              } catch (error) {
+                console.error('Failed to dismiss prime notification:', error);
+              } finally {
+                setIsDismissingPrimeNotification(false);
+              }
+            }}
+            isLoading={isDismissingPrimeNotification}
+          />
           <WaterNotification deviceStatus={deviceStatus} />
           <LeakAlertNotification />
           <AlarmDismissal deviceStatus={deviceStatus} refetch={refetch} />

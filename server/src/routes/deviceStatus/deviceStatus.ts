@@ -3,6 +3,7 @@ import type { DeepPartial } from 'ts-essentials';
 import { z } from 'zod';
 import { getFranken, isFrankReady } from '../../8sleep/frankenServer.js';
 import { getFrankenMonitor } from '../../server.js';
+import memoryDB from '../../db/memoryDB.js';
 import logger from '../../logger.js';
 import {
   type DeviceStatus,
@@ -92,6 +93,19 @@ router.post('/deviceStatus/snooze', async (req: Request, res: Response) => {
     res.status(204).end();
   } catch (error) {
     logger.error('Error snoozing alarm:', error);
+    res.status(500).json({ error });
+  }
+});
+
+router.post('/deviceStatus/dismissPrimeNotification', async (req: Request, res: Response) => {
+  try {
+    await memoryDB.read();
+    memoryDB.data.primeCompletedNotification = undefined;
+    await memoryDB.write();
+    logger.info('Prime completion notification dismissed');
+    res.status(204).end();
+  } catch (error) {
+    logger.error('Error dismissing prime notification:', error);
     res.status(500).json({ error });
   }
 });

@@ -391,8 +391,17 @@ export class FrankenMonitor {
 
     if (!isCurrentlyPriming && this.wasPriming) {
       this.wasPriming = false;
-      settingsDB.data.lastPrime = new Date().toISOString();
+      const completionTime = new Date().toISOString();
+      settingsDB.data.lastPrime = completionTime;
       await settingsDB.write();
+
+      // Set notification flag in memoryDB
+      await memoryDB.read();
+      memoryDB.data.primeCompletedNotification = {
+        timestamp: completionTime,
+      };
+      await memoryDB.write();
+
       logger.info(`[processPrimingState] Priming completed successfully (needsPrime: ${needsPrime})`);
     } else if (isCurrentlyPriming && !this.wasPriming) {
       this.wasPriming = true;

@@ -19,6 +19,9 @@ type MemoryDB = {
   left: SideState;
   right: SideState;
   baseStatus?: BaseStatus;
+  primeCompletedNotification?: {
+    timestamp: string;
+  };
 };
 
 const defaultMemoryDB: MemoryDB = {

@@ -36,6 +36,9 @@ export const DeviceStatusSchema = z
       humidity: z.number().optional(),
       timestamp: z.number().optional(),
     }).optional(),
+    primeCompletedNotification: z.object({
+      timestamp: z.string().datetime(),
+    }).optional(),
     settings: z.object({
       v: z.number(),
       gainLeft: z.number(),
@@ -77,6 +80,9 @@ export const DeviceStatusUpdateSchema = z
       temperatureC: z.number().optional(),
       humidity: z.number().optional(),
       timestamp: z.number().optional(),
+    }).optional(),
+    primeCompletedNotification: z.object({
+      timestamp: z.string().datetime(),
     }).optional(),
     settings: z
       .object({
