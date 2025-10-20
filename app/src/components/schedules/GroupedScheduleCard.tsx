@@ -2,6 +2,7 @@ import type { DayOfWeek } from '@api/schedulesSchema';
 import {
   AccessTime,
   Alarm,
+  Delete,
   Edit,
   Hotel,
   PowerSettingsNew,
@@ -20,6 +21,7 @@ type GroupedScheduleCardProps = {
   onToggleSchedule: (days: DayOfWeek[]) => void;
   onEditDay: (dayIndex: number) => void;
   onEditGroup: (dayIndices: number[]) => void;
+  onDeleteSchedule: (scheduleId: string, days: DayOfWeek[]) => void;
   compact?: boolean;
 };
 
@@ -30,6 +32,7 @@ export default function GroupedScheduleCard({
   onToggleSchedule,
   onEditDay,
   onEditGroup,
+  onDeleteSchedule,
   compact = true,
 }: GroupedScheduleCardProps) {
   const { schedule, days, dayIndices } = group;
@@ -159,6 +162,23 @@ export default function GroupedScheduleCard({
               }}
             >
               <Edit sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete" arrow>
+            <IconButton
+              size="small"
+              onClick={() => onDeleteSchedule(group.scheduleId, days)}
+              sx={{
+                color: '#fff',
+                backgroundColor: 'rgba(244, 67, 54, 0.15)',
+                width: '32px',
+                height: '32px',
+                '&:hover': {
+                  backgroundColor: 'rgba(244, 67, 54, 0.25)',
+                },
+              }}
+            >
+              <Delete sx={{ fontSize: 18 }} />
             </IconButton>
           </Tooltip>
         </Box>

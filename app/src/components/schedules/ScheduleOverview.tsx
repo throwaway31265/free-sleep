@@ -1,4 +1,4 @@
-import { postSchedules } from '@api/schedules';
+import { deleteSchedule, postSchedules } from '@api/schedules';
 import type { DayOfWeek, SchedulesV2 } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings';
 import { Add, Insights, Schedule, TrendingUp } from '@mui/icons-material';
@@ -12,9 +12,11 @@ import {
 } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import moment from 'moment-timezone';
+import { useState } from 'react';
+import ConfirmDialog from '@/components/shared/ConfirmDialog.tsx';
 import { LOWERCASE_DAYS } from './days.ts';
 import GroupedScheduleCard from './GroupedScheduleCard.tsx';
-import { groupSideSchedule } from './scheduleGrouping.ts';
+import { formatGroupedDays, groupSideSchedule } from './scheduleGrouping.ts';
 
 type ScheduleOverviewProps = {
   schedules: SchedulesV2;
@@ -89,6 +91,56 @@ export default function ScheduleOverview({
 
   const currentDayIndex = getCurrentDayIndex(settings.timeZone);
   const currentDay = LOWERCASE_DAYS[currentDayIndex];
+
+  // Delete confirmation dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [scheduleToDelete, setScheduleToDelete] = useState<{
+    scheduleId: string;
+    days: DayOfWeek[];
+  } | null>(null);
+
+  const handleDeleteSchedule = async (scheduleId: string, days: DayOfWeek[]) => {
+    // Show confirmation dialog
+    setScheduleToDelete({ scheduleId, days });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!scheduleToDelete) return;
+
+    setDeleteDialogOpen(false);
+    setIsUpdating(true);
+    clearError();
+
+    try {
+      await deleteSchedule(side, scheduleToDelete.scheduleId);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      onRefresh();
+    } catch (error: any) {
+      console.error('Failed to delete schedule:', error);
+
+      let errorMessage = 'Failed to delete schedule';
+
+      if (error.response?.status === 404) {
+        errorMessage = 'Schedule not found. It may have already been deleted.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error. Please try again in a moment.';
+      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+        errorMessage =
+          'Network error. Please check your connection and try again.';
+      }
+
+      setError(errorMessage);
+    } finally {
+      setIsUpdating(false);
+      setScheduleToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setScheduleToDelete(null);
+  };
 
   const handleToggleSchedule = async (days: DayOfWeek[]) => {
     setIsUpdating(true);
@@ -439,6 +491,7 @@ export default function ScheduleOverview({
                   onEditGroup={(dayIndices) =>
                     onEditGroup(group.scheduleId, dayIndices)
                   }
+                  onDeleteSchedule={handleDeleteSchedule}
                 />
               ))}
             </>
@@ -492,6 +545,7 @@ export default function ScheduleOverview({
                   onEditGroup={(dayIndices) =>
                     onEditGroup(group.scheduleId, dayIndices)
                   }
+                  onDeleteSchedule={handleDeleteSchedule}
                 />
               ))}
             </>
@@ -521,6 +575,22 @@ export default function ScheduleOverview({
       >
         <Add sx={{ fontSize: { xs: 28, sm: 24 } }} />
       </Fab>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title="Delete Schedule?"
+        message={
+          scheduleToDelete
+            ? `Are you sure you want to delete this schedule? The following ${scheduleToDelete.days.length > 1 ? 'days' : 'day'} will be set to a disabled default schedule: ${formatGroupedDays(scheduleToDelete.days)}`
+            : ''
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmColor="error"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </Box>
   );
 }

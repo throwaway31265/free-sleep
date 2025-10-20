@@ -213,4 +213,89 @@ router.post('/schedules', async (req: Request, res: Response) => {
   res.status(200).json(schedulesDB.data);
 });
 
+router.delete(
+  '/schedules/:side/:scheduleId',
+  async (req: Request, res: Response) => {
+    const { side, scheduleId } = req.params;
+    const typedSide = side as Side;
+
+    await schedulesDB.read();
+
+    // Validate side and schedule existence
+    if (!schedulesDB.data[typedSide]) {
+      res.status(400).json({ error: 'Invalid side parameter' });
+      return;
+    }
+
+    if (
+      !schedulesDB.data[typedSide].schedules ||
+      !schedulesDB.data[typedSide].schedules![scheduleId]
+    ) {
+      res.status(404).json({ error: 'Schedule not found' });
+      return;
+    }
+
+    // Find days assigned to this schedule
+    const assignments = schedulesDB.data[typedSide].assignments!;
+    const affectedDays: DayOfWeek[] = (
+      Object.entries(assignments) as [DayOfWeek, string][]
+    )
+      .filter(([_, id]) => id === scheduleId)
+      .map(([day]) => day);
+
+    logger.info(
+      `Deleting schedule ${scheduleId} from ${typedSide} side (affects ${affectedDays.length} days: ${affectedDays.join(', ')})`,
+    );
+
+    // Create disabled default schedule for affected days
+    const defaultSchedule: DailySchedule = {
+      temperatures: {},
+      power: {
+        on: '21:00',
+        off: '09:00',
+        enabled: false,
+        onTemperature: 82,
+      },
+      alarm: {
+        time: '09:00',
+        vibrationIntensity: 1,
+        vibrationPattern: 'rise',
+        duration: 1,
+        enabled: false,
+        alarmTemperature: 82,
+      },
+      elevations: {},
+    };
+
+    // Remove the schedule entity
+    delete schedulesDB.data[typedSide].schedules![scheduleId];
+
+    // Create new individual entities for each affected day
+    // This gives users flexibility to configure each day differently later
+    affectedDays.forEach((day) => {
+      const newId = randomUUID();
+      schedulesDB.data[typedSide].schedules![newId] = {
+        id: newId,
+        data: _.cloneDeep(defaultSchedule),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      schedulesDB.data[typedSide].assignments![day] = newId;
+    });
+
+    // Sync to legacy days field
+    const syncedDays = syncDaysFromEntities(
+      schedulesDB.data[typedSide].schedules!,
+      schedulesDB.data[typedSide].assignments!,
+    );
+    Object.assign(schedulesDB.data[typedSide], syncedDays);
+
+    await schedulesDB.write();
+    logger.info(
+      `Successfully deleted schedule ${scheduleId}, created ${affectedDays.length} new default schedules`,
+    );
+    res.status(200).json(schedulesDB.data);
+  },
+);
+
 export default router;
