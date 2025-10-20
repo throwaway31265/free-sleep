@@ -54,14 +54,17 @@ export default function TemperatureButtons({
     const timer = setTimeout(async () => {
       setIsUpdating(true);
       clearError(); // Clear any previous errors
+      // Send everything, but set isOn to true (adjusting temperature implies wanting it on)
       const payload: any = {
         [side]: {
-          targetTemperatureF: deviceStatus[side].targetTemperatureF,
+          ...deviceStatus[side],
+          isOn: true,
         },
       };
-      if (linkBoth) {
+      if (linkBoth && deviceStatus[otherSide]) {
         payload[otherSide] = {
-          targetTemperatureF: deviceStatus[side].targetTemperatureF,
+          ...deviceStatus[otherSide],
+          isOn: true,
         };
       }
       await postDeviceStatus(payload)

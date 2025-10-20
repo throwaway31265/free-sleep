@@ -51,13 +51,19 @@ export default function Slider({
 
     setIsUpdating(true);
     clearError(); // Clear any previous errors
+    // Send everything, but set isOn to true (adjusting temperature implies wanting it on)
+    const payload: any = {
+      [side]: {
+        ...deviceStatus[side],
+        isOn: true,
+      },
+    };
     // If link is enabled, mirror update to the other side as well
-    const payload = { ...deviceStatus } as any;
-    if (linkBoth) {
-      const t = deviceStatus?.[side]?.targetTemperatureF;
-      if (t !== undefined) {
-        payload[otherSide] = { targetTemperatureF: t };
-      }
+    if (linkBoth && deviceStatus[otherSide]) {
+      payload[otherSide] = {
+        ...deviceStatus[otherSide],
+        isOn: true,
+      };
     }
     await postDeviceStatus(payload)
       .then(() => {

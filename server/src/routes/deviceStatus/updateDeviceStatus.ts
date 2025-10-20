@@ -25,14 +25,17 @@ const updateSide = async (
   if (isAway) {
     const { isOn, targetTemperatureF, secondsRemaining, isAlarmVibrating } =
       sideStatus;
-    const attemptingUnsafeChange =
-      (isOn !== undefined && isOn !== false) ||
-      targetTemperatureF !== undefined ||
-      secondsRemaining !== undefined;
-    if (attemptingUnsafeChange) {
-      throw new Error(
-        `${side.charAt(0).toUpperCase() + side.slice(1)} side is in away mode, not updating side`,
-      );
+    // Don't block if explicitly turning off (isOn: false) - that's a safe operation
+    if (isOn !== false) {
+      const attemptingUnsafeChange =
+        isOn !== undefined ||
+        targetTemperatureF !== undefined ||
+        secondsRemaining !== undefined;
+      if (attemptingUnsafeChange) {
+        throw new Error(
+          `${side.charAt(0).toUpperCase() + side.slice(1)} side is in away mode, not updating side`,
+        );
+      }
     }
     // Allow turning off and clearing alarms below
   }
