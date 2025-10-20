@@ -8,6 +8,7 @@ import AwayNotification from '@components/temperature/AwayNotification.tsx';
 import { useControlTempStore } from '@components/temperature/controlTempStore.tsx';
 import PowerButton from '@components/temperature/PowerButton.tsx';
 import ScheduleStatusBar from '@components/temperature/ScheduleStatusBar.tsx';
+import SideStatusIndicators from '@components/temperature/SideStatusIndicators.tsx';
 import Slider from '@components/temperature/Slider.tsx';
 import LinkToggle from '@components/temperature/LinkToggle.tsx';
 import WaterNotification from '@components/temperature/WaterNotification.tsx';
@@ -180,6 +181,7 @@ function ControlTempPage() {
       >
         {/* Top navigation */}
         <SideControl title={'Temperature'} />
+        <SideStatusIndicators deviceStatus={deviceStatus} settings={settings} />
         {schedules && <ScheduleStatusBar schedules={schedules} currentDay={currentDay} />}
         <LinkToggle />
         {settings.linkBothSides && settings[(side === 'right' ? 'left' : 'right')].awayMode && (
