@@ -154,6 +154,26 @@ export default function ScheduleOverview({
       return;
     }
 
+    // Find which days are assigned to this schedule
+    const assignments = sideSchedules.assignments;
+    if (!assignments) {
+      setError('Schedule assignments not found. Please refresh and try again.');
+      setIsUpdating(false);
+      return;
+    }
+
+    const assignedDays: DayOfWeek[] = (
+      Object.entries(assignments) as [DayOfWeek, string][]
+    )
+      .filter(([_, id]) => id === scheduleId)
+      .map(([day]) => day);
+
+    if (assignedDays.length === 0) {
+      setError('No days assigned to this schedule. Please refresh and try again.');
+      setIsUpdating(false);
+      return;
+    }
+
     const newEnabledState = !scheduleEntity.data.power.enabled;
 
     // Use V2 updateGroup operation to update the entity
@@ -161,6 +181,7 @@ export default function ScheduleOverview({
       operation: 'updateGroup',
       side,
       scheduleId,
+      days: assignedDays,
       schedule: {
         ...scheduleEntity.data,
         power: {
