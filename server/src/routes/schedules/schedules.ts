@@ -108,10 +108,10 @@ router.post('/schedules', async (req: Request, res: Response) => {
   }
 
   if (operation === 'updateGroup') {
-    // Update existing schedule entity
-    const { side, scheduleId, schedule } = body;
+    // Update existing schedule entity and reassign days
+    const { side, scheduleId, days, schedule } = body;
 
-    if (!side || !scheduleId || !schedule) {
+    if (!side || !scheduleId || !days || !schedule) {
       res.status(400).json({ error: 'Missing required fields for updateGroup operation' });
       return;
     }
@@ -127,6 +127,11 @@ router.post('/schedules', async (req: Request, res: Response) => {
     schedulesDB.data[typedSide].schedules![scheduleId].data = schedule;
     schedulesDB.data[typedSide].schedules![scheduleId].updatedAt = Date.now();
 
+    // Reassign days to this schedule (allow changing which days use this schedule)
+    days.forEach((day: DayOfWeek) => {
+      schedulesDB.data[typedSide].assignments![day] = scheduleId;
+    });
+
     // Sync to legacy days field
     const syncedDays = syncDaysFromEntities(
       schedulesDB.data[typedSide].schedules!,
@@ -135,7 +140,7 @@ router.post('/schedules', async (req: Request, res: Response) => {
     Object.assign(schedulesDB.data[typedSide], syncedDays);
 
     await schedulesDB.write();
-    logger.info(`Updated schedule entity ${scheduleId}`);
+    logger.info(`Updated schedule entity ${scheduleId} for ${days.join(', ')}`);
     res.status(200).json(schedulesDB.data);
     return;
   }

@@ -16,12 +16,10 @@ function ScheduleEditPage() {
   const { setOriginalSchedules, loadScheduleForEditing } = useScheduleStore();
 
   useEffect(() => {
-    if (!schedules) return;
-    setOriginalSchedules(schedules);
-  }, [schedules, setOriginalSchedules]);
-
-  useEffect(() => {
     if (!schedules || !scheduleId) return;
+
+    // First, set original schedules in the store
+    setOriginalSchedules(schedules);
 
     const sideSchedules = schedules[side];
 
@@ -53,9 +51,9 @@ function ScheduleEditPage() {
       return;
     }
 
-    // Load the schedule for editing
+    // Load the schedule for editing (now originalSchedules is guaranteed to be set)
     loadScheduleForEditing(scheduleId, assignedDays);
-  }, [schedules, scheduleId, side, loadScheduleForEditing, navigate]);
+  }, [schedules, scheduleId, side, setOriginalSchedules, loadScheduleForEditing, navigate]);
 
   const handleBack = () => {
     navigate({ to: '/schedules' });

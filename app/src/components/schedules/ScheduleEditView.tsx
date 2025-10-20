@@ -16,7 +16,6 @@ import {
 } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import _ from 'lodash';
-import { useEffect } from 'react';
 import AlarmAccordion from './AlarmAccordion.tsx';
 import ElevationAdjustmentsAccordion from './ElevationAdjustmentsAccordion.tsx';
 import EnabledSwitch from './EnabledSwitch.tsx';
@@ -38,7 +37,6 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
   const {
     selectedSchedule,
     selectedDays,
-    reloadScheduleData,
     isValid,
     currentScheduleId,
     isCreatingNew,
@@ -48,9 +46,10 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  useEffect(() => {
-    reloadScheduleData();
-  }, [side]);
+  // Note: Data loading is now handled by the routes:
+  // - /schedules/new calls createBlankSchedule()
+  // - /schedules/$scheduleId calls loadScheduleForEditing()
+  // So we don't need to reload data here
 
   const handleSave = async () => {
     setIsUpdating(true);
