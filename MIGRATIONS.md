@@ -136,6 +136,21 @@ sudo systemctl start free-sleep free-sleep-stream
 - **Cause**: Services are running or database has active connections
 - **Solution**: Use the migration wrapper script (`migrate.sh`) which handles this automatically
 
+#### "migrations are applied to the database but missing from the local migrations directory"
+- **Cause**: Your local code is out of sync with the database migrations
+- **Solution**: Run the sync helper script:
+  ```bash
+  bun run migrate:sync
+  ```
+  This will guide you through:
+  1. Pulling latest code to get missing migration files (recommended)
+  2. Manually marking migrations as applied (advanced)
+
+  Or check migration status first:
+  ```bash
+  bun run migrate:status
+  ```
+
 #### "Migration failed"
 - **Cause**: Various - syntax error, constraint violation, etc.
 - **Solution**: Check the error message carefully. The wrapper script will still restart services even if migration fails.
@@ -176,16 +191,19 @@ This calls `migrate.sh` with "deploy" as the migration name.
 
 ### Prisma Commands
 
-Other useful Prisma commands (run these when services are stopped):
+Other useful Prisma commands:
 
 ```bash
 # Generate Prisma Client
 bun run generate
 
 # View migration status
-dotenv -e .env.pod -- bun x prisma migrate status
+bun run migrate:status
 
-# Reset database (⚠️ DESTROYS ALL DATA)
+# Fix migration sync issues (interactive)
+bun run migrate:sync
+
+# Reset database (⚠️ DESTROYS ALL DATA - services must be stopped)
 bun run migrate:reset
 ```
 
@@ -195,8 +213,11 @@ bun run migrate:reset
 
 | Script | Description | Environment |
 |--------|-------------|-------------|
+| `bun run migrate <name>` | Run migration with wrapper (requires name argument) | Pod |
 | `bun run migrate:deploy` | Run "deploy" migration safely | Pod |
-| `bun run migrate:local` | Run migration locally | Local |
+| `bun run migrate:local <name>` | Run migration locally | Local |
+| `bun run migrate:status` | Check migration status | Pod |
+| `bun run migrate:sync` | Fix migration sync issues (interactive) | Pod |
 | `bun run migrate:direct <name>` | Run Prisma directly (⚠️ manual service stop required) | Pod |
 | `bun run migrate:reset` | Reset database (⚠️ DESTROYS DATA) | Pod |
 | `bun run generate` | Generate Prisma Client | Both |

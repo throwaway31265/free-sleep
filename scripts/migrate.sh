@@ -25,6 +25,9 @@ ENVIRONMENT="${2:-pod}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SERVER_DIR="$(cd "$SCRIPT_DIR/../server" && pwd)"
 
+# Array to track which services were actually stopped
+declare -a STOPPED_SERVICES=()
+
 echo "==================================================================="
 echo "           Free Sleep Database Migration"
 echo "==================================================================="
@@ -60,7 +63,7 @@ is_pod_environment() {
   return 1
 }
 
-# Function to stop services
+# Function to stop services and track which ones were stopped
 stop_services() {
   echo -e "${YELLOW}Stopping Free Sleep services to release database locks...${NC}"
 
@@ -70,6 +73,10 @@ stop_services() {
     if systemctl list-units --full --all 2>/dev/null | grep -q "${service}\.service"; then
       if systemctl is-active "$service" >/dev/null 2>&1; then
         echo "Stopping $service service..."
+
+        # Track that this service was running
+        STOPPED_SERVICES+=("$service")
+
         sudo systemctl stop "$service" || true
 
         # Wait for service to fully stop
@@ -87,8 +94,10 @@ stop_services() {
 
         echo -e "${GREEN}✓ $service stopped${NC}"
       else
-        echo "$service is not running"
+        echo "$service is not running (will not be restarted)"
       fi
+    else
+      echo "$service.service does not exist"
     fi
   done
 
@@ -98,26 +107,28 @@ stop_services() {
   echo ""
 }
 
-# Function to start services
+# Function to start only the services that were stopped
 start_services() {
   echo ""
-  echo -e "${YELLOW}Starting Free Sleep services...${NC}"
 
-  local services=("free-sleep" "free-sleep-stream")
+  if [ ${#STOPPED_SERVICES[@]} -eq 0 ]; then
+    echo -e "${GREEN}No services need to be restarted${NC}"
+    return 0
+  fi
 
-  for service in "${services[@]}"; do
-    if systemctl list-units --full --all 2>/dev/null | grep -q "${service}\.service"; then
-      echo "Starting $service service..."
-      sudo systemctl start "$service" || echo -e "${YELLOW}Warning: Failed to start $service${NC}"
+  echo -e "${YELLOW}Starting Free Sleep services that were stopped...${NC}"
 
-      # Give it a moment to start
-      sleep 1
+  for service in "${STOPPED_SERVICES[@]}"; do
+    echo "Starting $service service..."
+    sudo systemctl start "$service" || echo -e "${YELLOW}Warning: Failed to start $service${NC}"
 
-      if systemctl is-active "$service" >/dev/null 2>&1; then
-        echo -e "${GREEN}✓ $service started${NC}"
-      else
-        echo -e "${YELLOW}⚠ $service may not have started correctly${NC}"
-      fi
+    # Give it a moment to start
+    sleep 1
+
+    if systemctl is-active "$service" >/dev/null 2>&1; then
+      echo -e "${GREEN}✓ $service started${NC}"
+    else
+      echo -e "${YELLOW}⚠ $service may not have started correctly${NC}"
     fi
   done
 }
@@ -132,6 +143,38 @@ run_migration() {
 
   cd "$SERVER_DIR"
 
+  # Check if migration files exist but are out of sync
+  if [ -d "prisma/migrations" ]; then
+    echo -e "${YELLOW}Checking migration status...${NC}"
+
+    # Try to get migration status (this might fail if out of sync)
+    if ! bun run dotenv -e "$env_file" -- bun x prisma migrate status 2>&1 | tee /tmp/migrate_status.txt; then
+      if grep -q "missing from the local migrations directory" /tmp/migrate_status.txt; then
+        echo ""
+        echo -e "${RED}ERROR: Local migrations are out of sync with database${NC}"
+        echo ""
+        echo "This usually happens when:"
+        echo "  1. Working on a different branch with different migrations"
+        echo "  2. Database was migrated separately from code"
+        echo "  3. Migration files were deleted locally"
+        echo ""
+        echo "Solutions:"
+        echo ""
+        echo "  1. Pull latest code to get missing migration files:"
+        echo -e "     ${GREEN}git pull origin main${NC}"
+        echo ""
+        echo "  2. If you're sure local migrations are correct, reset database (⚠️ DESTROYS DATA):"
+        echo -e "     ${GREEN}bun run migrate:reset${NC}"
+        echo ""
+        echo "  3. Manually sync migrations from database:"
+        echo -e "     ${GREEN}bun x prisma migrate resolve --applied <migration_name>${NC}"
+        echo ""
+        return 1
+      fi
+    fi
+    echo ""
+  fi
+
   # Run the migration with the appropriate env file
   if bun run dotenv -e "$env_file" -- bun x prisma migrate dev --name "$MIGRATION_NAME"; then
     echo ""
@@ -145,7 +188,7 @@ run_migration() {
 }
 
 # Main logic
-SERVICES_WERE_STOPPED=false
+MIGRATION_SUCCEEDED=false
 
 # Determine environment and handle accordingly
 if [ "$ENVIRONMENT" = "local" ]; then
@@ -153,7 +196,9 @@ if [ "$ENVIRONMENT" = "local" ]; then
   echo "Services will not be stopped"
   echo ""
 
-  run_migration ".env.local"
+  if run_migration ".env.local"; then
+    MIGRATION_SUCCEEDED=true
+  fi
 
 elif is_pod_environment; then
   echo -e "${GREEN}Detected pod environment with systemd services${NC}"
@@ -161,11 +206,11 @@ elif is_pod_environment; then
 
   # Stop services before migration
   stop_services
-  SERVICES_WERE_STOPPED=true
 
   # Run migration
   if run_migration ".env.pod"; then
-    # Migration succeeded, restart services
+    MIGRATION_SUCCEEDED=true
+    # Migration succeeded, restart services that were stopped
     start_services
   else
     # Migration failed, still try to restart services
@@ -180,19 +225,32 @@ else
   echo ""
 
   # Assume local environment
-  run_migration ".env.pod"
+  if run_migration ".env.pod"; then
+    MIGRATION_SUCCEEDED=true
+  fi
 fi
 
 echo ""
 echo "==================================================================="
-echo -e "${GREEN}Migration process complete!${NC}"
+if [ "$MIGRATION_SUCCEEDED" = true ]; then
+  echo -e "${GREEN}Migration completed successfully!${NC}"
+else
+  echo -e "${RED}Migration failed. Check the error messages above.${NC}"
+fi
 echo "==================================================================="
 
 # Show service status if we stopped them
-if [ "$SERVICES_WERE_STOPPED" = true ]; then
+if [ ${#STOPPED_SERVICES[@]} -gt 0 ]; then
   echo ""
-  echo "Current service status:"
-  systemctl status free-sleep --no-pager --lines=0 || true
+  echo "Service status:"
+  for service in "${STOPPED_SERVICES[@]}"; do
+    systemctl status "$service" --no-pager --lines=0 || true
+  done
 fi
 
-exit 0
+# Exit with appropriate code
+if [ "$MIGRATION_SUCCEEDED" = true ]; then
+  exit 0
+else
+  exit 1
+fi

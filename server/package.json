@@ -14,6 +14,8 @@
     "migrate:deploy": "bash ../scripts/migrate.sh deploy",
     "migrate:reset": "dotenv -e .env.pod -- bun x prisma migrate reset",
     "migrate:direct": "dotenv -e .env.pod -- bun x prisma migrate dev --name ",
+    "migrate:sync": "bash ../scripts/sync_migrations.sh",
+    "migrate:status": "dotenv -e .env.pod -- bun x prisma migrate status",
     "migrate:local": "bash ../scripts/migrate.sh",
     "generate": "dotenv -e .env.pod -- bun x prisma generate",
     "generate:local": "dotenv -e .env.local -- bun x prisma generate",
