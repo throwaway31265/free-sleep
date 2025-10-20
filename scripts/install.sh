@@ -157,7 +157,7 @@ check_and_store_service_status() {
 stop_services_for_installation() {
   echo "Stopping Free Sleep services for installation..."
 
-  local services=("free-sleep" "free-sleep-stream")
+  local services=("free-sleep" "free-sleep-stream" "free-sleep-ambient-light")
 
   for service in "${services[@]}"; do
     if systemctl list-units --full --all | grep -q "${service}\.service"; then
@@ -187,6 +187,7 @@ stop_services_for_installation() {
 start_services_after_installation() {
   systemctl start free-sleep || echo "Failed to start free-sleep service"
   systemctl start free-sleep-stream || echo "Failed to start free-sleep-stream service"
+  systemctl start free-sleep-ambient-light || echo "Failed to start free-sleep-ambient-light service"
 }
 
 echo "==================================================================="
@@ -201,6 +202,7 @@ BRANCH=${BRANCH:-main}
 echo "Checking current service status..."
 check_and_store_service_status "free-sleep" "FREE_SLEEP_PREVIOUS_STATUS"
 check_and_store_service_status "free-sleep-stream" "FREE_SLEEP_STREAM_PREVIOUS_STATUS"
+check_and_store_service_status "free-sleep-ambient-light" "FREE_SLEEP_AMBIENT_LIGHT_PREVIOUS_STATUS"
 echo ""
 
 # Stop services before installation to prevent conflicts
@@ -564,6 +566,15 @@ fi
 
 echo "Current service status after update:"
 systemctl status free-sleep.service --no-pager || true
+
+# --------------------------------------------------------------------------------
+# Setup ambient light sensor service
+echo "Setting up ambient light sensor monitoring service..."
+if [ -f "$REPO_DIR/scripts/setup_ambient_light_service.sh" ]; then
+  bash "$REPO_DIR/scripts/setup_ambient_light_service.sh" || echo "Failed to setup ambient light service"
+else
+  echo "Ambient light service setup script not found, skipping..."
+fi
 
 echo "Configuring system time synchronization..."
 

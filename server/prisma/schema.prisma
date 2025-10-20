@@ -63,3 +63,11 @@ model leak_alerts {
 
   @@index([timestamp])
 }
+
+model ambient_light_readings {
+  id        Int   @id @default(autoincrement())
+  timestamp Int // Unix timestamp
+  lux       Float // Light level in lux from OPT4001 sensor
+
+  @@index([timestamp])
+}

@@ -5,6 +5,7 @@ import baseControl from '../routes/baseControl/baseControl.js';
 import deviceStatus from '../routes/deviceStatus/deviceStatus.js';
 import execute from '../routes/execute/execute.js';
 import logs from '../routes/logs/logs.js';
+import ambientLight from '../routes/metrics/ambientLight.js';
 import sleep from '../routes/metrics/sleep.js';
 import vitals from '../routes/metrics/vitals.js';
 import schedules from '../routes/schedules/schedules.js';
@@ -23,6 +24,7 @@ export default function (app: Express) {
   app.use('/api/', settings);
   app.use('/api/', version);
   app.use('/api/', waterLevel);
+  app.use('/api/metrics/', ambientLight);
   app.use('/api/metrics/', sleep);
   app.use('/api/metrics/', vitals);
   app.use('/api/logs', logs);

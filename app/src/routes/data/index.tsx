@@ -1,7 +1,9 @@
+import { useLatestAmbientLight } from '@api/ambientLight.ts';
 import { useSleepRecords } from '@api/sleep.ts';
 import { useVitalsSummary } from '@api/vitals.ts';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import BedIcon from '@mui/icons-material/Bed';
+import LightModeIcon from '@mui/icons-material/LightMode';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import {
   Alert,
@@ -213,6 +215,53 @@ const RecentVitalsCard = () => {
   );
 };
 
+const AmbientLightCard = () => {
+  const navigate = useNavigate();
+  const { data: latestReading, isLoading } = useLatestAmbientLight();
+
+  return (
+    <SectionCard title="Ambient Light" subheader="Current light level">
+      {isLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+          <CircularProgress />
+        </Box>
+      ) : !latestReading ? (
+        <Alert severity="info">No ambient light data available</Alert>
+      ) : (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="h4" color="primary">
+              {latestReading.lux.toFixed(2)}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              lux
+            </Typography>
+          </Box>
+
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              {latestReading.lux < 10 ? '🌙 Dark' :
+               latestReading.lux < 50 ? '🌆 Dim' :
+               latestReading.lux < 300 ? '💡 Indoor' :
+               latestReading.lux < 1000 ? '🏙️ Bright' : '☀️ Very Bright'}
+            </Typography>
+          </Box>
+
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => navigate({ to: '/data/ambient-light' })}
+            endIcon={<ArrowForwardIosIcon />}
+            sx={{ alignSelf: 'flex-start' }}
+          >
+            View History
+          </Button>
+        </Box>
+      )}
+    </SectionCard>
+  );
+};
+
 const QuickActions = () => {
   const navigate = useNavigate();
 
@@ -233,6 +282,26 @@ const QuickActions = () => {
               <Typography variant="body1">Sleep Analysis</Typography>
               <Typography variant="caption" color="text.secondary">
                 Detailed sleep charts and trends
+              </Typography>
+            </Box>
+          </Box>
+          <ArrowForwardIosIcon fontSize="small" />
+        </Button>
+
+        <Button
+          variant="outlined"
+          fullWidth
+          startIcon={<LightModeIcon />}
+          endIcon={<ArrowForwardIosIcon />}
+          onClick={() => navigate({ to: '/data/ambient-light' })}
+          sx={{ justifyContent: 'space-between' }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <LightModeIcon />
+            <Box sx={{ textAlign: 'left' }}>
+              <Typography variant="body1">Ambient Light</Typography>
+              <Typography variant="caption" color="text.secondary">
+                Light level monitoring
               </Typography>
             </Box>
           </Box>
@@ -305,6 +374,7 @@ function DataPage() {
       >
         <RecentSleepCard />
         <RecentVitalsCard />
+        <AmbientLightCard />
         <QuickActions />
       </Box>
     </PageContainer>

@@ -21,6 +21,7 @@ import { Route as SchedulesScheduleIdRouteImport } from './routes/schedules/$sch
 import { Route as DataVitalsRouteImport } from './routes/data/vitals'
 import { Route as DataSleepRouteImport } from './routes/data/sleep'
 import { Route as DataLogsRouteImport } from './routes/data/logs'
+import { Route as DataAmbientLightRouteImport } from './routes/data/ambient-light'
 
 const WaterLevelRoute = WaterLevelRouteImport.update({
   id: '/water-level',
@@ -82,6 +83,11 @@ const DataLogsRoute = DataLogsRouteImport.update({
   path: '/data/logs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DataAmbientLightRoute = DataAmbientLightRouteImport.update({
+  id: '/data/ambient-light',
+  path: '/data/ambient-light',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/temperature': typeof TemperatureRoute
   '/water-level': typeof WaterLevelRoute
+  '/data/ambient-light': typeof DataAmbientLightRoute
   '/data/logs': typeof DataLogsRoute
   '/data/sleep': typeof DataSleepRoute
   '/data/vitals': typeof DataVitalsRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/temperature': typeof TemperatureRoute
   '/water-level': typeof WaterLevelRoute
+  '/data/ambient-light': typeof DataAmbientLightRoute
   '/data/logs': typeof DataLogsRoute
   '/data/sleep': typeof DataSleepRoute
   '/data/vitals': typeof DataVitalsRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/temperature': typeof TemperatureRoute
   '/water-level': typeof WaterLevelRoute
+  '/data/ambient-light': typeof DataAmbientLightRoute
   '/data/logs': typeof DataLogsRoute
   '/data/sleep': typeof DataSleepRoute
   '/data/vitals': typeof DataVitalsRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/temperature'
     | '/water-level'
+    | '/data/ambient-light'
     | '/data/logs'
     | '/data/sleep'
     | '/data/vitals'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/temperature'
     | '/water-level'
+    | '/data/ambient-light'
     | '/data/logs'
     | '/data/sleep'
     | '/data/vitals'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/temperature'
     | '/water-level'
+    | '/data/ambient-light'
     | '/data/logs'
     | '/data/sleep'
     | '/data/vitals'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   TemperatureRoute: typeof TemperatureRoute
   WaterLevelRoute: typeof WaterLevelRoute
+  DataAmbientLightRoute: typeof DataAmbientLightRoute
   DataLogsRoute: typeof DataLogsRoute
   DataSleepRoute: typeof DataSleepRoute
   DataVitalsRoute: typeof DataVitalsRoute
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DataLogsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/data/ambient-light': {
+      id: '/data/ambient-light'
+      path: '/data/ambient-light'
+      fullPath: '/data/ambient-light'
+      preLoaderRoute: typeof DataAmbientLightRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -281,6 +301,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   TemperatureRoute: TemperatureRoute,
   WaterLevelRoute: WaterLevelRoute,
+  DataAmbientLightRoute: DataAmbientLightRoute,
   DataLogsRoute: DataLogsRoute,
   DataSleepRoute: DataSleepRoute,
   DataVitalsRoute: DataVitalsRoute,
