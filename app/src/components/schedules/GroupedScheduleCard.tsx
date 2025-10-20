@@ -18,7 +18,7 @@ type GroupedScheduleCardProps = {
   group: ScheduleGroup;
   currentDay: DayOfWeek;
   displayCelsius: boolean;
-  onToggleSchedule: (days: DayOfWeek[]) => void;
+  onToggleSchedule: (scheduleId: string) => void;
   onEditDay: (dayIndex: number) => void;
   onEditGroup: (dayIndices: number[]) => void;
   onDeleteSchedule: (scheduleId: string, days: DayOfWeek[]) => void;
@@ -125,7 +125,7 @@ export default function GroupedScheduleCard({
           <Tooltip title={isEnabled ? 'Disable' : 'Enable'} arrow>
             <IconButton
               size="small"
-              onClick={() => onToggleSchedule(days)}
+              onClick={() => onToggleSchedule(group.scheduleId)}
               sx={{
                 color: '#fff',
                 backgroundColor: isEnabled

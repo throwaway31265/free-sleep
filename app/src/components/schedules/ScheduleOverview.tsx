@@ -142,29 +142,33 @@ export default function ScheduleOverview({
     setScheduleToDelete(null);
   };
 
-  const handleToggleSchedule = async (days: DayOfWeek[]) => {
+  const handleToggleSchedule = async (scheduleId: string) => {
     setIsUpdating(true);
     clearError(); // Clear any previous errors
 
-    // Get the first day's schedule to determine the new enabled state
-    const firstDaySchedule = sideSchedules[days[0]];
-    const newEnabledState = !firstDaySchedule.power.enabled;
+    // Get the schedule entity to determine current enabled state
+    const scheduleEntity = sideSchedules.schedules?.[scheduleId];
+    if (!scheduleEntity) {
+      setError('Schedule not found. Please refresh and try again.');
+      setIsUpdating(false);
+      return;
+    }
 
+    const newEnabledState = !scheduleEntity.data.power.enabled;
+
+    // Use V2 updateGroup operation to update the entity
     const payload = {
-      [side]: {} as Record<DayOfWeek, any>,
-    };
-
-    // Apply the toggle to all days in the group
-    days.forEach((dayKey) => {
-      const schedule = sideSchedules[dayKey];
-      payload[side][dayKey] = {
-        ...schedule,
+      operation: 'updateGroup',
+      side,
+      scheduleId,
+      schedule: {
+        ...scheduleEntity.data,
         power: {
-          ...schedule.power,
+          ...scheduleEntity.data.power,
           enabled: newEnabledState,
         },
-      };
-    });
+      },
+    };
 
     try {
       await postSchedules(payload);
@@ -183,6 +187,8 @@ export default function ScheduleOverview({
           errorMessage =
             'Invalid schedule settings. Please check the configuration and try again.';
         }
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Schedule not found. It may have been deleted.';
       } else if (error.response?.status === 500) {
         errorMessage = 'Server error. Please try again in a moment.';
       } else if (error.code === 'NETWORK_ERROR' || !error.response) {
