@@ -32,6 +32,10 @@ def monitor_ambient_light():
     logger.info('Starting continuous ambient light monitoring')
     logger.info(f'Reading interval: {READING_INTERVAL} seconds')
 
+    consecutive_failures = 0
+    last_success_time = None
+    sensor_was_failing = False
+
     while True:
         try:
             # Read lux value
@@ -43,17 +47,55 @@ def monitor_ambient_light():
                 success = insert_lux_reading(DB_PATH, timestamp, lux)
 
                 if success:
-                    logger.info(f'Recorded: {lux:.2f} lux')
+                    # Check if sensor recovered from failure
+                    if sensor_was_failing:
+                        logger.info(f'Sensor recovered! Recorded: {lux:.2f} lux (after {consecutive_failures} failures)')
+                        sensor_was_failing = False
+                    else:
+                        logger.info(f'Recorded: {lux:.2f} lux')
+
+                    consecutive_failures = 0
+                    last_success_time = time.time()
                 else:
                     logger.warning(f'Failed to store reading: {lux:.2f} lux')
             else:
-                logger.error('Failed to read lux value from sensor')
+                consecutive_failures += 1
+                sensor_was_failing = True
+
+                # Log with appropriate level based on failure count
+                if consecutive_failures <= 3:
+                    logger.error(f'Failed to read lux value from sensor (failure #{consecutive_failures})')
+                    if consecutive_failures == 1:
+                        logger.error(
+                            'Troubleshooting tips:\n'
+                            '  - Check I2C connections (SDA/SCL/GND/VCC)\n'
+                            '  - Verify sensor power supply\n'
+                            '  - Check I2C permissions: sudo usermod -a -G i2c $USER\n'
+                            '  - Test I2C bus: i2cdetect -y 1'
+                        )
+                else:
+                    # Reduce log spam after initial failures
+                    logger.debug(f'Failed to read lux value from sensor (failure #{consecutive_failures})')
 
         except Exception as e:
+            consecutive_failures += 1
             logger.error(f'Error in monitoring loop: {e}')
 
+        # Calculate wait interval with exponential backoff
+        if consecutive_failures == 0:
+            wait_interval = READING_INTERVAL
+        elif consecutive_failures < 3:
+            wait_interval = READING_INTERVAL
+        elif consecutive_failures < 10:
+            wait_interval = 300  # 5 minutes
+        else:
+            wait_interval = 1800  # 30 minutes
+
+        if consecutive_failures > 0 and consecutive_failures % 5 == 0:
+            logger.info(f'Waiting {wait_interval}s before retry (consecutive failures: {consecutive_failures})')
+
         # Wait before next reading
-        time.sleep(READING_INTERVAL)
+        time.sleep(wait_interval)
 
 
 if __name__ == '__main__':

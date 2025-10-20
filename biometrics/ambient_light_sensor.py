@@ -38,7 +38,11 @@ class OPT4001Sensor:
         try:
             # Use i2cget to read 4 bytes from register 0x00
             cmd = f'i2cget -y {self.bus} {self.address:#x} {RESULT_REGISTER:#x} i 4'
-            result = subprocess.check_output(cmd, shell=True).decode().strip()
+            result = subprocess.check_output(
+                cmd,
+                shell=True,
+                stderr=subprocess.STDOUT
+            ).decode().strip()
 
             # Parse hex values: "0x07 0x00 0x10 0x20" -> [7, 0, 16, 32]
             bytes_str = result.split()
@@ -50,7 +54,10 @@ class OPT4001Sensor:
             return byte_vals
 
         except subprocess.CalledProcessError as e:
-            logger.error(f'Failed to read from I2C sensor: {e}')
+            error_output = e.output.decode().strip() if e.output else str(e)
+            logger.error(
+                f'Failed to read from I2C sensor at bus {self.bus}, address {self.address:#x}: {error_output}'
+            )
             return None
         except Exception as e:
             logger.error(f'Unexpected error reading sensor: {e}')
