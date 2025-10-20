@@ -74,6 +74,18 @@ if (!isV2Format(schedulesDB.data.right)) {
   needsWrite = true;
 }
 
+// Initialize mode field if missing (for existing V2 schedules)
+if (schedulesDB.data.left.mode === undefined) {
+  logger.info('Adding mode field to left side schedule...');
+  schedulesDB.data.left.mode = 'day-specific';
+  needsWrite = true;
+}
+if (schedulesDB.data.right.mode === undefined) {
+  logger.info('Adding mode field to right side schedule...');
+  schedulesDB.data.right.mode = 'day-specific';
+  needsWrite = true;
+}
+
 if (needsWrite) {
   logger.info('Saving migrated schedules...');
   await schedulesDB.write();

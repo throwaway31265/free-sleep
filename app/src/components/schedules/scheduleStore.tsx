@@ -66,6 +66,8 @@ type ScheduleStore = {
   // V2: Entity-based operations
   currentScheduleId: string | null;
   isCreatingNew: boolean;
+  scheduleName: string;
+  setScheduleName: (name: string) => void;
   createBlankSchedule: () => void;
   loadScheduleForEditing: (scheduleId: string, days: DayOfWeek[]) => void;
 };
@@ -94,6 +96,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
       // Reset creation/edit state when reloading fresh data
       isCreatingNew: false,
       currentScheduleId: null,
+      scheduleName: '',
     });
   },
 
@@ -127,13 +130,46 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
   },
   changesPresent: false,
   checkForChanges: () => {
-    const { selectedDay, selectedSchedule, originalSchedules, selectedDays } =
-      get();
+    const {
+      selectedDay,
+      selectedSchedule,
+      originalSchedules,
+      selectedDays,
+      isCreatingNew,
+      scheduleName,
+      currentScheduleId,
+    } = get();
     if (!originalSchedules) return;
     const { side } = useAppStore.getState();
-    const changesPresent =
-      !_.isEqual(originalSchedules[side][selectedDay], selectedSchedule) ||
-      _.some(selectedDays, (value) => value === true);
+
+    // If creating new, always show as changed
+    if (isCreatingNew) {
+      set({ changesPresent: true });
+      return;
+    }
+
+    // For editing existing schedules, check if anything changed
+    const originalEntity = currentScheduleId
+      ? originalSchedules[side].schedules?.[currentScheduleId]
+      : null;
+
+    let changesPresent = false;
+
+    if (originalEntity) {
+      // Check if schedule data changed
+      const scheduleChanged = !_.isEqual(originalEntity.data, selectedSchedule);
+      // Check if name changed
+      const nameChanged = (originalEntity.name || '') !== scheduleName;
+      // Check if day assignments changed (for day-specific mode)
+      const daysChanged = _.some(selectedDays, (value) => value === true);
+
+      changesPresent = scheduleChanged || nameChanged || daysChanged;
+    } else {
+      // Fallback to legacy comparison
+      changesPresent =
+        !_.isEqual(originalSchedules[side][selectedDay], selectedSchedule) ||
+        _.some(selectedDays, (value) => value === true);
+    }
 
     set({ changesPresent });
   },
@@ -210,6 +246,11 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
   // V2: Entity-based operations
   currentScheduleId: null,
   isCreatingNew: false,
+  scheduleName: '',
+  setScheduleName: (name: string) => {
+    set({ scheduleName: name });
+    get().checkForChanges();
+  },
 
   createBlankSchedule: () => {
     const blankSchedule: DailySchedule = {
@@ -249,6 +290,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
       selectedSchedule: blankSchedule,
       isCreatingNew: true,
       currentScheduleId: null,
+      scheduleName: '',
       selectedDays: initialSelectedDays,
       accordionExpanded: undefined,
       validations: { ...DEFAULT_VALIDATIONS },
@@ -278,6 +320,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
       selectedSchedule: _.cloneDeep(entity.data),
       isCreatingNew: false,
       currentScheduleId: scheduleId,
+      scheduleName: entity.name || '',
       selectedDays: selectedDaysRecord,
       accordionExpanded: undefined,
       validations: { ...DEFAULT_VALIDATIONS },

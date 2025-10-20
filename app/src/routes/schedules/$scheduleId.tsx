@@ -1,6 +1,7 @@
 import { useSchedules } from '@api/schedules';
 import type { DayOfWeek } from '@api/schedulesSchema';
 import ScheduleEditView from '@components/schedules/ScheduleEditView.tsx';
+import BasicScheduleEdit from '@components/schedules/BasicScheduleEdit.tsx';
 import { useScheduleStore } from '@components/schedules/scheduleStore.tsx';
 import { useAppStore } from '@state/appStore.tsx';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
@@ -63,6 +64,9 @@ function ScheduleEditPage() {
     return null;
   }
 
+  const sideSchedules = schedules[side];
+  const isBasicMode = sideSchedules.mode === 'basic';
+
   return (
     <PageContainer
       sx={{
@@ -77,7 +81,11 @@ function ScheduleEditPage() {
     >
       <SideControl title={'Schedules'} />
 
-      <ScheduleEditView onBack={handleBack} />
+      {isBasicMode ? (
+        <BasicScheduleEdit onBack={handleBack} />
+      ) : (
+        <ScheduleEditView onBack={handleBack} />
+      )}
     </PageContainer>
   );
 }

@@ -163,6 +163,11 @@ export const SideScheduleV2Schema = z
     // New: For efficient storage and group operations
     schedules: z.record(z.string().uuid(), ScheduleEntitySchema).optional(),
     assignments: z.record(z.string(), z.string().uuid()).optional(),
+
+    // Schedule mode: determines how schedules are managed
+    mode: z.enum(['day-specific', 'basic']).optional().default('day-specific'),
+    // Active schedule for basic mode (applies to all days)
+    activeScheduleId: z.string().uuid().optional(),
   })
   .strict();
 

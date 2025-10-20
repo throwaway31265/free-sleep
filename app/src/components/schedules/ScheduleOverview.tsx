@@ -17,6 +17,8 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog.tsx';
 import { LOWERCASE_DAYS } from './days.ts';
 import GroupedScheduleCard from './GroupedScheduleCard.tsx';
 import { formatGroupedDays, groupSideSchedule } from './scheduleGrouping.ts';
+import ScheduleModeSelector from './ScheduleModeSelector.tsx';
+import BasicScheduleList from './BasicScheduleList.tsx';
 
 type ScheduleOverviewProps = {
   schedules: SchedulesV2;
@@ -63,6 +65,9 @@ export default function ScheduleOverview({
       </Box>
     );
   }
+
+  // Check schedule mode
+  const isBasicMode = sideSchedules.mode === 'basic';
 
   // Group all schedules (both enabled and disabled)
   const allScheduleGroups = groupSideSchedule(sideSchedules);
@@ -280,7 +285,7 @@ export default function ScheduleOverview({
             >
               Schedule Overview
             </Typography>
-            {(enabledGroups.length > 0 || disabledGroups.length > 0) && (
+            {(enabledGroups.length > 0 || disabledGroups.length > 0) && !isBasicMode && (
               <Typography
                 variant="body2"
                 sx={{
@@ -298,29 +303,47 @@ export default function ScheduleOverview({
             )}
           </Box>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={onCreateNew}
-          fullWidth={isMobile}
-          sx={{
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            color: '#fff',
-            borderRadius: '16px',
-            px: { xs: 2, sm: 2, md: 2 },
-            py: { xs: 1, sm: 1, md: 1 },
-            textTransform: 'none',
-            fontSize: { xs: '16px', sm: '15px', md: '15px' },
-            fontWeight: 'normal',
-            border: 'none',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-            },
-          }}
-        >
-          Create Schedule
-        </Button>
+        {!isBasicMode && (
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={onCreateNew}
+            fullWidth={isMobile}
+            sx={{
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              color: '#fff',
+              borderRadius: '16px',
+              px: { xs: 2, sm: 2, md: 2 },
+              py: { xs: 1, sm: 1, md: 1 },
+              textTransform: 'none',
+              fontSize: { xs: '16px', sm: '15px', md: '15px' },
+              fontWeight: 'normal',
+              border: 'none',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              },
+            }}
+          >
+            Create Schedule
+          </Button>
+        )}
       </Box>
+
+      {/* Schedule Mode Selector */}
+      <ScheduleModeSelector
+        currentMode={sideSchedules.mode || 'day-specific'}
+        onModeChanged={onRefresh}
+      />
+
+      {/* Render Basic Mode or Day-Specific Mode UI */}
+      {isBasicMode ? (
+        <BasicScheduleList
+          sideSchedule={sideSchedules}
+          onScheduleChanged={onRefresh}
+        />
+      ) : (
+        // Day-specific mode UI (existing code)
+        <>
 
       {enabledGroups.length === 0 && disabledGroups.length === 0 ? (
         <Box
@@ -575,10 +598,13 @@ export default function ScheduleOverview({
           )}
         </Box>
       )}
+        </>
+      )}
 
-      {/* Floating Action Button for quick schedule creation */}
-      <Fab
-        onClick={onCreateNew}
+      {/* Floating Action Button for quick schedule creation - only in day-specific mode */}
+      {!isBasicMode && (
+        <Fab
+          onClick={onCreateNew}
         sx={{
           position: 'fixed',
           bottom: { xs: 96, md: 82 }, // Account for mobile bottom navigation (80px) + padding
@@ -595,9 +621,10 @@ export default function ScheduleOverview({
           zIndex: 1000,
         }}
         size={isMobile ? 'large' : 'medium'}
-      >
-        <Add sx={{ fontSize: { xs: 28, sm: 24 } }} />
-      </Fab>
+        >
+          <Add sx={{ fontSize: { xs: 28, sm: 24 } }} />
+        </Fab>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

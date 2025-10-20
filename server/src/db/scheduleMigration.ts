@@ -99,6 +99,7 @@ export function migrateToV2(oldSide: SideSchedule): SideScheduleV2 {
     ...oldSide, // Keep legacy day-based format
     schedules,
     assignments,
+    mode: 'day-specific', // Default to day-specific mode for migrated schedules
   };
 }
 
