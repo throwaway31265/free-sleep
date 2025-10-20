@@ -31,6 +31,7 @@ type GroupedScheduleCardProps = {
 const analyzeGroupVariations = (
   group: ScheduleGroup,
   allSchedules: Record<DayOfWeek, any>,
+  displayCelsius: boolean,
 ) => {
   const { days } = group;
   const variations: {
@@ -40,6 +41,14 @@ const analyzeGroupVariations = (
   }[] = [];
 
   if (days.length <= 1) return variations; // No variations in single-day groups
+
+  // Helper to format temperature
+  const formatTemp = (temp: number) => {
+    if (displayCelsius) {
+      return `${Math.round(((temp - 32) * 5) / 9)}°C`;
+    }
+    return `${temp}°F`;
+  };
 
   // Check elevation variations
   const elevationVariations: Record<string, string[]> = {};
@@ -74,7 +83,7 @@ const analyzeGroupVariations = (
     if (daySchedule?.temperatures) {
       Object.entries(daySchedule.temperatures).forEach(
         ([time, temp]: [string, any]) => {
-          const key = `${time}: ${temp}°`;
+          const key = `${time}: ${formatTemp(temp)}`;
           if (!temperatureVariations[key]) temperatureVariations[key] = [];
           temperatureVariations[key].push(day);
         },
@@ -117,7 +126,7 @@ export default function GroupedScheduleCard({
 
   // Analyze variations within this group
   const variations = sideSchedules
-    ? analyzeGroupVariations(group, sideSchedules)
+    ? analyzeGroupVariations(group, sideSchedules, displayCelsius)
     : [];
 
   const formatTemperature = (temp: number) => {
