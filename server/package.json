@@ -10,10 +10,14 @@
     "dev": "dotenv -e .env.pod -- bun --watch src/server.ts",
     "dev:local": "dotenv -e .env.local -- bun --watch src/server.ts",
     "lint": "bun x eslint src/ --ext .ts,.tsx",
-    "migrate": "dotenv -e .env.pod -- bun x prisma migrate dev --name ",
+    "migrate": "bash ../scripts/migrate.sh",
+    "migrate:deploy": "bash ../scripts/migrate.sh deploy",
+    "migrate:reset": "dotenv -e .env.pod -- bun x prisma migrate reset",
+    "migrate:direct": "dotenv -e .env.pod -- bun x prisma migrate dev --name ",
+    "migrate:local": "bash ../scripts/migrate.sh",
     "generate": "dotenv -e .env.pod -- bun x prisma generate",
-    "migrate:local": "dotenv -e .env.local -- bun x prisma migrate dev --name ",
-    "generate:local": "dotenv -e .env.local -- bun x prisma generate"
+    "generate:local": "dotenv -e .env.local -- bun x prisma generate",
+    "check-db-lock": "bash ../scripts/check_db_lock.sh"
   },
   "keywords": [],
   "author": "",

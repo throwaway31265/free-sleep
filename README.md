@@ -6,6 +6,7 @@ https://discord.gg/JpArXnBgEj
 - Support
 
 ## 👉 [HOW TO INSTALL](./INSTALLATION.md) 🛠️ 👈
+## 📚 [DATABASE MIGRATIONS GUIDE](./MIGRATIONS.md)
 
 ---  
 
