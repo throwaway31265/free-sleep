@@ -11,6 +11,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
+import moment from 'moment-timezone';
 import { LOWERCASE_DAYS } from './days.ts';
 import GroupedScheduleCard from './GroupedScheduleCard.tsx';
 import { groupSideSchedule } from './scheduleGrouping.ts';
@@ -39,8 +40,8 @@ export default function ScheduleOverview({
 
   const sideSchedules = schedules?.[side];
 
-  // Add defensive check for undefined schedules
-  if (!sideSchedules) {
+  // Add defensive check for undefined schedules or settings
+  if (!sideSchedules || !settings) {
     return (
       <Box
         sx={{
@@ -50,10 +51,12 @@ export default function ScheduleOverview({
         }}
       >
         <Typography variant="h6" sx={{ mb: 2 }}>
-          No schedules available
+          {!sideSchedules ? 'No schedules available' : 'Loading...'}
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          Unable to load schedule data. Please try refreshing the page.
+          {!sideSchedules
+            ? 'Unable to load schedule data. Please try refreshing the page.'
+            : 'Loading settings...'}
         </Typography>
       </Box>
     );
@@ -70,20 +73,21 @@ export default function ScheduleOverview({
     (group) => !group.schedule?.power?.enabled,
   );
 
-  const getCurrentDayIndex = () => {
-    const now = new Date();
-    const currentHour = now.getHours();
-    let dayIndex = now.getDay();
+  const getCurrentDayIndex = (timezone: string | null) => {
+    const now = moment.tz(timezone || 'UTC');
+    const currentHour = now.hour();
+    let dayIndex = now.day();
 
-    // Adjust for early morning (before noon)
-    if (currentHour < 12) {
+    // Adjust for very early morning schedules (before 5 AM = still "yesterday's schedule")
+    // This handles overnight schedules (e.g., 10 PM - 6 AM)
+    if (currentHour < 5) {
       dayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
     }
 
     return dayIndex;
   };
 
-  const currentDayIndex = getCurrentDayIndex();
+  const currentDayIndex = getCurrentDayIndex(settings.timeZone);
   const currentDay = LOWERCASE_DAYS[currentDayIndex];
 
   const handleToggleSchedule = async (days: DayOfWeek[]) => {

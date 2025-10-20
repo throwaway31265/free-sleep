@@ -1,5 +1,6 @@
 import { useSchedules } from '@api/schedules';
 import type { DayOfWeek } from '@api/schedulesSchema';
+import { useSettings } from '@api/settings';
 import { LOWERCASE_DAYS } from '@components/schedules/days.ts';
 import ScheduleEditView from '@components/schedules/ScheduleEditView.tsx';
 import ScheduleOverview from '@components/schedules/ScheduleOverview.tsx';
@@ -10,14 +11,15 @@ import { useEffect, useState } from 'react';
 import PageContainer from '@/components/shared/PageContainer.tsx';
 import SideControl from '../components/SideControl.tsx';
 
-const getAdjustedDayOfWeek = (): DayOfWeek => {
-  // Get the current moment in the specified timezone
-  const now = moment();
+const getAdjustedDayOfWeek = (timezone: string | null): DayOfWeek => {
+  // Get the current moment in the server's configured timezone
+  const now = moment.tz(timezone || 'UTC');
   // Extract the hour of the day in 24-hour format
   const currentHour = now.hour();
 
-  // Determine if it's before noon (12:00 PM)
-  if (currentHour < 12) {
+  // Adjust for very early morning schedules (before 5 AM = still "yesterday's schedule")
+  // This handles overnight schedules (e.g., 10 PM - 6 AM)
+  if (currentHour < 5) {
     return now
       .subtract(1, 'day')
       .format('dddd')
@@ -29,14 +31,16 @@ const getAdjustedDayOfWeek = (): DayOfWeek => {
 
 function SchedulePage() {
   const { data: schedules, refetch } = useSchedules();
+  const { data: settings } = useSettings();
   const { setOriginalSchedules, selectDay, setSelectedDays } =
     useScheduleStore();
   const [viewMode, setViewMode] = useState<'overview' | 'edit'>('overview');
 
   useEffect(() => {
-    const day = getAdjustedDayOfWeek();
+    if (!settings) return;
+    const day = getAdjustedDayOfWeek(settings.timeZone);
     selectDay(LOWERCASE_DAYS.indexOf(day));
-  }, []);
+  }, [settings]);
 
   useEffect(() => {
     if (!schedules) return;
