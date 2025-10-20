@@ -1,6 +1,6 @@
 import { useVersion } from '@api/version';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import { Box, Chip, Typography } from '@mui/material';
+import { Box, Chip, Link, Typography } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import { format } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
@@ -98,9 +98,26 @@ export default function VersionInfo() {
             Update available
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Your device is running commit {version.commitHash} but the latest on
-            <b> {version.branch}</b> is {remoteCommit}. To update, run the
-            installer on your Free Sleep box:
+            Your device is running commit{' '}
+            <Link
+              href={`https://github.com/throwaway31265/free-sleep/commit/${version.commitHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ fontWeight: 500 }}
+            >
+              {version.commitHash}
+            </Link>{' '}
+            but the latest on
+            <b> {version.branch}</b> is{' '}
+            <Link
+              href={`https://github.com/throwaway31265/free-sleep/commit/${remoteCommit}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ fontWeight: 500 }}
+            >
+              {remoteCommit}
+            </Link>
+            . To update, run the installer on your Free Sleep box:
           </Typography>
           <Box
             sx={{
@@ -166,6 +183,28 @@ export default function VersionInfo() {
             label={`Commit: ${version.commitHash || 'unknown'}`}
             variant="outlined"
             size="small"
+            onClick={
+              version.commitHash
+                ? () => {
+                    // If remote commit is available and different, show diff
+                    const url =
+                      remoteCommit && remoteCommit !== version.commitHash
+                        ? `https://github.com/throwaway31265/free-sleep/compare/${version.commitHash}...${remoteCommit}`
+                        : `https://github.com/throwaway31265/free-sleep/commit/${version.commitHash}`;
+                    window.open(url, '_blank');
+                  }
+                : undefined
+            }
+            sx={
+              version.commitHash
+                ? {
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
+                  }
+                : undefined
+            }
           />
         </Box>
 
