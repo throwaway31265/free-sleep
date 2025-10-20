@@ -18,11 +18,11 @@ router.get('/deviceStatus', async (req: Request, res: Response) => {
     // Check if frank is ready first to fail fast
     if (!isFrankReady()) {
       logger.warn('Frank service is not ready yet');
+      res.setHeader('Retry-After', '5');
       res.status(503).json({
         error: 'Service Unavailable',
         message: 'frank.service is not connected yet. Please wait and retry.',
       });
-      res.setHeader('Retry-After', '5');
       return;
     }
 
