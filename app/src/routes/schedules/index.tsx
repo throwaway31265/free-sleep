@@ -1,15 +1,15 @@
 import { useSchedules } from '@api/schedules';
 import type { DayOfWeek } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings';
+import { useAppStore } from '@state/appStore.tsx';
 import { LOWERCASE_DAYS } from '@components/schedules/days.ts';
-import ScheduleEditView from '@components/schedules/ScheduleEditView.tsx';
 import ScheduleOverview from '@components/schedules/ScheduleOverview.tsx';
 import { useScheduleStore } from '@components/schedules/scheduleStore.tsx';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import moment from 'moment-timezone';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import PageContainer from '@/components/shared/PageContainer.tsx';
-import SideControl from '../components/SideControl.tsx';
+import SideControl from '../../components/SideControl.tsx';
 
 const getAdjustedDayOfWeek = (timezone: string | null): DayOfWeek => {
   // Get the current moment in the server's configured timezone
@@ -29,50 +29,49 @@ const getAdjustedDayOfWeek = (timezone: string | null): DayOfWeek => {
   }
 };
 
-function SchedulePage() {
+function SchedulesIndexPage() {
   const { data: schedules, refetch } = useSchedules();
   const { data: settings } = useSettings();
-  const { setOriginalSchedules, selectDay, setSelectedDays } =
-    useScheduleStore();
-  const [viewMode, setViewMode] = useState<'overview' | 'edit'>('overview');
+  const { side } = useAppStore();
+  const { setOriginalSchedules, selectDay } = useScheduleStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!settings) return;
     const day = getAdjustedDayOfWeek(settings.timeZone);
     selectDay(LOWERCASE_DAYS.indexOf(day));
-  }, [settings]);
+  }, [settings, selectDay]);
 
   useEffect(() => {
     if (!schedules) return;
     setOriginalSchedules(schedules);
-  }, [schedules]);
+  }, [schedules, setOriginalSchedules]);
 
   const handleEditDay = (dayIndex: number) => {
-    selectDay(dayIndex);
-    setSelectedDays([]); // Clear any previous group selections
-    setViewMode('edit');
+    if (!schedules) return;
+
+    const day = LOWERCASE_DAYS[dayIndex];
+    const sideSchedules = schedules[side];
+
+    // Find the schedule ID for this day
+    const scheduleId = sideSchedules.assignments?.[day];
+
+    if (scheduleId) {
+      // Navigate to edit page with the schedule ID
+      navigate({ to: '/schedules/$scheduleId', params: { scheduleId } });
+    } else {
+      // Fallback: if no schedule exists for this day, create new
+      navigate({ to: '/schedules/new' });
+    }
   };
 
-  const handleEditGroup = (scheduleId: string, dayIndices: number[]) => {
-    // For group editing, load the schedule entity
-    const { loadScheduleForEditing } = useScheduleStore.getState();
-    const groupDays = dayIndices.map(
-      (index) => LOWERCASE_DAYS[index] as DayOfWeek,
-    );
-
-    loadScheduleForEditing(scheduleId, groupDays);
-    setViewMode('edit');
+  const handleEditGroup = (scheduleId: string) => {
+    // Navigate to edit page with scheduleId
+    navigate({ to: '/schedules/$scheduleId', params: { scheduleId } });
   };
 
   const handleCreateNew = () => {
-    // Create a truly blank schedule
-    const { createBlankSchedule } = useScheduleStore.getState();
-    createBlankSchedule();
-    setViewMode('edit');
-  };
-
-  const handleBackToOverview = () => {
-    setViewMode('overview');
+    navigate({ to: '/schedules/new' });
   };
 
   if (!schedules) {
@@ -85,7 +84,7 @@ function SchedulePage() {
         width: '100%',
         maxWidth: {
           xs: '100%',
-          sm: viewMode === 'overview' ? '1200px' : '800px',
+          sm: '1200px',
         },
         mx: 'auto',
         mb: 15,
@@ -93,21 +92,17 @@ function SchedulePage() {
     >
       <SideControl title={'Schedules'} />
 
-      {viewMode === 'overview' ? (
-        <ScheduleOverview
-          schedules={schedules}
-          onEditDay={handleEditDay}
-          onEditGroup={handleEditGroup}
-          onCreateNew={handleCreateNew}
-          onRefresh={refetch}
-        />
-      ) : (
-        <ScheduleEditView onBack={handleBackToOverview} />
-      )}
+      <ScheduleOverview
+        schedules={schedules}
+        onEditDay={handleEditDay}
+        onEditGroup={handleEditGroup}
+        onCreateNew={handleCreateNew}
+        onRefresh={refetch}
+      />
     </PageContainer>
   );
 }
 
-export const Route = createFileRoute('/schedules')({
-  component: SchedulePage,
+export const Route = createFileRoute('/schedules/')({
+  component: SchedulesIndexPage,
 });

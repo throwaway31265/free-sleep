@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WaterLevelRouteImport } from './routes/water-level'
 import { Route as TemperatureRouteImport } from './routes/temperature'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as SchedulesRouteImport } from './routes/schedules'
 import { Route as BaseControlRouteImport } from './routes/base-control'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SchedulesIndexRouteImport } from './routes/schedules/index'
 import { Route as DataIndexRouteImport } from './routes/data/index'
+import { Route as SchedulesNewRouteImport } from './routes/schedules/new'
+import { Route as SchedulesScheduleIdRouteImport } from './routes/schedules/$scheduleId'
 import { Route as DataVitalsRouteImport } from './routes/data/vitals'
 import { Route as DataSleepRouteImport } from './routes/data/sleep'
 import { Route as DataLogsRouteImport } from './routes/data/logs'
@@ -35,11 +37,6 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SchedulesRoute = SchedulesRouteImport.update({
-  id: '/schedules',
-  path: '/schedules',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const BaseControlRoute = BaseControlRouteImport.update({
   id: '/base-control',
   path: '/base-control',
@@ -50,9 +47,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SchedulesIndexRoute = SchedulesIndexRouteImport.update({
+  id: '/schedules/',
+  path: '/schedules/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DataIndexRoute = DataIndexRouteImport.update({
   id: '/data/',
   path: '/data/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SchedulesNewRoute = SchedulesNewRouteImport.update({
+  id: '/schedules/new',
+  path: '/schedules/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SchedulesScheduleIdRoute = SchedulesScheduleIdRouteImport.update({
+  id: '/schedules/$scheduleId',
+  path: '/schedules/$scheduleId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DataVitalsRoute = DataVitalsRouteImport.update({
@@ -74,90 +86,104 @@ const DataLogsRoute = DataLogsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/base-control': typeof BaseControlRoute
-  '/schedules': typeof SchedulesRoute
   '/settings': typeof SettingsRoute
   '/temperature': typeof TemperatureRoute
   '/water-level': typeof WaterLevelRoute
   '/data/logs': typeof DataLogsRoute
   '/data/sleep': typeof DataSleepRoute
   '/data/vitals': typeof DataVitalsRoute
+  '/schedules/$scheduleId': typeof SchedulesScheduleIdRoute
+  '/schedules/new': typeof SchedulesNewRoute
   '/data': typeof DataIndexRoute
+  '/schedules': typeof SchedulesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/base-control': typeof BaseControlRoute
-  '/schedules': typeof SchedulesRoute
   '/settings': typeof SettingsRoute
   '/temperature': typeof TemperatureRoute
   '/water-level': typeof WaterLevelRoute
   '/data/logs': typeof DataLogsRoute
   '/data/sleep': typeof DataSleepRoute
   '/data/vitals': typeof DataVitalsRoute
+  '/schedules/$scheduleId': typeof SchedulesScheduleIdRoute
+  '/schedules/new': typeof SchedulesNewRoute
   '/data': typeof DataIndexRoute
+  '/schedules': typeof SchedulesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/base-control': typeof BaseControlRoute
-  '/schedules': typeof SchedulesRoute
   '/settings': typeof SettingsRoute
   '/temperature': typeof TemperatureRoute
   '/water-level': typeof WaterLevelRoute
   '/data/logs': typeof DataLogsRoute
   '/data/sleep': typeof DataSleepRoute
   '/data/vitals': typeof DataVitalsRoute
+  '/schedules/$scheduleId': typeof SchedulesScheduleIdRoute
+  '/schedules/new': typeof SchedulesNewRoute
   '/data/': typeof DataIndexRoute
+  '/schedules/': typeof SchedulesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/base-control'
-    | '/schedules'
     | '/settings'
     | '/temperature'
     | '/water-level'
     | '/data/logs'
     | '/data/sleep'
     | '/data/vitals'
+    | '/schedules/$scheduleId'
+    | '/schedules/new'
     | '/data'
+    | '/schedules'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/base-control'
-    | '/schedules'
     | '/settings'
     | '/temperature'
     | '/water-level'
     | '/data/logs'
     | '/data/sleep'
     | '/data/vitals'
+    | '/schedules/$scheduleId'
+    | '/schedules/new'
     | '/data'
+    | '/schedules'
   id:
     | '__root__'
     | '/'
     | '/base-control'
-    | '/schedules'
     | '/settings'
     | '/temperature'
     | '/water-level'
     | '/data/logs'
     | '/data/sleep'
     | '/data/vitals'
+    | '/schedules/$scheduleId'
+    | '/schedules/new'
     | '/data/'
+    | '/schedules/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BaseControlRoute: typeof BaseControlRoute
-  SchedulesRoute: typeof SchedulesRoute
   SettingsRoute: typeof SettingsRoute
   TemperatureRoute: typeof TemperatureRoute
   WaterLevelRoute: typeof WaterLevelRoute
   DataLogsRoute: typeof DataLogsRoute
   DataSleepRoute: typeof DataSleepRoute
   DataVitalsRoute: typeof DataVitalsRoute
+  SchedulesScheduleIdRoute: typeof SchedulesScheduleIdRoute
+  SchedulesNewRoute: typeof SchedulesNewRoute
   DataIndexRoute: typeof DataIndexRoute
+  SchedulesIndexRoute: typeof SchedulesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -183,13 +209,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/schedules': {
-      id: '/schedules'
-      path: '/schedules'
-      fullPath: '/schedules'
-      preLoaderRoute: typeof SchedulesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/base-control': {
       id: '/base-control'
       path: '/base-control'
@@ -204,11 +223,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/schedules/': {
+      id: '/schedules/'
+      path: '/schedules'
+      fullPath: '/schedules'
+      preLoaderRoute: typeof SchedulesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/data/': {
       id: '/data/'
       path: '/data'
       fullPath: '/data'
       preLoaderRoute: typeof DataIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/schedules/new': {
+      id: '/schedules/new'
+      path: '/schedules/new'
+      fullPath: '/schedules/new'
+      preLoaderRoute: typeof SchedulesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/schedules/$scheduleId': {
+      id: '/schedules/$scheduleId'
+      path: '/schedules/$scheduleId'
+      fullPath: '/schedules/$scheduleId'
+      preLoaderRoute: typeof SchedulesScheduleIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/data/vitals': {
@@ -238,14 +278,16 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BaseControlRoute: BaseControlRoute,
-  SchedulesRoute: SchedulesRoute,
   SettingsRoute: SettingsRoute,
   TemperatureRoute: TemperatureRoute,
   WaterLevelRoute: WaterLevelRoute,
   DataLogsRoute: DataLogsRoute,
   DataSleepRoute: DataSleepRoute,
   DataVitalsRoute: DataVitalsRoute,
+  SchedulesScheduleIdRoute: SchedulesScheduleIdRoute,
+  SchedulesNewRoute: SchedulesNewRoute,
   DataIndexRoute: DataIndexRoute,
+  SchedulesIndexRoute: SchedulesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

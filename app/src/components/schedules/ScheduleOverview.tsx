@@ -21,7 +21,7 @@ import { formatGroupedDays, groupSideSchedule } from './scheduleGrouping.ts';
 type ScheduleOverviewProps = {
   schedules: SchedulesV2;
   onEditDay: (dayIndex: number) => void;
-  onEditGroup: (scheduleId: string, dayIndices: number[]) => void;
+  onEditGroup: (scheduleId: string) => void;
   onCreateNew: () => void;
   onRefresh: () => void;
 };
@@ -494,9 +494,7 @@ export default function ScheduleOverview({
                   displayCelsius={displayCelsius}
                   onToggleSchedule={handleToggleSchedule}
                   onEditDay={onEditDay}
-                  onEditGroup={(dayIndices) =>
-                    onEditGroup(group.scheduleId, dayIndices)
-                  }
+                  onEditGroup={() => onEditGroup(group.scheduleId)}
                   onDeleteSchedule={handleDeleteSchedule}
                 />
               ))}
@@ -548,9 +546,7 @@ export default function ScheduleOverview({
                   displayCelsius={displayCelsius}
                   onToggleSchedule={handleToggleSchedule}
                   onEditDay={onEditDay}
-                  onEditGroup={(dayIndices) =>
-                    onEditGroup(group.scheduleId, dayIndices)
-                  }
+                  onEditGroup={() => onEditGroup(group.scheduleId)}
                   onDeleteSchedule={handleDeleteSchedule}
                 />
               ))}

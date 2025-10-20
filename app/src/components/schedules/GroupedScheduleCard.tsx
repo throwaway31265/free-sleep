@@ -20,7 +20,7 @@ type GroupedScheduleCardProps = {
   displayCelsius: boolean;
   onToggleSchedule: (scheduleId: string) => void;
   onEditDay: (dayIndex: number) => void;
-  onEditGroup: (dayIndices: number[]) => void;
+  onEditGroup: () => void;
   onDeleteSchedule: (scheduleId: string, days: DayOfWeek[]) => void;
   compact?: boolean;
 };
@@ -43,7 +43,7 @@ export default function GroupedScheduleCard({
     if (days.length === 1) {
       onEditDay(dayIndices[0]);
     } else {
-      onEditGroup(dayIndices);
+      onEditGroup();
     }
   };
 

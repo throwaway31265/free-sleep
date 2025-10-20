@@ -91,6 +91,9 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
       validations: { ...DEFAULT_VALIDATIONS },
       selectedSchedule,
       changesPresent: false,
+      // Reset creation/edit state when reloading fresh data
+      isCreatingNew: false,
+      currentScheduleId: null,
     });
   },
 
