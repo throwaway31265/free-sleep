@@ -1,7 +1,7 @@
 import { unlink as unlinkCb } from 'fs';
 import { createServer, type Server, type Socket } from 'net';
 import logger from '../logger.js';
-import { toPromise } from './promises.js';
+import { toPromise, withTimeout } from './promises.js';
 
 async function unlink(path: string) {
   // @ts-ignore
@@ -43,7 +43,7 @@ export class UnixSocketServer {
     await toPromise((cb) => this.server.close(cb));
   }
 
-  public waitForConnection() {
+  public waitForConnection(timeoutMs = 5000) {
     if (this.lastConnection !== undefined) {
       logger.debug('Returning existing connection');
       const connection = this.lastConnection;
@@ -53,7 +53,14 @@ export class UnixSocketServer {
     }
 
     logger.debug('Waiting for future connection');
-    return new Promise<Socket>((resolve) => (this.resolveWaiting = resolve));
+    const connectionPromise = new Promise<Socket>(
+      (resolve) => (this.resolveWaiting = resolve),
+    );
+    return withTimeout(
+      connectionPromise,
+      timeoutMs,
+      'Timeout waiting for frank.service to connect to Unix socket',
+    );
   }
 
   public static async start(path: string) {

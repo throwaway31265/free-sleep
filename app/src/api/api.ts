@@ -6,6 +6,7 @@ const baseURL = import.meta.env.VITE_POD_IP
 
 const axiosInstance = axios.create({
   baseURL: `${baseURL}/api/`,
+  timeout: 10000, // 10 second timeout
 });
 
 export default axiosInstance;

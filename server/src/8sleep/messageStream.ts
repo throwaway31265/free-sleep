@@ -1,4 +1,5 @@
 import type { PromiseReadStream } from './promiseStream.js';
+import { withTimeout } from './promises.js';
 
 export class MessageStream {
   private buffer = Buffer.alloc(0);
@@ -8,7 +9,15 @@ export class MessageStream {
     private readonly separator = Buffer.from('\n\n'),
   ) {}
 
-  public async readMessage() {
+  public async readMessage(timeoutMs = 5000) {
+    return withTimeout(
+      this.readMessageInternal(),
+      timeoutMs,
+      'Timeout reading message from frank.service',
+    );
+  }
+
+  private async readMessageInternal() {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const index = this.buffer.indexOf(this.separator);
