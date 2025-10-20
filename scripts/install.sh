@@ -5,9 +5,10 @@
 # It will check what's already installed and skip unnecessary steps.
 #
 # Usage:
-#   ./install.sh                    # Install from main branch
-#   BRANCH=beta ./install.sh        # Install from beta branch
-#   FORCE_UPDATE=true ./install.sh  # Force repository update
+#   ./install.sh                       # Install from main branch
+#   BRANCH=beta ./install.sh           # Install from beta branch
+#   FORCE_UPDATE=true ./install.sh     # Force repository update
+#   SKIP_REPO_UPDATE=true ./install.sh # Skip repository update (for offline use)
 #
 # Exit immediately on error, on undefined variables, and on error in pipelines
 set -euo pipefail
@@ -134,6 +135,14 @@ apply_ipv6_workarounds() {
   fi
 }
 
+# Check if internet connectivity is available
+check_internet() {
+  if ! command -v curl >/dev/null 2>&1; then
+    return 1
+  fi
+  curl -s --connect-timeout 5 --max-time 10 http://google.com >/dev/null 2>&1
+}
+
 # Check service status and store for later restoration
 check_and_store_service_status() {
   local service_name="$1"
@@ -197,6 +206,7 @@ echo "==================================================================="
 # --------------------------------------------------------------------------------
 # Variables
 BRANCH=${BRANCH:-main}
+SKIP_REPO_UPDATE=${SKIP_REPO_UPDATE:-false}
 
 # Check current status of Free Sleep services before starting installation
 echo "Checking current service status..."
@@ -222,9 +232,10 @@ echo "  - Data directories and migrations"
 echo "  - Time synchronization (NTP configuration and periodic sync)"
 echo ""
 echo "Usage:"
-echo "  ./install.sh                    # Install/switch to main branch"
-echo "  BRANCH=beta ./install.sh        # Install/switch to beta branch"
-echo "  FORCE_UPDATE=true ./install.sh  # Force repository update"
+echo "  ./install.sh                       # Install/switch to main branch"
+echo "  BRANCH=beta ./install.sh           # Install/switch to beta branch"
+echo "  FORCE_UPDATE=true ./install.sh     # Force repository update"
+echo "  SKIP_REPO_UPDATE=true ./install.sh # Skip repository update (for offline use)"
 echo "==================================================================="
 echo ""
 REPO_URL="https://github.com/throwaway31265/free-sleep/archive/refs/heads/${BRANCH}.zip"
@@ -238,52 +249,64 @@ USERNAME="dac"
 echo "Checking if repository update is needed..."
 FORCE_UPDATE=${FORCE_UPDATE:-false}
 
-# Detect current branch if repository exists
-CURRENT_BRANCH=""
-if [ -d "$REPO_DIR" ] && [ -f "$REPO_DIR/.git-branch-info" ]; then
-  CURRENT_BRANCH=$(cat "$REPO_DIR/.git-branch-info" 2>/dev/null || echo "")
-fi
-
-# Determine if we need to update
-NEEDS_UPDATE=false
-REASON=""
-
-if [ "$FORCE_UPDATE" = "true" ]; then
-  NEEDS_UPDATE=true
-  REASON="Force update requested"
-elif [ ! -d "$REPO_DIR" ] || [ ! -f "$REPO_DIR/server/package.json" ]; then
-  NEEDS_UPDATE=true
-  REASON="Repository not found or incomplete"
-elif [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
-  NEEDS_UPDATE=true
-  REASON="Branch switch requested (${CURRENT_BRANCH} → ${BRANCH})"
-elif [ -z "$CURRENT_BRANCH" ]; then
-  NEEDS_UPDATE=true
-  REASON="Branch information missing, updating to ensure correct branch"
+# Check if we should skip repository update
+if [ "$SKIP_REPO_UPDATE" = "true" ]; then
+  echo "SKIP_REPO_UPDATE is set to true. Skipping repository update."
+  NEEDS_UPDATE=false
+  REASON="Repository update explicitly skipped"
+elif ! check_internet; then
+  echo "No internet connectivity detected. Skipping repository update."
+  echo "Set FORCE_UPDATE=true to override (not recommended without internet)."
+  NEEDS_UPDATE=false
+  REASON="No internet connectivity"
 else
-  # If repo exists and branch matches, compare local vs. remote commit hashes
-  # Local commit hash is stored in $REPO_DIR/.git-info when this installer last ran
-  LOCAL_COMMIT=""
-  if [ -f "$REPO_DIR/.git-info" ]; then
-    LOCAL_COMMIT=$(grep -o '"commitHash"[[:space:]]*:[[:space:]]*"[^"]*"' "$REPO_DIR/.git-info" 2>/dev/null | cut -d'"' -f4 || true)
-  elif [ -f "$SERVER_DIR/.git-info" ]; then
-    LOCAL_COMMIT=$(grep -o '"commitHash"[[:space:]]*:[[:space:]]*"[^"]*"' "$SERVER_DIR/.git-info" 2>/dev/null | cut -d'"' -f4 || true)
+  # Detect current branch if repository exists
+  CURRENT_BRANCH=""
+  if [ -d "$REPO_DIR" ] && [ -f "$REPO_DIR/.git-branch-info" ]; then
+    CURRENT_BRANCH=$(cat "$REPO_DIR/.git-branch-info" 2>/dev/null || echo "")
   fi
 
-  # Fetch the latest commit hash for the branch from GitHub if curl is available
-  REMOTE_COMMIT=""
-  if fetch_github_commit_info "$BRANCH" 8; then
-    REMOTE_COMMIT="$COMMIT_HASH"
-  fi
+  # Determine if we need to update
+  NEEDS_UPDATE=false
+  REASON=""
 
-  # If we successfully fetched a remote commit and it differs from local, update
-  if [ -n "$REMOTE_COMMIT" ]; then
-    if [ -z "$LOCAL_COMMIT" ]; then
-      NEEDS_UPDATE=true
-      REASON="Local commit unknown; remote has ${REMOTE_COMMIT}"
-    elif [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
-      NEEDS_UPDATE=true
-      REASON="Repository is behind (${LOCAL_COMMIT} → ${REMOTE_COMMIT})"
+  if [ "$FORCE_UPDATE" = "true" ]; then
+    NEEDS_UPDATE=true
+    REASON="Force update requested"
+  elif [ ! -d "$REPO_DIR" ] || [ ! -f "$REPO_DIR/server/package.json" ]; then
+    NEEDS_UPDATE=true
+    REASON="Repository not found or incomplete"
+  elif [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
+    NEEDS_UPDATE=true
+    REASON="Branch switch requested (${CURRENT_BRANCH} → ${BRANCH})"
+  elif [ -z "$CURRENT_BRANCH" ]; then
+    NEEDS_UPDATE=true
+    REASON="Branch information missing, updating to ensure correct branch"
+  else
+    # If repo exists and branch matches, compare local vs. remote commit hashes
+    # Local commit hash is stored in $REPO_DIR/.git-info when this installer last ran
+    LOCAL_COMMIT=""
+    if [ -f "$REPO_DIR/.git-info" ]; then
+      LOCAL_COMMIT=$(grep -o '"commitHash"[[:space:]]*:[[:space:]]*"[^"]*"' "$REPO_DIR/.git-info" 2>/dev/null | cut -d'"' -f4 || true)
+    elif [ -f "$SERVER_DIR/.git-info" ]; then
+      LOCAL_COMMIT=$(grep -o '"commitHash"[[:space:]]*:[[:space:]]*"[^"]*"' "$SERVER_DIR/.git-info" 2>/dev/null | cut -d'"' -f4 || true)
+    fi
+
+    # Fetch the latest commit hash for the branch from GitHub if curl is available
+    REMOTE_COMMIT=""
+    if fetch_github_commit_info "$BRANCH" 8; then
+      REMOTE_COMMIT="$COMMIT_HASH"
+    fi
+
+    # If we successfully fetched a remote commit and it differs from local, update
+    if [ -n "$REMOTE_COMMIT" ]; then
+      if [ -z "$LOCAL_COMMIT" ]; then
+        NEEDS_UPDATE=true
+        REASON="Local commit unknown; remote has ${REMOTE_COMMIT}"
+      elif [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
+        NEEDS_UPDATE=true
+        REASON="Repository is behind (${LOCAL_COMMIT} → ${REMOTE_COMMIT})"
+      fi
     fi
   fi
 fi
@@ -524,8 +547,9 @@ else
 fi
 
 echo "Running Prisma migrations..."
+# Run Prisma migrations directly (install.sh already handles service management)
 # Ensure Bun is in PATH for nested spawns inside the npm script (dotenv -> bun x ...)
-if sudo -u "$USERNAME" bash -lc "export BUN_INSTALL=/home/$USERNAME/.bun; export PATH=/home/$USERNAME/.bun/bin:$PATH; cd '$SERVER_DIR' && bun run migrate deploy"; then
+if sudo -u "$USERNAME" bash -c "export BUN_INSTALL=/home/$USERNAME/.bun; export PATH=/home/$USERNAME/.bun/bin:$PATH; cd '$SERVER_DIR' && bun run dotenv -e .env.pod -- bun x prisma migrate deploy"; then
   echo "Prisma migrations completed successfully."
 else
   echo "WARNING: Prisma migrations failed or were interrupted. This may happen if the database needs to be reset."
@@ -890,9 +914,10 @@ echo -e "\033[0;32mSee logs with: journalctl -u free-sleep --no-pager --output=c
 echo -e "\033[0;32mTime sync logs: tail -f /persistent/free-sleep-data/logs/time-sync.log\033[0m"
 echo ""
 echo "To re-run this script safely:"
-echo "  ./install.sh                    # Install/switch to main branch"
-echo "  BRANCH=beta ./install.sh        # Install/switch to beta branch"
-echo "  FORCE_UPDATE=true ./install.sh  # Force repository update"
+echo "  ./install.sh                       # Install/switch to main branch"
+echo "  BRANCH=beta ./install.sh           # Install/switch to beta branch"
+echo "  FORCE_UPDATE=true ./install.sh     # Force repository update"
+echo "  SKIP_REPO_UPDATE=true ./install.sh # Skip repository update (for offline use)"
 echo ""
 echo "To manually sync time now: /usr/local/bin/sync-time-with-internet.sh"
 echo "==================================================================="

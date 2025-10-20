@@ -12,6 +12,7 @@
     "lint": "bun x eslint src/ --ext .ts,.tsx",
     "migrate": "bash ../scripts/migrate.sh",
     "migrate:deploy": "bash ../scripts/migrate.sh deploy",
+    "migrate:deploy:local": "bash ../scripts/migrate.sh deploy local",
     "migrate:reset": "dotenv -e .env.pod -- bun x prisma migrate reset",
     "migrate:direct": "dotenv -e .env.pod -- bun x prisma migrate dev --name ",
     "migrate:sync": "bash ../scripts/sync_migrations.sh",
