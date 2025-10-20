@@ -7,6 +7,7 @@ import AlarmDismissal from '@components/temperature/AlarmDismissal.tsx';
 import AwayNotification from '@components/temperature/AwayNotification.tsx';
 import { useControlTempStore } from '@components/temperature/controlTempStore.tsx';
 import PowerButton from '@components/temperature/PowerButton.tsx';
+import RoomClimate from '@components/temperature/RoomClimate.tsx';
 import ScheduleStatusBar from '@components/temperature/ScheduleStatusBar.tsx';
 import SideStatusIndicators from '@components/temperature/SideStatusIndicators.tsx';
 import Slider from '@components/temperature/Slider.tsx';
@@ -182,6 +183,7 @@ function ControlTempPage() {
         {/* Top navigation */}
         <SideControl title={'Temperature'} />
         <SideStatusIndicators deviceStatus={deviceStatus} settings={settings} />
+        <RoomClimate deviceStatus={deviceStatus} settings={settings} />
         {schedules && <ScheduleStatusBar schedules={schedules} currentDay={currentDay} />}
         <LinkToggle />
         {settings.linkBothSides && settings[(side === 'right' ? 'left' : 'right')].awayMode && (

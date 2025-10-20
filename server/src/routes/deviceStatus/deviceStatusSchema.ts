@@ -31,6 +31,11 @@ export const DeviceStatusSchema = z
       calibratedFull: z.number().optional(),
       timestamp: z.number().optional(),
     }).optional(),
+    roomClimate: z.object({
+      temperatureC: z.number().optional(),
+      humidity: z.number().optional(),
+      timestamp: z.number().optional(),
+    }).optional(),
     settings: z.object({
       v: z.number(),
       gainLeft: z.number(),
@@ -66,6 +71,11 @@ export const DeviceStatusUpdateSchema = z
       raw: z.number().optional(),
       calibratedEmpty: z.number().optional(),
       calibratedFull: z.number().optional(),
+      timestamp: z.number().optional(),
+    }).optional(),
+    roomClimate: z.object({
+      temperatureC: z.number().optional(),
+      humidity: z.number().optional(),
       timestamp: z.number().optional(),
     }).optional(),
     settings: z

@@ -54,6 +54,8 @@ export class FrankenMonitor {
   private currentBasePreset: keyof typeof BASE_PRESETS = 'relax';
   // Track last processed capwater log signature to avoid duplicate inserts
   private lastCapwaterSignature: string | null = null;
+  // Store latest room climate data
+  private roomClimateData: { temperatureC: number; humidity: number; timestamp: number } | null = null;
 
   public async start() {
     if (this.isRunning) {
@@ -440,6 +442,45 @@ export class FrankenMonitor {
   }
 
   /**
+   * Parse a room climate (ambient temperature & humidity) line from frank logs
+   * Example: "Oct 20 17:21:49 eight-pod frank[1201]: DBG:24251711 Sensor.cpp:658 handleCommand|[sensor] -> FW: 21130214 [ambient] temp 24.8352 humidity 41.2076 percent"
+   */
+  private parseRoomClimateLine(logLine: string): {
+    temperatureC: number;
+    humidity: number;
+    timestamp: number
+  } | null {
+    // Parse: [ambient] temp 24.8352 humidity 41.2076 percent
+    const regex = /\[ambient\] temp ([0-9.]+) humidity ([0-9.]+) percent/;
+    const match = logLine.match(regex);
+
+    if (!match) {
+      return null;
+    }
+
+    // Extract timestamp from log line (format: "Oct 20 17:21:49")
+    const timestampRegex = /^(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})/;
+    const timestampMatch = logLine.match(timestampRegex);
+
+    let timestamp = Math.floor(Date.now() / 1000);
+    if (timestampMatch) {
+      try {
+        const currentYear = new Date().getFullYear();
+        const logDate = new Date(`${timestampMatch[1]} ${currentYear}`);
+        timestamp = Math.floor(logDate.getTime() / 1000);
+      } catch {
+        // Use current timestamp if parsing fails
+      }
+    }
+
+    return {
+      temperatureC: Number.parseFloat(match[1]),
+      humidity: Number.parseFloat(match[2]),
+      timestamp,
+    };
+  }
+
+  /**
    * Backfill recent capwater readings from system logs on startup
    */
   private async backfillHistoricalWaterReadings(): Promise<void> {
@@ -555,6 +596,42 @@ export class FrankenMonitor {
     }
   }
 
+  /**
+   * Process room climate (temperature & humidity) data from frank logs
+   */
+  private async processRoomClimateData() {
+    try {
+      const { exec } = await import('child_process');
+      const { promisify } = await import('util');
+      const execAsync = promisify(exec);
+
+      // Get latest ambient reading from frank logs
+      const { stdout } = await execAsync(
+        'journalctl --no-pager --lines=100 | grep "frank\\[" | grep "\\[ambient\\]" | tail -1'
+      );
+
+      if (!stdout.trim()) {
+        return;
+      }
+
+      const line = stdout.trim();
+      const parsed = this.parseRoomClimateLine(line);
+
+      if (parsed) {
+        this.roomClimateData = parsed;
+      }
+    } catch (error) {
+      logger.debug(`Failed to process room climate data: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Get current room climate data
+   */
+  public getRoomClimateData() {
+    return this.roomClimateData;
+  }
+
   private async frankenLoop() {
     while (true) {
       try {
@@ -571,6 +648,7 @@ export class FrankenMonitor {
           await this.processTTC();
           await this.processPrimingState();
           await this.processWaterLevelData();
+          await this.processRoomClimateData();
           // await this.updateWaterState(this.variableValues["waterLevel"] == "true");
           // await this.updatePrimeNeeded(parseInt(this.variableValues["needsPrime"], 10));
         }

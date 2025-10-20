@@ -4,6 +4,7 @@ import { z } from 'zod';
 import memoryDB from '../db/memoryDB.js';
 import logger from '../logger.js';
 import type { DeviceStatus } from '../routes/deviceStatus/deviceStatusSchema.js';
+import { getFrankenMonitor } from '../server.js';
 
 const RawDeviceData = z.object({
   tgHeatLevelR: z.string().regex(/^-?\d+$/, {
@@ -119,6 +120,10 @@ export async function loadDeviceStatus(
       }
     : undefined;
 
+  // Get room climate data from FrankenMonitor
+  const frankenMonitor = getFrankenMonitor();
+  const roomClimate = frankenMonitor?.getRoomClimateData();
+
   return {
     left: {
       currentTemperatureF: calculateTempInF(rawDeviceData.heatLevelL),
@@ -137,6 +142,11 @@ export async function loadDeviceStatus(
     waterLevel: rawDeviceData.waterLevel,
     isPriming: rawDeviceData.priming === 'true',
     waterLevelRaw,
+    roomClimate: roomClimate ? {
+      temperatureC: roomClimate.temperatureC,
+      humidity: roomClimate.humidity,
+      timestamp: roomClimate.timestamp,
+    } : undefined,
     settings: decodeSettings(rawDeviceData.settings),
   };
 }
