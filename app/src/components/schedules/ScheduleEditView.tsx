@@ -1,23 +1,22 @@
 import { postSchedules, useSchedules } from '@api/schedules';
-import type { DayOfWeek, Schedules } from '@api/schedulesSchema';
+import type { DayOfWeek } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings';
 import { ArrowBack, CheckCircle, Schedule, Warning } from '@mui/icons-material';
 import {
-    Box,
-    Button,
-    Card,
-    CardContent,
-    Chip,
-    Divider,
-    Paper,
-    Typography,
-    useMediaQuery,
-    useTheme,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Divider,
+  Paper,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { useAppStore } from '@state/appStore.tsx';
 import _ from 'lodash';
 import { useEffect } from 'react';
-import type { DeepPartial } from 'ts-essentials';
 import AlarmAccordion from './AlarmAccordion.tsx';
 import ElevationAdjustmentsAccordion from './ElevationAdjustmentsAccordion.tsx';
 import EnabledSwitch from './EnabledSwitch.tsx';
@@ -36,8 +35,14 @@ type ScheduleEditViewProps = {
 export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
   const { setIsUpdating, side, setError, clearError } = useAppStore();
   const { refetch } = useSchedules();
-  const { selectedSchedule, selectedDays, reloadScheduleData, isValid } =
-    useScheduleStore();
+  const {
+    selectedSchedule,
+    selectedDays,
+    reloadScheduleData,
+    isValid,
+    currentScheduleId,
+    isCreatingNew,
+  } = useScheduleStore();
   const { data: settings } = useSettings();
   const displayCelsius = settings?.temperatureFormat === 'celsius';
   const theme = useTheme();
@@ -55,12 +60,24 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
       _.keys(_.pickBy(selectedDays, (value) => value)) as DayOfWeek[],
     );
 
-    const payload: DeepPartial<Schedules> = { [side]: {} };
-    daysList.forEach((day) => {
-      if (payload[side] && selectedSchedule) {
-        payload[side][day] = selectedSchedule;
-      }
-    });
+    // Validate that at least one day is selected
+    if (daysList.length === 0) {
+      setError(
+        'Please select at least one day for this schedule. Use the day selector above to choose which days this schedule should apply to.',
+      );
+      setIsUpdating(false);
+      return;
+    }
+
+    // Use entity-based operations
+    const operation = isCreatingNew ? 'create' : 'updateGroup';
+    const payload = {
+      operation,
+      side,
+      scheduleId: currentScheduleId,
+      days: daysList,
+      schedule: selectedSchedule,
+    };
 
     await postSchedules(payload)
       .then(() => {
@@ -174,7 +191,11 @@ export default function ScheduleEditView({ onBack }: ScheduleEditViewProps) {
                   fontSize: { xs: '1.25rem', sm: '1.5rem' },
                 }}
               >
-                {isGroupEdit ? 'Edit Group Schedule' : 'Edit Schedule'}
+                {isCreatingNew
+                  ? 'Create Schedule'
+                  : isGroupEdit
+                    ? 'Edit Group Schedule'
+                    : 'Edit Schedule'}
               </Typography>
             </Box>
           </Box>

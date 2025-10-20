@@ -1,8 +1,14 @@
-import { type DailySchedule, type DayOfWeek } from '@api/schedulesSchema';
+import type {
+  DailySchedule,
+  DayOfWeek,
+  ScheduleEntity,
+  SideScheduleV2,
+} from '@api/schedulesSchema';
 import _ from 'lodash';
 
 export interface ScheduleGroup {
   id: string;
+  scheduleId: string; // NEW: Reference to schedule entity
   schedule: DailySchedule;
   days: DayOfWeek[];
   dayIndices: number[];
@@ -70,6 +76,69 @@ const normalizeScheduleForComparison = (schedule: DailySchedule): string => {
   return sortedJsonString;
 };
 
+/**
+ * V2: Groups schedules by entity assignments
+ * This is the new preferred method that uses the entity model
+ */
+export const groupSchedulesByAssignments = (
+  schedules: Record<string, ScheduleEntity>,
+  assignments: Record<DayOfWeek, string>,
+): ScheduleGroup[] => {
+  const groups: Record<string, ScheduleGroup> = {};
+
+  Object.entries(assignments).forEach(([day, scheduleId]) => {
+    const dayOfWeek = day as DayOfWeek;
+    const dayIndex = DAYS_ORDER.indexOf(dayOfWeek);
+
+    if (groups[scheduleId]) {
+      // Add to existing group
+      groups[scheduleId].days.push(dayOfWeek);
+      groups[scheduleId].dayIndices.push(dayIndex);
+    } else {
+      // Create new group
+      const entity = schedules[scheduleId];
+      if (entity) {
+        groups[scheduleId] = {
+          id: scheduleId,
+          scheduleId,
+          schedule: entity.data,
+          days: [dayOfWeek],
+          dayIndices: [dayIndex],
+        };
+      }
+    }
+  });
+
+  // Sort groups by the first day that appears in each group
+  return Object.values(groups).sort((a, b) => {
+    const aFirstDayIndex = Math.min(...a.dayIndices);
+    const bFirstDayIndex = Math.min(...b.dayIndices);
+    return aFirstDayIndex - bFirstDayIndex;
+  });
+};
+
+/**
+ * Groups side schedule by assignments if V2, falls back to legacy comparison
+ */
+export const groupSideSchedule = (
+  sideSchedule: SideScheduleV2,
+): ScheduleGroup[] => {
+  // Use V2 grouping if available
+  if (sideSchedule.schedules && sideSchedule.assignments) {
+    return groupSchedulesByAssignments(
+      sideSchedule.schedules,
+      sideSchedule.assignments,
+    );
+  }
+
+  // Fallback to legacy grouping
+  return groupSchedulesBySettings(sideSchedule);
+};
+
+/**
+ * Legacy: Groups schedules by comparing settings
+ * @deprecated Use groupSchedulesByAssignments for V2 schedules
+ */
 export const groupSchedulesBySettings = (
   schedules: Record<DayOfWeek, DailySchedule>,
 ): ScheduleGroup[] => {
@@ -89,6 +158,7 @@ export const groupSchedulesBySettings = (
       // Create new group
       groups[normalizedKey] = {
         id: normalizedKey,
+        scheduleId: normalizedKey, // Use normalized key as fake scheduleId
         schedule,
         days: [dayOfWeek],
         dayIndices: [dayIndex],

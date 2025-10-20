@@ -130,3 +130,50 @@ export const SchedulesUpdateSchema = z
 export type DailyScheduleUpdate = z.infer<typeof DailyScheduleUpdateSchema>;
 export type SideScheduleUpdate = z.infer<typeof SideScheduleUpdateSchema>;
 export type SchedulesUpdate = z.infer<typeof SchedulesUpdateSchema>;
+
+// ============================================================================
+// V2 Schema: Schedule Entity Model
+// ============================================================================
+
+// Schedule Entity - stores schedule data with unique ID
+export const ScheduleEntitySchema = z
+  .object({
+    id: z.string().uuid(),
+    name: z.string().optional(),
+    data: DailyScheduleSchema,
+    createdAt: z.number(),
+    updatedAt: z.number(),
+  })
+  .strict();
+
+export type ScheduleEntity = z.infer<typeof ScheduleEntitySchema>;
+
+// V2 Side Schedule - adds schedule entities and assignments
+export const SideScheduleV2Schema = z
+  .object({
+    // Legacy: For backward compatibility and job consumption
+    sunday: DailyScheduleSchema,
+    monday: DailyScheduleSchema,
+    tuesday: DailyScheduleSchema,
+    wednesday: DailyScheduleSchema,
+    thursday: DailyScheduleSchema,
+    friday: DailyScheduleSchema,
+    saturday: DailyScheduleSchema,
+
+    // New: For efficient storage and group operations
+    schedules: z.record(z.string().uuid(), ScheduleEntitySchema).optional(),
+    assignments: z.record(z.string(), z.string().uuid()).optional(),
+  })
+  .strict();
+
+export type SideScheduleV2 = z.infer<typeof SideScheduleV2Schema>;
+
+// V2 Schedules - uses V2 side schedules
+export const SchedulesV2Schema = z
+  .object({
+    left: SideScheduleV2Schema,
+    right: SideScheduleV2Schema,
+  })
+  .strict();
+
+export type SchedulesV2 = z.infer<typeof SchedulesV2Schema>;

@@ -49,29 +49,21 @@ function SchedulePage() {
     setViewMode('edit');
   };
 
-  const handleEditGroup = (dayIndices: number[]) => {
-    // For group editing, select the first day and pre-select all days in the group
-    selectDay(dayIndices[0]);
-
-    // Convert day indices to day names and pre-select ALL days in the group
+  const handleEditGroup = (scheduleId: string, dayIndices: number[]) => {
+    // For group editing, load the schedule entity
+    const { loadScheduleForEditing } = useScheduleStore.getState();
     const groupDays = dayIndices.map(
       (index) => LOWERCASE_DAYS[index] as DayOfWeek,
     );
-    // Include ALL days from the group in selectedDays for proper counting
-    const allGroupDays = groupDays;
 
+    loadScheduleForEditing(scheduleId, groupDays);
     setViewMode('edit');
-
-    // Set selected days AFTER switching to edit mode to prevent them from being cleared
-    setTimeout(() => {
-      setSelectedDays(allGroupDays);
-    }, 0);
   };
 
   const handleCreateNew = () => {
-    const day = getAdjustedDayOfWeek();
-    selectDay(LOWERCASE_DAYS.indexOf(day));
-    setSelectedDays([]); // Clear any previous group selections
+    // Create a truly blank schedule
+    const { createBlankSchedule } = useScheduleStore.getState();
+    createBlankSchedule();
     setViewMode('edit');
   };
 

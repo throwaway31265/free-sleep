@@ -1,9 +1,13 @@
-import type { DailySchedule, DayOfWeek, Schedules } from '@api/schedulesSchema';
+import type {
+  DailySchedule,
+  DayOfWeek,
+  SchedulesV2,
+} from '@api/schedulesSchema';
 import { useAppStore } from '@state/appStore.tsx';
 import _ from 'lodash';
 import type { DeepPartial } from 'ts-essentials';
 import { create } from 'zustand';
-import { LOWERCASE_DAYS } from './days';
+import { LOWERCASE_DAYS } from './days.ts';
 import type { AccordionExpanded, DaysSelected } from './SchedulePage.types.ts';
 
 type Validations = {
@@ -52,12 +56,18 @@ type ScheduleStore = {
   updateSelectedElevations: (elevations: DailySchedule['elevations']) => void;
 
   // Keep a copy of the original schedules
-  originalSchedules: Schedules | undefined;
-  setOriginalSchedules: (originalSchedules: Schedules) => void;
+  originalSchedules: SchedulesV2 | undefined;
+  setOriginalSchedules: (originalSchedules: SchedulesV2) => void;
 
   selectedDays: Record<DayOfWeek, boolean>;
   toggleSelectedDay: (day: DayOfWeek) => void;
   setSelectedDays: (days: DayOfWeek[]) => void;
+
+  // V2: Entity-based operations
+  currentScheduleId: string | null;
+  isCreatingNew: boolean;
+  createBlankSchedule: () => void;
+  loadScheduleForEditing: (scheduleId: string, days: DayOfWeek[]) => void;
 };
 
 export const useScheduleStore = create<ScheduleStore>((set, get) => ({
@@ -192,5 +202,83 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
     const selectedSchedule = _.cloneDeep(originalSchedules[side][selectedDay]);
 
     set({ originalSchedules, selectedSchedule });
+  },
+
+  // V2: Entity-based operations
+  currentScheduleId: null,
+  isCreatingNew: false,
+
+  createBlankSchedule: () => {
+    const blankSchedule: DailySchedule = {
+      temperatures: {},
+      power: {
+        on: '21:00',
+        off: '09:00',
+        enabled: true, // Default to enabled for new schedules
+        onTemperature: 82,
+      },
+      alarm: {
+        time: '09:00',
+        vibrationIntensity: 1,
+        vibrationPattern: 'rise',
+        duration: 1,
+        enabled: false,
+        alarmTemperature: 82,
+      },
+      elevations: {},
+    };
+
+    // Pre-select current day to prevent orphaned entities
+    const now = new Date();
+    const currentHour = now.getHours();
+    let dayIndex = now.getDay();
+
+    // Adjust for early morning (before noon) - same logic as schedules.tsx
+    if (currentHour < 12) {
+      dayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+    }
+
+    const currentDay = LOWERCASE_DAYS[dayIndex];
+    const initialSelectedDays = { ...DEFAULT_DAYS_SELECTED };
+    initialSelectedDays[currentDay] = true;
+
+    set({
+      selectedSchedule: blankSchedule,
+      isCreatingNew: true,
+      currentScheduleId: null,
+      selectedDays: initialSelectedDays,
+      accordionExpanded: undefined,
+      validations: { ...DEFAULT_VALIDATIONS },
+      changesPresent: true, // Mark as changed since we pre-selected a day
+    });
+  },
+
+  loadScheduleForEditing: (scheduleId: string, days: DayOfWeek[]) => {
+    const { originalSchedules } = get();
+    const { side } = useAppStore.getState();
+
+    if (
+      !originalSchedules ||
+      !originalSchedules[side].schedules ||
+      !originalSchedules[side].schedules![scheduleId]
+    ) {
+      return;
+    }
+
+    const entity = originalSchedules[side].schedules![scheduleId];
+    const selectedDaysRecord = { ...DEFAULT_DAYS_SELECTED };
+    days.forEach((day) => {
+      selectedDaysRecord[day] = true;
+    });
+
+    set({
+      selectedSchedule: _.cloneDeep(entity.data),
+      isCreatingNew: false,
+      currentScheduleId: scheduleId,
+      selectedDays: selectedDaysRecord,
+      accordionExpanded: undefined,
+      validations: { ...DEFAULT_VALIDATIONS },
+      changesPresent: false,
+    });
   },
 }));

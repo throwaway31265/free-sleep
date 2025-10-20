@@ -1,5 +1,5 @@
 import { postSchedules } from '@api/schedules';
-import type { DayOfWeek, Schedules } from '@api/schedulesSchema';
+import type { DayOfWeek, SchedulesV2 } from '@api/schedulesSchema';
 import { useSettings } from '@api/settings';
 import { Add, Insights, Schedule, TrendingUp } from '@mui/icons-material';
 import {
@@ -13,12 +13,12 @@ import {
 import { useAppStore } from '@state/appStore.tsx';
 import { LOWERCASE_DAYS } from './days.ts';
 import GroupedScheduleCard from './GroupedScheduleCard.tsx';
-import { groupSchedulesBySettings } from './scheduleGrouping.ts';
+import { groupSideSchedule } from './scheduleGrouping.ts';
 
 type ScheduleOverviewProps = {
-  schedules: Schedules;
+  schedules: SchedulesV2;
   onEditDay: (dayIndex: number) => void;
-  onEditGroup: (dayIndices: number[]) => void;
+  onEditGroup: (scheduleId: string, dayIndices: number[]) => void;
   onCreateNew: () => void;
   onRefresh: () => void;
 };
@@ -60,7 +60,7 @@ export default function ScheduleOverview({
   }
 
   // Group all schedules (both enabled and disabled)
-  const allScheduleGroups = groupSchedulesBySettings(sideSchedules);
+  const allScheduleGroups = groupSideSchedule(sideSchedules);
 
   // Separate enabled and disabled groups
   const enabledGroups = allScheduleGroups.filter(
@@ -432,7 +432,9 @@ export default function ScheduleOverview({
                   displayCelsius={displayCelsius}
                   onToggleSchedule={handleToggleSchedule}
                   onEditDay={onEditDay}
-                  onEditGroup={onEditGroup}
+                  onEditGroup={(dayIndices) =>
+                    onEditGroup(group.scheduleId, dayIndices)
+                  }
                 />
               ))}
             </>
@@ -483,7 +485,9 @@ export default function ScheduleOverview({
                   displayCelsius={displayCelsius}
                   onToggleSchedule={handleToggleSchedule}
                   onEditDay={onEditDay}
-                  onEditGroup={onEditGroup}
+                  onEditGroup={(dayIndices) =>
+                    onEditGroup(group.scheduleId, dayIndices)
+                  }
                 />
               ))}
             </>

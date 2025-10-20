@@ -44,35 +44,50 @@ async function setupJobs() {
   const settingsData = settingsDB.data;
 
   logger.info('Scheduling jobs...');
+
+  // Define days to iterate over (only day properties, not schedules/assignments)
+  const daysOfWeek: DayOfWeek[] = [
+    'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+  ];
+
   Object.entries(schedulesData).forEach(([side, sideSchedule]) => {
-    Object.entries(sideSchedule).forEach(([day, schedule]) => {
+    // Only iterate over day properties, not the new schedules/assignments
+    daysOfWeek.forEach((day) => {
+      const schedule = sideSchedule[day];
+
       schedulePowerOn(
         settingsData,
         side as Side,
-        day as DayOfWeek,
+        day,
         schedule.power,
       );
       schedulePowerOffAndSleepAnalysis(
         settingsData,
         side as Side,
-        day as DayOfWeek,
+        day,
         schedule.power,
       );
       if (schedule.power.enabled) {
         scheduleTemperatures(
           settingsData,
           side as Side,
-          day as DayOfWeek,
+          day,
           schedule.temperatures,
         );
         scheduleElevations(
           settingsData,
           side as Side,
-          day as DayOfWeek,
+          day,
           schedule.elevations,
         );
       }
-      scheduleAlarm(settingsData, side as Side, day as DayOfWeek, schedule);
+      scheduleAlarm(settingsData, side as Side, day, schedule);
     });
   });
   schedulePrimingRebootAndCalibration(settingsData);

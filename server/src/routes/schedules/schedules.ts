@@ -1,11 +1,14 @@
 import express, { type Request, type Response } from 'express';
+import { randomUUID } from 'node:crypto';
 import _ from 'lodash';
 import type { DeepPartial } from 'ts-essentials';
 import schedulesDB from '../../db/schedules.js';
+import { syncDaysFromEntities } from '../../db/scheduleMigration.js';
 import {
   type DailySchedule,
   type DayOfWeek,
   type Schedules,
+  type ScheduleEntity,
   SchedulesUpdateSchema,
   type Side,
   type SideSchedule,
@@ -16,11 +19,169 @@ const router = express.Router();
 
 router.get('/schedules', async (req: Request, res: Response) => {
   await schedulesDB.read();
+
+  // Clean up orphaned schedule entities (entities not assigned to any day)
+  let needsCleanup = false;
+  ['left', 'right'].forEach((sideKey) => {
+    const side = sideKey as Side;
+    if (
+      schedulesDB.data[side].schedules &&
+      schedulesDB.data[side].assignments
+    ) {
+      const assignments = schedulesDB.data[side].assignments!;
+      const schedules = schedulesDB.data[side].schedules!;
+      const assignedIds = new Set(Object.values(assignments));
+
+      // Find orphaned entities
+      Object.keys(schedules).forEach((scheduleId) => {
+        if (!assignedIds.has(scheduleId)) {
+          logger.info(
+            `Removing orphaned schedule entity ${scheduleId} from ${side} side`,
+          );
+          delete schedules[scheduleId];
+          needsCleanup = true;
+        }
+      });
+    }
+  });
+
+  if (needsCleanup) {
+    await schedulesDB.write();
+    logger.info('Cleaned up orphaned schedule entities');
+  }
+
   res.json(schedulesDB.data);
 });
 
 router.post('/schedules', async (req: Request, res: Response) => {
   const body = req.body;
+  const { operation } = body;
+
+  await schedulesDB.read();
+
+  // V2 Entity-based operations
+  if (operation === 'create') {
+    // Create new schedule entity and assign to days
+    const { side, days, schedule } = body;
+
+    if (!side || !days || !schedule) {
+      res.status(400).json({ error: 'Missing required fields for create operation' });
+      return;
+    }
+
+    const typedSide = side as Side;
+
+    // Ensure V2 structure exists
+    if (!schedulesDB.data[typedSide].schedules) {
+      schedulesDB.data[typedSide].schedules = {};
+    }
+    if (!schedulesDB.data[typedSide].assignments) {
+      schedulesDB.data[typedSide].assignments = {} as Record<DayOfWeek, string>;
+    }
+
+    const newEntity: ScheduleEntity = {
+      id: randomUUID(),
+      data: schedule,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    // Store entity
+    schedulesDB.data[typedSide].schedules![newEntity.id] = newEntity;
+
+    // Assign to days
+    days.forEach((day: DayOfWeek) => {
+      schedulesDB.data[typedSide].assignments![day] = newEntity.id;
+    });
+
+    // Sync to legacy days field
+    const syncedDays = syncDaysFromEntities(
+      schedulesDB.data[typedSide].schedules!,
+      schedulesDB.data[typedSide].assignments!,
+    );
+    Object.assign(schedulesDB.data[typedSide], syncedDays);
+
+    await schedulesDB.write();
+    logger.info(`Created schedule entity ${newEntity.id} for ${days.join(', ')}`);
+    res.status(200).json(schedulesDB.data);
+    return;
+  }
+
+  if (operation === 'updateGroup') {
+    // Update existing schedule entity
+    const { side, scheduleId, schedule } = body;
+
+    if (!side || !scheduleId || !schedule) {
+      res.status(400).json({ error: 'Missing required fields for updateGroup operation' });
+      return;
+    }
+
+    const typedSide = side as Side;
+
+    if (!schedulesDB.data[typedSide].schedules?.[scheduleId]) {
+      res.status(404).json({ error: 'Schedule entity not found' });
+      return;
+    }
+
+    // Update entity
+    schedulesDB.data[typedSide].schedules![scheduleId].data = schedule;
+    schedulesDB.data[typedSide].schedules![scheduleId].updatedAt = Date.now();
+
+    // Sync to legacy days field
+    const syncedDays = syncDaysFromEntities(
+      schedulesDB.data[typedSide].schedules!,
+      schedulesDB.data[typedSide].assignments!,
+    );
+    Object.assign(schedulesDB.data[typedSide], syncedDays);
+
+    await schedulesDB.write();
+    logger.info(`Updated schedule entity ${scheduleId}`);
+    res.status(200).json(schedulesDB.data);
+    return;
+  }
+
+  if (operation === 'ungroupDay') {
+    // Clone schedule for single day
+    const { side, day, scheduleId } = body;
+
+    if (!side || !day || !scheduleId) {
+      res.status(400).json({ error: 'Missing required fields for ungroupDay operation' });
+      return;
+    }
+
+    const typedSide = side as Side;
+    const typedDay = day as DayOfWeek;
+
+    if (!schedulesDB.data[typedSide].schedules?.[scheduleId]) {
+      res.status(404).json({ error: 'Schedule entity not found' });
+      return;
+    }
+
+    // Clone entity
+    const clonedEntity: ScheduleEntity = {
+      id: randomUUID(),
+      data: _.cloneDeep(schedulesDB.data[typedSide].schedules![scheduleId].data),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    schedulesDB.data[typedSide].schedules![clonedEntity.id] = clonedEntity;
+    schedulesDB.data[typedSide].assignments![typedDay] = clonedEntity.id;
+
+    // Sync to legacy days field
+    const syncedDays = syncDaysFromEntities(
+      schedulesDB.data[typedSide].schedules!,
+      schedulesDB.data[typedSide].assignments!,
+    );
+    Object.assign(schedulesDB.data[typedSide], syncedDays);
+
+    await schedulesDB.write();
+    logger.info(`Ungrouped day ${typedDay} with new schedule entity ${clonedEntity.id}`);
+    res.status(200).json(schedulesDB.data);
+    return;
+  }
+
+  // Legacy operation - validate and merge updates into days
   const validationResult = SchedulesUpdateSchema.safeParse(body);
   if (!validationResult.success) {
     logger.error('Invalid schedules update:', validationResult.error);
@@ -31,7 +192,6 @@ router.post('/schedules', async (req: Request, res: Response) => {
     return;
   }
   const schedules = validationResult.data as DeepPartial<Schedules>;
-  await schedulesDB.read();
 
   (Object.entries(schedules) as [Side, Partial<SideSchedule>][]).forEach(
     ([side, sideSchedule]) => {

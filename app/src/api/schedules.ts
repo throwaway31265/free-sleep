@@ -1,17 +1,16 @@
-import type { Schedules } from '@api/schedulesSchema';
+import type { SchedulesV2 } from '@api/schedulesSchema';
 import { useQuery } from '@tanstack/react-query';
-import type { DeepPartial } from 'ts-essentials';
 import axios from './api';
 
 export const useSchedules = () =>
-  useQuery<Schedules>({
+  useQuery<SchedulesV2>({
     queryKey: ['useSchedules'],
     queryFn: async () => {
-      const response = await axios.get<Schedules>('/schedules');
+      const response = await axios.get<SchedulesV2>('/schedules');
       return response.data;
     },
   });
 
-export const postSchedules = (schedules: DeepPartial<Schedules>) => {
-  return axios.post('/schedules', schedules);
+export const postSchedules = (payload: any) => {
+  return axios.post('/schedules', payload);
 };
