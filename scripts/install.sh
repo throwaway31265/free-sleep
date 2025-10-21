@@ -546,15 +546,6 @@ else
   fi
 fi
 
-echo "Generating Prisma client..."
-# Generate Prisma client first (required before server can start)
-if sudo -u "$USERNAME" bash -c "export BUN_INSTALL=/home/$USERNAME/.bun; export PATH=/home/$USERNAME/.bun/bin:$PATH; cd '$SERVER_DIR' && bun run dotenv -e .env.pod -- bun x prisma generate"; then
-  echo "Prisma client generated successfully."
-else
-  echo "WARNING: Prisma client generation failed. The server will not start correctly."
-  echo "To generate manually, run: cd '$SERVER_DIR' && bun run generate"
-fi
-
 echo "Running Prisma migrations..."
 # Run Prisma migrations directly (install.sh already handles service management)
 # Ensure Bun is in PATH for nested spawns inside the npm script (dotenv -> bun x ...)
