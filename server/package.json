@@ -20,7 +20,8 @@
     "migrate:local": "bash ../scripts/migrate.sh",
     "generate": "dotenv -e .env.pod -- bun x prisma generate",
     "generate:local": "dotenv -e .env.local -- bun x prisma generate",
-    "check-db-lock": "bash ../scripts/check_db_lock.sh"
+    "check-db-lock": "bash ../scripts/check_db_lock.sh",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
