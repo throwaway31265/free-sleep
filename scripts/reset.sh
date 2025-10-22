@@ -5,7 +5,7 @@ read -p "Are you sure you want to continue? (y/N): " confirm
 
 if [[ "$confirm" =~ ^[Yy]$ ]]; then
     echo "Deleting Free Sleep data..."
-    rm -rf /persistent/free-sleep-data/test/
+    rm -rf /persistent/free-sleep-data/
     echo "Data deleted."
 else
     echo "Operation cancelled."
