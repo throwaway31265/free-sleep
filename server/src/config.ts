@@ -47,6 +47,7 @@ class Config {
   public lowDbFolder: string;
   public remoteDevMode: boolean;
   public dacSockPath: string;
+  public frankenSockConnected: boolean;
 
   private constructor() {
     if (!process.env.DATA_FOLDER || !process.env.ENV) {
@@ -56,6 +57,7 @@ class Config {
     this.dacSockPath = this.detectSockPath();
     this.dbFolder = process.env.DATA_FOLDER;
     this.lowDbFolder = `${this.dbFolder}lowdb/`;
+    this.frankenSockConnected = false;
   }
 
 

@@ -218,8 +218,23 @@ http://192.168.1.50:3000/
 
 ---
 
+## 16. Save the website to your home screen on your mobile device
+- Apple devices:
+  - Navigate to the website in safari
+  - Click the share icon in the bottom toolbar
+  - Select 'Add to Home Screen'
+  - Edit the name if you’d like, then tap Add.
+  - The shortcut will now appear on your home screen like an app icon.
+- Android devices:
+  - Open the website in Chrome (or your default browser). 
+  - Tap the three-dot menu in the top-right corner. 
+  - Select “Add to Home screen” (sometimes shown as “Install app”). 
+  - Edit the name if you’d like, then tap Add. 
+  - The shortcut will now appear on your home screen like an app icon.
 
-## 16. Validation
+
+
+## 17. Validation
 
 ### Verify the site is still up
 1. Unplug the power from your device and plug it back in 
@@ -257,7 +272,7 @@ I will eventually add a shell script to execute to upgrade free-sleep. Feel free
 
 ---
 
-## 17. (Optional) - Add firewall rules to block access to the internet (optional, but recommended)
+## 19. (Optional) - Add firewall rules to block access to the internet (optional, but recommended)
 ```
 sh /home/dac/free-sleep/scripts/block_internet_access.sh
 
@@ -268,7 +283,7 @@ sh /home/dac/free-sleep/scripts/unblock_internet_access.sh
 ---
 
 
-## 18. (Optional) - Add an ssh config
+## 20. (Optional) - Add an ssh config
 This will ask for a public key, ssh access is on port 8822 (ex: `ssh root@<POD_IP> -p 8822') 
 ```
 sh /home/dac/free-sleep/scripts/setup_ssh.sh

@@ -34,6 +34,7 @@ class Config {
     lowDbFolder;
     remoteDevMode;
     dacSockPath;
+    frankenSockConnected;
     constructor() {
         if (!process.env.DATA_FOLDER || !process.env.ENV) {
             throw new Error('Missing DATA_FOLDER || ENV in env');
@@ -42,6 +43,7 @@ class Config {
         this.dacSockPath = this.detectSockPath();
         this.dbFolder = process.env.DATA_FOLDER;
         this.lowDbFolder = `${this.dbFolder}lowdb/`;
+        this.frankenSockConnected = false;
     }
     detectSockPath() {
         const dacSockPath = checkIfDacSockPathConfigured();

@@ -8,6 +8,7 @@ import schedules from '../routes/schedules/schedules.js';
 import sleep from '../routes/metrics/sleep.js';
 import vitals from '../routes/metrics/vitals.js';
 import logs from '../routes/logs/logs.js';
+import serverStatus from '../routes/serverStatus/serverStatus.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +21,7 @@ export default function (app: Express) {
   app.use('/api/metrics/', sleep);
   app.use('/api/metrics/', vitals);
   app.use('/api/logs', logs);
+  app.use('/api/serverStatus', serverStatus);
   // // Serve static files from the Vite output directory
   app.use(express.static(path.join(__dirname, '../../public')));
 

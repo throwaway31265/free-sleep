@@ -4,6 +4,7 @@ import BedIcon from '@mui/icons-material/Bed';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import SettingsIcon from '@mui/icons-material/Settings';
+import BugReportIcon from '@mui/icons-material/BugReport';
 
 type Page = {
   title: string;
@@ -23,7 +24,7 @@ function TemperatureIcon() {
 export const PAGES: Page[] = [
   { title: 'Temperature', route: '/temperature', icon: <TemperatureIcon/> },
   { title: 'Schedules', route: '/schedules', icon: <ScheduleIcon/> },
-
   { title: 'Data', route: '/data', icon: <BarChartIcon/> },
+  { title: 'Status', route: '/status', icon: <BugReportIcon/> },
   { title: 'Settings', route: '/settings', icon: <SettingsIcon/> },
 ];

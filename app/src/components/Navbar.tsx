@@ -86,7 +86,6 @@ export default function Navbar() {
                 onClick={ () => handleNavigation(route) }
                 sx={ { color: 'white' } }
                 variant={ pathname === route ? 'outlined' : 'text' }
-                disabled={ isUpdating }
               >
                 { title }
               </Button>
@@ -127,7 +126,6 @@ export default function Navbar() {
             <BottomNavigationAction
               key={ index }
               icon={ icon }
-              disabled={ isUpdating }
               aria-label={ title }
               sx={ {
                 '&.Mui-selected': {

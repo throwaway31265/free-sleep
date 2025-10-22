@@ -7,6 +7,7 @@ import './jobs/jobScheduler.js';
 import setupMiddleware from './setup/middleware.js';
 import setupRoutes from './setup/routes.js';
 import config from './config.js';
+import serverStatus from './serverStatus.js';
 const port = 3000;
 const app = express();
 let server;
@@ -21,9 +22,8 @@ async function gracefulShutdown(signal) {
         const error = new Error('Could not close connections in time. Forcing shutdown.');
         logger.error({ error });
         process.exit(1);
-    }, 10_000);
+    }, 15_000);
     await schedule.gracefulShutdown();
-    // If we already got Franken instances, close them
     try {
         if (server) {
             // Stop accepting new connections
@@ -50,9 +50,10 @@ async function gracefulShutdown(signal) {
 // Initialize Franken on server startup
 async function initFranken() {
     logger.info('Initializing Franken on startup...');
+    serverStatus.franken.status = 'started';
     // Force creation of the Franken and FrankenServer so it’s ready before we listen
-    await getFrankenServer();
     await getFranken();
+    serverStatus.franken.status = 'healthy';
     logger.info('Franken has been initialized successfully.');
 }
 // Main startup function
@@ -63,12 +64,10 @@ async function startServer() {
     server = app.listen(port, () => {
         logger.debug(`Server running on http://localhost:${port}`);
     });
+    serverStatus.express.status = 'healthy';
     // Initialize Franken once before listening
     if (!config.remoteDevMode) {
         initFranken()
-            .then(resp => {
-            logger.info(resp);
-        })
             .catch(error => {
             logger.error(error);
         });

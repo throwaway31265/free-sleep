@@ -8,59 +8,82 @@ import { schedulePowerOffAndSleepAnalysis, schedulePowerOn } from './powerSchedu
 import { scheduleTemperatures } from './temperatureScheduler.js';
 import { schedulePrimingRebootAndCalibration } from './primeScheduler.js';
 import config from '../config.js';
+import serverStatus from '../serverStatus.js';
 import { scheduleAlarm } from './alarmScheduler.js';
-const isJobSetupRunning = false;
 async function setupJobs() {
-    if (isJobSetupRunning) {
-        logger.debug('Job setup already running, skipping duplicate execution.');
-        return;
-    }
-    // Clear existing jobs
-    logger.info('Canceling old jobs...');
-    Object.keys(schedule.scheduledJobs).forEach((jobName) => {
-        schedule.cancelJob(jobName);
-    });
-    await schedule.gracefulShutdown();
-    await settingsDB.read();
-    await schedulesDB.read();
-    moment.tz.setDefault(settingsDB.data.timeZone || 'UTC');
-    const schedulesData = schedulesDB.data;
-    const settingsData = settingsDB.data;
-    logger.info('Scheduling jobs...');
-    Object.entries(schedulesData).forEach(([side, sideSchedule]) => {
-        Object.entries(sideSchedule).forEach(([day, schedule]) => {
-            schedulePowerOn(settingsData, side, day, schedule.power);
-            schedulePowerOffAndSleepAnalysis(settingsData, side, day, schedule.power);
-            scheduleTemperatures(settingsData, side, day, schedule.temperatures);
-            scheduleAlarm(settingsData, side, day, schedule);
+    try {
+        if (serverStatus.jobs.status !== 'not_started') {
+            logger.debug('Job setup already running, skipping duplicate execution.');
+            return;
+        }
+        serverStatus.jobs.status = 'started';
+        // Clear existing jobs
+        logger.info('Canceling old jobs...');
+        Object.keys(schedule.scheduledJobs).forEach((jobName) => {
+            schedule.cancelJob(jobName);
         });
-    });
-    schedulePrimingRebootAndCalibration(settingsData);
-    logger.info('Done scheduling jobs!');
+        await schedule.gracefulShutdown();
+        await settingsDB.read();
+        await schedulesDB.read();
+        moment.tz.setDefault(settingsDB.data.timeZone || 'UTC');
+        const schedulesData = schedulesDB.data;
+        const settingsData = settingsDB.data;
+        logger.info('Scheduling jobs...');
+        Object.entries(schedulesData).forEach(([side, sideSchedule]) => {
+            Object.entries(sideSchedule).forEach(([day, schedule]) => {
+                schedulePowerOn(settingsData, side, day, schedule.power);
+                schedulePowerOffAndSleepAnalysis(settingsData, side, day, schedule.power);
+                scheduleTemperatures(settingsData, side, day, schedule.temperatures);
+                scheduleAlarm(settingsData, side, day, schedule);
+            });
+        });
+        schedulePrimingRebootAndCalibration(settingsData);
+        logger.info('Done scheduling jobs!');
+        serverStatus.jobs.status = 'healthy';
+    }
+    catch (error) {
+        serverStatus.jobs.status = 'failed';
+        if (error instanceof Error) {
+            logger.error(error);
+            serverStatus.jobs.message = error.message;
+        }
+        else {
+            logger.error(String(error));
+            serverStatus.jobs.message = String(error);
+        }
+    }
 }
 function isSystemDateValid() {
     const currentYear = new Date().getFullYear();
     return currentYear > 2010;
 }
 let RETRY_COUNT = 0;
-let SYSTEM_DATE_SET = false;
 function waitForValidDateAndSetupJobs() {
+    serverStatus.systemDate.status = 'started';
     if (isSystemDateValid()) {
+        serverStatus.systemDate.status = 'healthy';
         logger.info('System date is valid. Setting up jobs...');
-        SYSTEM_DATE_SET = true;
-        setupJobs();
+        void setupJobs();
+    }
+    else if (RETRY_COUNT < 20) {
+        serverStatus.systemDate.status = 'retrying';
+        const message = `System date is invalid (year 2010). Retrying in 10 seconds... (Attempt #${RETRY_COUNT}})`;
+        serverStatus.systemDate.message = message;
+        RETRY_COUNT++;
+        logger.debug(message);
+        setTimeout(waitForValidDateAndSetupJobs, 5_000);
     }
     else {
-        RETRY_COUNT++;
-        logger.debug(`System date is invalid (year 2010). Retrying in 10 seconds... (Attempt #${RETRY_COUNT}})`);
-        setTimeout(waitForValidDateAndSetupJobs, 10_000);
+        const message = `System date is invalid! No jobs can be scheduled! ${new Date().toISOString()} `;
+        serverStatus.systemDate.message = message;
+        logger.warn(message);
     }
 }
 // Monitor the JSON file and refresh jobs on change
 chokidar.watch(config.lowDbFolder).on('change', () => {
     logger.info('Detected DB change, reloading...');
-    if (SYSTEM_DATE_SET) {
-        setupJobs();
+    if (serverStatus.systemDate.status === 'healthy') {
+        void setupJobs();
     }
     else {
         waitForValidDateAndSetupJobs();
