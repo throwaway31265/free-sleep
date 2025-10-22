@@ -62,31 +62,36 @@ async function setupJobs() {
     daysOfWeek.forEach((day) => {
       const schedule = sideSchedule[day];
 
-      schedulePowerOn(
-        settingsData,
-        side as Side,
-        day,
-        schedule.power,
-      );
-      schedulePowerOffAndSleepAnalysis(
-        settingsData,
-        side as Side,
-        day,
-        schedule.power,
-      );
-      if (schedule.power.enabled) {
-        scheduleTemperatures(
+      // Only schedule power-related jobs if power config exists
+      if (schedule.power) {
+        schedulePowerOn(
           settingsData,
           side as Side,
           day,
-          schedule.temperatures,
+          schedule.power,
         );
-        scheduleElevations(
+        schedulePowerOffAndSleepAnalysis(
           settingsData,
           side as Side,
           day,
-          schedule.elevations,
+          schedule.power,
         );
+        if (schedule.power.enabled) {
+          scheduleTemperatures(
+            settingsData,
+            side as Side,
+            day,
+            schedule.temperatures,
+          );
+          scheduleElevations(
+            settingsData,
+            side as Side,
+            day,
+            schedule.elevations,
+          );
+        }
+      } else {
+        logger.warn(`Skipping power scheduling for ${side} ${day} - missing power config`);
       }
       scheduleAlarm(settingsData, side as Side, day, schedule);
     });

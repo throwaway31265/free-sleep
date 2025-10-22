@@ -2,32 +2,53 @@
 import { randomUUID } from 'node:crypto';
 import logger from '../logger.js';
 import type {
-  DailySchedule,
-  DayOfWeek,
-  ScheduleEntity,
-  SideSchedule,
-  SideScheduleV2,
+    DailySchedule,
+    DayOfWeek,
+    ScheduleEntity,
+    SideSchedule,
+    SideScheduleV2,
 } from './schedulesSchema.js';
 
 // Normalize schedule for comparison (from scheduleGrouping.ts logic)
 const normalizeScheduleForComparison = (schedule: DailySchedule): string => {
+  // Ensure all required fields exist with defaults
+  const safeSchedule = {
+    ...schedule,
+    power: schedule.power || {
+      on: '21:00',
+      off: '09:00',
+      enabled: false,
+      onTemperature: 82,
+    },
+    alarm: schedule.alarm || {
+      time: '09:00',
+      vibrationIntensity: 1,
+      vibrationPattern: 'rise' as const,
+      duration: 1,
+      enabled: false,
+      alarmTemperature: 82,
+    },
+    temperatures: schedule.temperatures || {},
+    elevations: schedule.elevations || {},
+  };
+
   const normalized = {
     power: {
-      enabled: schedule.power.enabled,
-      on: schedule.power.on,
-      off: schedule.power.off,
-      onTemperature: schedule.power.onTemperature,
+      enabled: safeSchedule.power.enabled,
+      on: safeSchedule.power.on,
+      off: safeSchedule.power.off,
+      onTemperature: safeSchedule.power.onTemperature,
     },
     alarm: {
-      enabled: schedule.alarm.enabled,
-      time: schedule.alarm.time,
-      vibrationIntensity: schedule.alarm.vibrationIntensity,
-      vibrationPattern: schedule.alarm.vibrationPattern,
-      duration: schedule.alarm.duration,
-      alarmTemperature: schedule.alarm.alarmTemperature,
+      enabled: safeSchedule.alarm.enabled,
+      time: safeSchedule.alarm.time,
+      vibrationIntensity: safeSchedule.alarm.vibrationIntensity,
+      vibrationPattern: safeSchedule.alarm.vibrationPattern,
+      duration: safeSchedule.alarm.duration,
+      alarmTemperature: safeSchedule.alarm.alarmTemperature,
     },
-    temperatures: schedule.temperatures,
-    elevations: schedule.elevations,
+    temperatures: safeSchedule.temperatures,
+    elevations: safeSchedule.elevations,
   };
 
   // Convert to JSON string for comparison with sorted keys
@@ -76,9 +97,29 @@ export function migrateToV2(oldSide: SideSchedule): SideScheduleV2 {
     if (!scheduleId) {
       // Create new schedule entity for this unique schedule
       scheduleId = randomUUID();
+      // Apply defaults to ensure all required fields exist
+      const safeSchedule: DailySchedule = {
+        ...schedule,
+        power: schedule.power || {
+          on: '21:00',
+          off: '09:00',
+          enabled: false,
+          onTemperature: 82,
+        },
+        alarm: schedule.alarm || {
+          time: '09:00',
+          vibrationIntensity: 1,
+          vibrationPattern: 'rise',
+          duration: 1,
+          enabled: false,
+          alarmTemperature: 82,
+        },
+        temperatures: schedule.temperatures || {},
+        elevations: schedule.elevations || {},
+      };
       schedules[scheduleId] = {
         id: scheduleId,
-        data: schedule,
+        data: safeSchedule,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
