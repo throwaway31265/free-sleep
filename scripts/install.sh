@@ -7,6 +7,7 @@
 # Usage:
 #   ./install.sh                       # Install from main branch
 #   BRANCH=beta ./install.sh           # Install from beta branch
+#   COMMIT_SHA=abc123 ./install.sh     # Install specific commit (requires BRANCH)
 #   FORCE_UPDATE=true ./install.sh     # Force repository update
 #   SKIP_REPO_UPDATE=true ./install.sh # Skip repository update (for offline use)
 #
@@ -206,6 +207,7 @@ echo "==================================================================="
 # --------------------------------------------------------------------------------
 # Variables
 BRANCH=${BRANCH:-main}
+COMMIT_SHA=${COMMIT_SHA:-}
 SKIP_REPO_UPDATE=${SKIP_REPO_UPDATE:-false}
 
 # Check current status of Free Sleep services before starting installation
@@ -219,7 +221,12 @@ echo ""
 stop_services_for_installation
 echo ""
 
-echo "Branch: ${BRANCH}"
+if [ -n "$COMMIT_SHA" ]; then
+  echo "Branch: ${BRANCH}"
+  echo "Commit SHA: ${COMMIT_SHA}"
+else
+  echo "Branch: ${BRANCH}"
+fi
 echo ""
 echo "This script will check and update the following components:"
 echo "  - Service management (stop services before installation, restore after)"
@@ -234,12 +241,25 @@ echo ""
 echo "Usage:"
 echo "  ./install.sh                       # Install/switch to main branch"
 echo "  BRANCH=beta ./install.sh           # Install/switch to beta branch"
+echo "  COMMIT_SHA=abc123 ./install.sh     # Install specific commit (requires BRANCH)"
 echo "  FORCE_UPDATE=true ./install.sh     # Force repository update"
 echo "  SKIP_REPO_UPDATE=true ./install.sh # Skip repository update (for offline use)"
 echo "==================================================================="
 echo ""
-REPO_URL="https://github.com/throwaway31265/free-sleep/archive/refs/heads/${BRANCH}.zip"
-ZIP_FILE="free-sleep-${BRANCH}.zip"
+
+# Configure download URLs based on whether a specific commit is requested
+if [ -n "$COMMIT_SHA" ]; then
+  REPO_URL="https://github.com/throwaway31265/free-sleep/archive/${COMMIT_SHA}.zip"
+  ZIP_FILE="free-sleep-${COMMIT_SHA}.zip"
+  EXTRACTED_DIR="free-sleep-${COMMIT_SHA}"
+  echo "Installing specific commit: ${COMMIT_SHA} from branch ${BRANCH}"
+else
+  REPO_URL="https://github.com/throwaway31265/free-sleep/archive/refs/heads/${BRANCH}.zip"
+  ZIP_FILE="free-sleep-${BRANCH}.zip"
+  EXTRACTED_DIR="free-sleep-${BRANCH}"
+  echo "Installing latest from branch: ${BRANCH}"
+fi
+
 REPO_DIR="/home/dac/free-sleep"
 SERVER_DIR="$REPO_DIR/server"
 USERNAME="dac"
@@ -254,6 +274,10 @@ if [ "$SKIP_REPO_UPDATE" = "true" ]; then
   echo "SKIP_REPO_UPDATE is set to true. Skipping repository update."
   NEEDS_UPDATE=false
   REASON="Repository update explicitly skipped"
+elif [ -n "$COMMIT_SHA" ]; then
+  # When a specific commit is requested, always update
+  NEEDS_UPDATE=true
+  REASON="Specific commit SHA requested: ${COMMIT_SHA}"
 elif ! check_internet; then
   echo "No internet connectivity detected. Skipping repository update."
   echo "Set FORCE_UPDATE=true to override (not recommended without internet)."
@@ -324,7 +348,7 @@ if [ "$NEEDS_UPDATE" = "true" ]; then
   # Clean up existing directory and move new code into place
   echo "Setting up the installation directory..."
   rm -rf "$REPO_DIR"
-  mv "free-sleep-${BRANCH}" "$REPO_DIR"
+  mv "$EXTRACTED_DIR" "$REPO_DIR"
 
   # Store branch information for future detection
   echo "$BRANCH" > "$REPO_DIR/.git-branch-info"
@@ -336,10 +360,17 @@ if [ "$NEEDS_UPDATE" = "true" ]; then
   COMMIT_HASH=""
   COMMIT_TITLE=""
 
-  # Try to get commit info from GitHub API (works without git being installed)
-  echo "Fetching latest commit information from GitHub..."
-  if ! fetch_github_commit_info "$BRANCH" 10; then
-    echo "Failed to fetch commit info from GitHub API (network/timeout), using fallback values"
+  # If a specific commit was requested, use that
+  if [ -n "$COMMIT_SHA" ]; then
+    COMMIT_HASH="${COMMIT_SHA:0:8}"
+    COMMIT_TITLE="Specific commit ${COMMIT_HASH} from ${BRANCH} branch"
+    echo "Using specified commit: ${COMMIT_HASH}"
+  else
+    # Try to get commit info from GitHub API (works without git being installed)
+    echo "Fetching latest commit information from GitHub..."
+    if ! fetch_github_commit_info "$BRANCH" 10; then
+      echo "Failed to fetch commit info from GitHub API (network/timeout), using fallback values"
+    fi
   fi
 
   # Alternative: Try to get commit info from package.json if it exists
@@ -916,6 +947,7 @@ echo ""
 echo "To re-run this script safely:"
 echo "  ./install.sh                       # Install/switch to main branch"
 echo "  BRANCH=beta ./install.sh           # Install/switch to beta branch"
+echo "  COMMIT_SHA=abc123 ./install.sh     # Install specific commit (requires BRANCH)"
 echo "  FORCE_UPDATE=true ./install.sh     # Force repository update"
 echo "  SKIP_REPO_UPDATE=true ./install.sh # Skip repository update (for offline use)"
 echo ""
