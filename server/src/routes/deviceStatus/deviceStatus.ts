@@ -1,7 +1,7 @@
 import express, { type Request, type Response } from 'express';
 import type { DeepPartial } from 'ts-essentials';
 import { z } from 'zod';
-import { getFranken, isFrankReady } from '../../8sleep/frankenServer.js';
+import { getFranken } from '../../8sleep/frankenServer.js';
 import { getFrankenMonitor } from '../../server.js';
 import memoryDB from '../../db/memoryDB.js';
 import logger from '../../logger.js';
@@ -14,29 +14,9 @@ import { updateDeviceStatus } from './updateDeviceStatus.js';
 const router = express.Router();
 
 router.get('/deviceStatus', async (req: Request, res: Response) => {
-  try {
-    // Check if frank is ready first to fail fast
-    if (!isFrankReady()) {
-      logger.warn('Frank service is not ready yet');
-      res.setHeader('Retry-After', '5');
-      res.status(503).json({
-        error: 'Service Unavailable',
-        message: 'frank.service is not connected yet. Please wait and retry.',
-      });
-      return;
-    }
-
-    const franken = await getFranken();
-    const resp = await franken.getDeviceStatus();
-    res.json(resp);
-  } catch (error) {
-    logger.error('Error getting device status:', error);
-    const isTimeout = error instanceof Error && error.message.includes('Timeout');
-    res.status(isTimeout ? 504 : 500).json({
-      error: isTimeout ? 'Gateway Timeout' : 'Failed to get device status',
-      details: error instanceof Error ? error.message : String(error),
-    });
-  }
+  const franken = await getFranken();
+  const resp = await franken.getDeviceStatus();
+  res.json(resp);
 });
 
 router.post('/deviceStatus', async (req: Request, res: Response) => {

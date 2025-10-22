@@ -10,7 +10,7 @@ import {
   PromiseStreams,
   type PromiseWriteStream,
 } from './promiseStream.js';
-import { wait, withTimeout } from './promises.js';
+import { wait } from './promises.js';
 import { SequentialQueue } from './sequentialQueue.js';
 import { UnixSocketServer } from './unixSocketServer.js';
 
@@ -24,30 +24,21 @@ export class Franken {
 
   static readonly separator = Buffer.from('\n\n');
 
-  public async sendMessage(message: string, timeoutMs = 5000) {
-    // Check if socket is destroyed before attempting to send
-    if (this.socket.destroyed) {
-      throw new Error('Socket is destroyed, cannot send message');
-    }
-
+  public async sendMessage(message: string) {
     if (message !== `14`) {
       logger.debug(`Sending message to sock | message: ${message}`);
     }
-    const responseBytes = await withTimeout(
-      this.sequentialQueue.exec(async () => {
-        const requestBytes = Buffer.concat([
-          Buffer.from(message),
-          Franken.separator,
-        ]);
-        await this.writeStream.write(requestBytes);
-        const resp = await this.messageStream.readMessage();
+    const responseBytes = await this.sequentialQueue.exec(async () => {
+      const requestBytes = Buffer.concat([
+        Buffer.from(message),
+        Franken.separator,
+      ]);
+      await this.writeStream.write(requestBytes);
+      const resp = await this.messageStream.readMessage();
 
-        await wait(50);
-        return resp;
-      }),
-      timeoutMs,
-      `Timeout sending message to frank.service: ${message}`,
-    );
+      await wait(50);
+      return resp;
+    });
     const response = responseBytes.toString();
     if (message !== `14`) {
       logger.debug(`Message sent successfully to sock | message: ${message}`);
@@ -148,28 +139,11 @@ export async function getFrankenServer(): Promise<FrankenServer> {
 
 let franken: Franken | undefined;
 
-export function isFrankReady(): boolean {
-  if (!franken) {
-    return false;
-  }
-  const socket = (franken as any).socket;
-  return socket && !socket.destroyed;
-}
-
 export async function getFranken(): Promise<Franken> {
-  // Check if existing franken instance has a destroyed socket
   if (franken) {
-    const socket = (franken as any).socket;
-    if (socket && socket.destroyed) {
-      logger.debug('Franken socket was destroyed, resetting connection');
-      franken = undefined;
-    } else {
-      logger.debug('Franken already started in getFranken');
-      return franken;
-    }
-  }
-
-  if (!franken) {
+    logger.debug('Franken already started in getFranken');
+    return franken;
+  } else {
     logger.debug('Franken not started in getFranken');
   }
   const frankenServer = await getFrankenServer();

@@ -97,12 +97,6 @@ class StreamWriter {
   }
 
   async write(data) {
-    // Check if stream is still writable before attempting write
-    if (!this.stream.writable) {
-      const error = new Error('Cannot write to stream: stream is not writable');
-      throw this.errorTransform ? this.errorTransform(error) : error;
-    }
-
     try {
       await toPromise((cb) => this.stream.write(data, cb));
     } catch (err) {
