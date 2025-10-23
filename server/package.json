@@ -19,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "volta": {
-    "node": "22.13.0"
+    "node": "22.21.0"
   },
   "dependencies": {
     "@prisma/client": "^6.4.0",
