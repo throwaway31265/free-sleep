@@ -16,6 +16,7 @@ export type StatusInfo = {
 
 export type ServerStatus = {
   alarmSchedule: StatusInfo;
+  database: StatusInfo;
   express: StatusInfo;
   franken: StatusInfo;
   jobs: StatusInfo;

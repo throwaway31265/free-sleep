@@ -1,7 +1,10 @@
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 class ServerStatus {
     // eslint-disable-next-line no-use-before-define
     static instance;
     alarmSchedule;
+    database;
     express;
     franken;
     jobs;
@@ -16,6 +19,12 @@ class ServerStatus {
             name: 'Alarm schedule',
             status: 'not_started',
             description: '',
+            message: '',
+        };
+        this.database = {
+            name: 'Database',
+            status: 'not_started',
+            description: 'Connection to SQLite DB',
             message: '',
         };
         this.express = {
@@ -79,9 +88,23 @@ class ServerStatus {
         }
         return ServerStatus.instance;
     }
-    toJSON() {
+    async updateDB() {
+        try {
+            await prisma.$queryRaw `SELECT 1`;
+            this.database.status = 'healthy';
+            this.database.message = '';
+        }
+        catch (error) {
+            this.database.status = 'failed';
+            const message = error instanceof Error ? error.message : String(error);
+            this.database.message = message;
+        }
+    }
+    async toJSON() {
+        await this.updateDB();
         return {
             alarmSchedule: this.alarmSchedule,
+            database: this.database,
             express: this.express,
             franken: this.franken,
             jobs: this.jobs,

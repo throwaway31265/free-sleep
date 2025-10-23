@@ -1,10 +1,14 @@
+import { PrismaClient } from '@prisma/client';
 import { StatusInfo, ServerStatus as ServerStatusType } from './routes/serverStatus/serverStatusSchema.js';
 
+
+const prisma = new PrismaClient();
 
 class ServerStatus {
   // eslint-disable-next-line no-use-before-define
   private static instance: ServerStatus;
   public alarmSchedule: StatusInfo;
+  public database: StatusInfo;
   public express: StatusInfo;
   public franken: StatusInfo;
   public jobs: StatusInfo;
@@ -20,6 +24,12 @@ class ServerStatus {
       name: 'Alarm schedule',
       status: 'not_started',
       description: '',
+      message: '',
+    };
+    this.database = {
+      name: 'Database',
+      status: 'not_started',
+      description: 'Connection to SQLite DB',
       message: '',
     };
     this.express = {
@@ -85,9 +95,22 @@ class ServerStatus {
     return ServerStatus.instance;
   }
 
-  public toJSON(): ServerStatusType {
+  async updateDB() {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      this.database.status = 'healthy';
+      this.database.message = '';
+    } catch (error) {
+      this.database.status = 'failed';
+      const message = error instanceof Error ? error.message : String(error);
+      this.database.message = message;
+    }
+  }
+  async toJSON(): Promise<ServerStatusType> {
+    await this.updateDB();
     return {
       alarmSchedule: this.alarmSchedule,
+      database: this.database,
       express: this.express,
       franken: this.franken,
       jobs: this.jobs,
