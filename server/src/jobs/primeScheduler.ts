@@ -8,6 +8,7 @@ import { executeCalibrateSensors } from './calibrateSensors.js';
 import { Side } from '../db/schedulesSchema.js';
 import moment from 'moment-timezone';
 import settingsDB from '../db/settings.js';
+import serverStatus from '../serverStatus.js';
 
 
 const scheduleRebootJob = (onHour: number, onMinute: number, timeZone: TimeZone) => {
@@ -19,24 +20,33 @@ const scheduleRebootJob = (onHour: number, onMinute: number, timeZone: TimeZone)
   const time = `${String(onHour).padStart(2,'0')}:${String(onMinute).padStart(2,'0')}`;
   logger.debug(`Scheduling daily reboot job at ${time}`);
   schedule.scheduleJob(`daily-reboot-${time}`, dailyRule, async () => {
-    await settingsDB.read();
+    try {
+      await settingsDB.read();
 
-    if (!settingsDB.data.rebootDaily) {
-      logger.info('Daily reboot job is disabled, skipping...');
-      return;
+      if (!settingsDB.data.rebootDaily) {
+        logger.info('Daily reboot job is disabled, skipping...');
+        return;
+      }
+      logger.info(`Executing scheduled reboot job`);
+      exec('sudo /sbin/reboot', (error, stdout, stderr) => {
+        if (error) {
+          logger.error(`Error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          logger.error(`Stderr: ${stderr}`);
+          return;
+        }
+        logger.debug(`Stdout: ${stdout}`);
+      });
+      serverStatus.alarmSchedule.status = 'healthy';
+      serverStatus.alarmSchedule.message = '';
+    } catch (error: unknown) {
+      serverStatus.alarmSchedule.status = 'failed';
+      const message = error instanceof Error ? error.message : String(error);
+      serverStatus.alarmSchedule.message = message;
+      logger.error(error);
     }
-    logger.info(`Executing scheduled reboot job`);
-    exec('sudo /sbin/reboot', (error, stdout, stderr) => {
-      if (error) {
-        logger.error(`Error: ${error.message}`);
-        return;
-      }
-      if (stderr) {
-        logger.error(`Stderr: ${stderr}`);
-        return;
-      }
-      logger.debug(`Stdout: ${stdout}`);
-    });
   });
 };
 
@@ -72,7 +82,16 @@ export const schedulePrimingRebootAndCalibration = (settingsData: Settings) => {
 
   logger.debug(`Scheduling daily prime job at ${primePodDaily.time}`);
   schedule.scheduleJob(`daily-priming-${time}`, dailyRule, async () => {
-    logger.info(`Executing scheduled prime job`);
-    await updateDeviceStatus({ isPriming: true });
+    try {
+      logger.info(`Executing scheduled prime job`);
+      await updateDeviceStatus({ isPriming: true });
+      serverStatus.primeSchedule.status = 'healthy';
+      serverStatus.primeSchedule.message = '';
+    } catch (error: unknown) {
+      serverStatus.primeSchedule.status = 'failed';
+      const message = error instanceof Error ? error.message : String(error);
+      serverStatus.primeSchedule.message = message;
+      logger.error(error);
+    }
   });
 };

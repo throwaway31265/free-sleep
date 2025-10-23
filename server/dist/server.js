@@ -69,6 +69,9 @@ async function startServer() {
     if (!config.remoteDevMode) {
         initFranken()
             .catch(error => {
+            serverStatus.franken.status = 'failed';
+            const message = error instanceof Error ? error.message : String(error);
+            serverStatus.franken.message = message;
             logger.error(error);
         });
     }

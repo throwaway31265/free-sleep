@@ -3,6 +3,8 @@ import { updateDeviceStatus } from '../routes/deviceStatus/updateDeviceStatus.js
 import { getDayIndexForSchedule, getDayOfWeekIndex, logJob } from './utils.js';
 import { executeAnalyzeSleep } from './analyzeSleep.js';
 import moment from 'moment-timezone';
+import serverStatus from '../serverStatus.js';
+import logger from '../logger.js';
 export const schedulePowerOn = (settingsData, side, day, power) => {
     if (!power.enabled)
         return;
@@ -20,13 +22,23 @@ export const schedulePowerOn = (settingsData, side, day, power) => {
     onRule.tz = settingsData.timeZone;
     logJob('Scheduling power on job', side, day, dayOfWeekIndex, time);
     schedule.scheduleJob(`${side}-${day}-${time}-power-on`, onRule, async () => {
-        logJob('Executing power on job', side, day, dayOfWeekIndex, time);
-        await updateDeviceStatus({
-            [side]: {
-                isOn: true,
-                targetTemperatureF: power.onTemperature
-            }
-        });
+        try {
+            logJob('Executing power on job', side, day, dayOfWeekIndex, time);
+            await updateDeviceStatus({
+                [side]: {
+                    isOn: true,
+                    targetTemperatureF: power.onTemperature
+                }
+            });
+            serverStatus.powerSchedule.status = 'healthy';
+            serverStatus.powerSchedule.message = '';
+        }
+        catch (error) {
+            serverStatus.powerSchedule.status = 'failed';
+            const message = error instanceof Error ? error.message : String(error);
+            serverStatus.powerSchedule.message = message;
+            logger.error(error);
+        }
     });
 };
 const scheduleAnalyzeSleep = (dayOfWeekIndex, offHour, offMinute, timeZone, side, day) => {
@@ -62,11 +74,21 @@ export const schedulePowerOffAndSleepAnalysis = (settingsData, side, day, power)
     scheduleAnalyzeSleep(dayOfWeekIndex, offHour, offMinute, settingsData.timeZone, side, day);
     logJob('Scheduling power off job', side, day, dayOfWeekIndex, time);
     schedule.scheduleJob(`${side}-${day}-${time}-power-off`, offRule, async () => {
-        logJob('Executing power off job', side, day, dayOfWeekIndex, time);
-        await updateDeviceStatus({
-            [side]: {
-                isOn: false,
-            }
-        });
+        try {
+            logJob('Executing power off job', side, day, dayOfWeekIndex, time);
+            await updateDeviceStatus({
+                [side]: {
+                    isOn: false,
+                }
+            });
+            serverStatus.powerSchedule.status = 'healthy';
+            serverStatus.powerSchedule.message = '';
+        }
+        catch (error) {
+            serverStatus.powerSchedule.status = 'failed';
+            const message = error instanceof Error ? error.message : String(error);
+            serverStatus.powerSchedule.message = message;
+            logger.error(error);
+        }
     });
 };

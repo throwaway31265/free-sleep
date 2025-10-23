@@ -65,68 +65,69 @@ function StatusChip({ info }: { info: StatusInfo }) {
       color={ meta.color }
       variant={ meta.color === 'default' ? 'outlined' : 'filled' }
       size="small"
-      sx={ { fontWeight: 600 } }
+      sx={ { fontWeight: 600, ml: 'auto' } }
     />
   );
 }
 
 function StatusCard({
-  name,
-  info,
+  statusInfo
 }: {
-  name: string;
-  info: StatusInfo;
+  statusInfo: StatusInfo;
 }) {
   return (
-    <Card
-      variant="outlined"
-      sx={ {
-        height: '100%', borderRadius: 3,
-        '& .MuiCardHeader-root': { pb: 0.25 },
-        '& .MuiCardContent-root': { pt: 0.75 },
-      } }
+    <Grid item xs={ 12 } sm={ 6 } md={ 4 }>
 
-    >
-      <CardHeader
-        title={
-          <Stack direction="row" spacing={ 1.25 } alignItems="center">
-            <Typography variant="subtitle1" fontWeight={ 700 }>
-              { name }
-            </Typography>
-            <StatusChip info={ info } />
-          </Stack>
-        }
-      />
-      <CardContent>
-        <Typography
-          variant="body2"
-          sx={ {
-            color: (t) => t.palette.text.secondary,
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            minHeight: 24,
-          } }
-        >
-          { info.description }
-        </Typography>
-        {
-          info.message && (
-            <Typography
-              variant="body2"
-              sx={ {
-                color: (t) => t.palette.text.secondary,
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                minHeight: 24,
-              } }
-            >
-              { info.message || '—' }
-            </Typography>
-          )
-        }
-      </CardContent>
+      <Card
+        variant="outlined"
+        sx={ {
+          height: '100%', borderRadius: 3,
+          '& .MuiCardHeader-root': { pb: 0.25 },
+          '& .MuiCardContent-root': { pt: 0.75 },
+        } }
 
-    </Card>
+      >
+        <CardHeader
+          title={
+            <Stack direction="row" spacing={ 1.25 } alignItems="center" >
+              <Typography variant="subtitle1" fontWeight={ 700 }>
+                { statusInfo.name }
+              </Typography>
+              <StatusChip info={ statusInfo } />
+            </Stack>
+          }
+        />
+        <CardContent>
+          <Typography
+            variant="body2"
+            sx={ {
+              color: (t) => t.palette.text.secondary,
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              minHeight: 24,
+            } }
+          >
+            { statusInfo.description }
+          </Typography>
+          {
+            statusInfo.message && (
+              <Typography
+                variant="body2"
+                sx={ {
+                  color: (t) => t.palette.text.secondary,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  minHeight: 24,
+                } }
+              >
+                { statusInfo.message }
+              </Typography>
+            )
+          }
+        </CardContent>
+
+      </Card>
+    </Grid>
   );
 }
 
@@ -162,23 +163,11 @@ export default function StatusPage() {
         </Typography>
 
       </Stack>
-
       <Grid container spacing={ 2.5 } sx={ { mt: 1 } }>
-        <Grid item xs={ 12 } sm={ 6 } md={ 4 }>
-          <StatusCard name="Franken" info={ data.franken } />
-        </Grid>
-        <Grid item xs={ 12 } sm={ 6 } md={ 4 }>
-          <StatusCard name="Jobs" info={ data.jobs } />
-        </Grid>
-        <Grid item xs={ 12 } sm={ 6 } md={ 4 }>
-          <StatusCard name="System Date" info={ data.systemDate } />
-        </Grid>
-        <Grid item xs={ 12 } sm={ 6 } md={ 4 }>
-          <StatusCard name="Express" info={ data.express } />
-        </Grid>
-        <Grid item xs={ 12 } sm={ 6 } md={ 4 }>
-          <StatusCard name="Logger" info={ data.logger } />
-        </Grid>
+        {
+          Object.values(data).map(statusInfo => <StatusCard key={ statusInfo.name } statusInfo={ statusInfo } />)
+        }
+
       </Grid>
     </PageContainer>
   );

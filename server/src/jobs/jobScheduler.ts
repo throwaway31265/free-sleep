@@ -50,16 +50,17 @@ async function setupJobs() {
     schedulePrimingRebootAndCalibration(settingsData);
 
     logger.info('Done scheduling jobs!');
+    serverStatus.alarmSchedule.status = 'healthy';
     serverStatus.jobs.status = 'healthy';
+    serverStatus.primeSchedule.status = 'healthy';
+    serverStatus.powerSchedule.status = 'healthy';
+    serverStatus.rebootSchedule.status = 'healthy';
+    serverStatus.temperatureSchedule.status = 'healthy';
   } catch (error: unknown) {
     serverStatus.jobs.status = 'failed';
-    if (error instanceof Error) {
-      logger.error(error);
-      serverStatus.jobs.message = error.message;
-    } else {
-      logger.error(String(error));
-      serverStatus.jobs.message = String(error);
-    }
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(error);
+    serverStatus.jobs.message = message;
   }
 }
 
@@ -76,6 +77,7 @@ function waitForValidDateAndSetupJobs() {
 
   if (isSystemDateValid()) {
     serverStatus.systemDate.status = 'healthy';
+    serverStatus.systemDate.message = '';
     logger.info('System date is valid. Setting up jobs...');
     void setupJobs();
   } else if(RETRY_COUNT < 20) {
