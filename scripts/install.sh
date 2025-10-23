@@ -85,13 +85,43 @@ chmod g+s /persistent/free-sleep-data/
 echo "Installing dependencies in $SERVER_DIR ..."
 sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.volta/bin/npm install"
 
-echo "Running Prisma migrations..."
 
+# --------------------------------------------------------------------------------
+# Run Prisma migrations
+
+# Stop the free-sleep-stream service if it was running
+# This is needed to close out the lock files for the SQLite file
+stream_enabled="false"
+if systemctl is-active --quiet free-sleep-stream && systemctl list-unit-files | grep -q "^free-sleep-stream.service"; then
+  stream_enabled="true"
+  echo "Stopping free-sleep-stream service..."
+  systemctl stop free-sleep-stream
+fi
+
+echo "Making a backup up database prior to migrations"
+cp /persistent/free-sleep-data/free-sleep.db /persistent/free-sleep-data/free-sleep-copy.db
+
+rm -f /persistent/free-sleep-data/free-sleep.db-shm \
+      /persistent/free-sleep-data/free-sleep.db-wal \
+      /persistent/free-sleep-data/free-sleep.db-journal
+
+migration_failed="false"
+
+echo "Running Prisma migrations..."
 if sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.volta/bin/npm run migrate deploy"; then
   echo "Prisma migrations completed successfully."
 else
+  migration_failed="true"
   echo -e "\033[33mWARNING: Prisma migrations failed! \033[0m"
 fi
+
+
+# Restart free-sleep-stream if it was running before
+if [ "$stream_enabled" = "true" ]; then
+  echo "Restarting free-sleep-stream service..."
+  systemctl restart free-sleep-stream
+fi
+
 # --------------------------------------------------------------------------------
 # Create systemd service
 
@@ -154,17 +184,6 @@ fi
 
 echo ""
 
-# --------------------------------------------------------------------------------
-# Restart free-sleep-stream if it exists
-
-if systemctl list-units --full --all | grep -q "free-sleep-stream"; then
-  echo "Restarting free-sleep-stream service..."
-  systemctl restart free-sleep-stream
-else
-  echo "free-sleep-stream service does not exist. Skipping restart."
-fi
-
-echo ""
 
 # --------------------------------------------------------------------------------
 # Finish
@@ -174,3 +193,6 @@ cat /persistent/free-sleep-data/dac_sock_path.txt 2>/dev/null || echo "No dac.so
 echo -e "\033[0;32mInstallation complete! The Free Sleep server is running and will start automatically on boot.\033[0m"
 echo -e "\033[0;32mSee logs with: journalctl -u free-sleep --no-pager --output=cat\033[0m"
 
+if [ "$migration_failed" = "true" ]; then
+  echo -e "\033[33mWARNING: Prisma migrations failed! A backup of your database prior to the migration was saved to /persistent/free-sleep-data/free-sleep-copy.db \033[0m"
+fi

@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import express from 'express';
 import schedule from 'node-schedule';
 import { Server } from 'http';
@@ -16,6 +17,31 @@ const port = 3000;
 const app = express();
 let server: Server | undefined;
 
+const prisma = new PrismaClient();
+
+async function disconnectPrisma() {
+  try {
+    logger.debug('Flushing SQLite');
+    // Flush WAL into main DB and truncate WAL file (no-op if not in WAL mode)
+    await prisma.$queryRawUnsafe('PRAGMA wal_checkpoint(TRUNCATE)');
+    logger.debug('Flushed SQLite');
+  } catch (error) {
+    logger.error('Error flushing SQLite');
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(message);
+  }
+  try {
+    logger.debug('Disconnecting Prisma');
+    await prisma.$disconnect();
+    logger.debug('Disconnected Prisma');
+  } catch (error) {
+    logger.error('Error disconnecting from Prisma');
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(message);
+  }
+}
+
+
 // Graceful Shutdown Function
 async function gracefulShutdown(signal: string) {
   logger.debug(`\nReceived ${signal}. Initiating graceful shutdown...`);
@@ -28,7 +54,10 @@ async function gracefulShutdown(signal: string) {
     logger.error({ error });
     process.exit(1);
   }, 15_000);
+  logger.debug('Stopping node-schedule');
   await schedule.gracefulShutdown();
+  await disconnectPrisma();
+
 
   try {
     if (server) {
