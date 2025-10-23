@@ -96,6 +96,7 @@ if systemctl is-active --quiet free-sleep-stream && systemctl list-unit-files | 
   stream_enabled="true"
   echo "Stopping free-sleep-stream service..."
   systemctl stop free-sleep-stream
+  sleep 5
 fi
 
 echo "Making a backup up database prior to migrations"
