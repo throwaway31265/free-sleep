@@ -49,8 +49,8 @@ fi
 
 # --------------------------------------------------------------------------------
 # Install (or update) Node via Volta
-echo "Installing/ensuring Node 22.13.0 via Volta..."
-sudo -u "$USERNAME" bash -c "source /home/$USERNAME/.profile && volta install node@22.13.0"
+echo "Installing/ensuring Node 22.21.0 via Volta..."
+sudo -u "$USERNAME" bash -c "source /home/$USERNAME/.profile && volta install node@22.21.0"
 
 # --------------------------------------------------------------------------------
 # Setup /persistent/free-sleep-data (migrate old configs, logs, etc.)
