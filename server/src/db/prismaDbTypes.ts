@@ -21,4 +21,9 @@ export interface SleepRecord {
   not_present_intervals: [string, string][];
 }
 
+export interface MovementRecord {
+  timestamp: string;
+  side: 'left' | 'right';
+  total_movement: number;
+}
 

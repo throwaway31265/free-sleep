@@ -16,7 +16,7 @@ from typing import List, Tuple
 from datetime import datetime, timedelta
 
 from data_types import *
-from db import insert_sleep_records
+from db import insert_sleep_records, insert_movement_df
 from sleep_detection.cap_data import load_cap_df, load_baseline, detect_presence_cap
 from get_logger import get_logger
 from load_raw_files import load_raw_files
@@ -199,7 +199,7 @@ def build_sleep_records(merged_df: pd.DataFrame, side: Side, max_gap_in_minutes:
     return sleep_records
 
 
-def detect_sleep(side: Side, start_time: datetime, end_time: datetime, folder_path: str) -> List[SleepRecord]:
+def detect_sleep(side: Side, start_time: datetime, end_time: datetime, folder_path: str) -> pd.DataFrame:
     expected_row_count = int((end_time - start_time).total_seconds())
     logger.info(f"Detecting sleep interval for {side} side | {start_time.isoformat()} -> {end_time.isoformat()} | Expected row count: {expected_row_count:,}")
 
@@ -240,7 +240,7 @@ def detect_sleep(side: Side, start_time: datetime, end_time: datetime, folder_pa
         occupancy_threshold=5,
         rolling_seconds=10,
         threshold_percent=0.90,
-        clean=True
+        clean=False
     )
 
     merged_df[f'final_{side}_occupied'] = merged_df[f'piezo_{side}1_presence'] + merged_df[f'cap_{side}_occupied']
@@ -249,9 +249,40 @@ def detect_sleep(side: Side, start_time: datetime, end_time: datetime, folder_pa
         logger.warning(f'No sleep periods found for {side} side! {start_time} -> {end_time} ')
     else:
         insert_sleep_records(sleep_records)
-    # plot_occupancy_one_side(merged_df, side)
     # Cleanup
+    return merged_df
+
+
+
+def detect_movement(side: Side, merged_df: pd.DataFrame):
+    logger.debug('Logging movement...')
+    merged_df.reset_index(inplace=True)
+    merged_df.sort_values('ts', inplace=True)
+    merged_df.drop_duplicates(subset=["ts"], inplace=True)
+
+    movement_df = merged_df[[f'{side}_out', f'{side}_cen', f'{side}_in']].diff().abs()
+    # Optionally sum across sensors
+    movement_df['total_movement'] = movement_df.sum(axis=1)
+
+    # Add timestamps for plotting
+    movement_df['timestamp'] = merged_df['ts']
+
+    # Set timestamp as index for resampling
+    movement_df.set_index('timestamp', inplace=True)
+    # Resample into 2-minute intervals, keeping the max value
+    resampled_df = movement_df.resample('2T').max().dropna().reset_index()
+
+    resampled_df.drop(columns=[f'{side}_out', f'{side}_cen', f'{side}_in'], inplace=True)
+    resampled_df['side'] = side
+
+    resampled_df.to_csv('/home/dac/free-sleep/server/free-sleep-data/movement.csv', index=False)
+
+    # Only count changes > 15
+    # movement_df = movement_df[movement_df['total_movement'] > 15]
+    insert_movement_df(resampled_df)
+    movement_df.drop(movement_df.index, inplace=True)
+    del movement_df
     merged_df.drop(merged_df.index, inplace=True)
     del merged_df
     gc.collect()
-    return sleep_records
+

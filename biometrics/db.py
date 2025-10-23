@@ -147,3 +147,15 @@ def insert_sleep_records(sleep_records: List[SleepRecord]):
     cur.close()
     conn.close()
     logger.info(f"Inserted {len(sleep_records)} record(s) into 'sleep_records' (ignoring duplicates).")
+
+
+def insert_movement_df(movement_df: pd.DataFrame):
+    logger.debug(f'Inserting {movement_df.shape[0]} rows into movement table...')
+    movement_df['timestamp'] = pd.to_datetime(movement_df['timestamp']).astype(int) // 10 ** 9
+
+    # Upload to SQLite
+    with sqlite3.connect(DB_FILE_PATH) as conn:
+        movement_df.to_sql("movement", conn, if_exists='append', index=False)
+
+    logger.debug('Finished inserting rows')
+

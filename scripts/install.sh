@@ -86,8 +86,12 @@ echo "Installing dependencies in $SERVER_DIR ..."
 sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.volta/bin/npm install"
 
 echo "Running Prisma migrations..."
-sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.volta/bin/npm run migrate deploy"
 
+if sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.volta/bin/npm run migrate deploy"; then
+  echo "Prisma migrations completed successfully."
+else
+  echo -e "\033[33mWARNING: Prisma migrations failed! \033[0m"
+fi
 # --------------------------------------------------------------------------------
 # Create systemd service
 

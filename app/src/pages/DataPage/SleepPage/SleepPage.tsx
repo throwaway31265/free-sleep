@@ -18,6 +18,8 @@ import { useAppStore } from '@state/appStore.tsx';
 import { useSleepRecords } from '@api/sleep.ts';
 import { useTheme } from '@mui/material/styles';
 import { useVitalsRecords } from '@api/vitals.ts';
+import { useMovementRecords } from '@api/movement.ts';
+import MovementChart from '@components/MovementChart.tsx';
 
 
 const NoData = () => {
@@ -34,7 +36,7 @@ export default function SleepPage() {
   const { width = 300, ref } = useResizeDetector();
   const { side } = useAppStore();
   const [startTime, setStartTime] = useState(moment().subtract(7, 'days'));
-  const [endTime, setEndTime] = useState(moment());
+  const [endTime, setEndTime] = useState(moment().add(2, 'day'));
   const [selectedSleepRecord, setSelectedSleepRecord] = useState<SleepRecord | undefined>(undefined);
 
   // Fetch sleep records for the selected week
@@ -45,6 +47,12 @@ export default function SleepPage() {
   });
 
   const { data: vitalsRecords } = useVitalsRecords({
+    side,
+    startTime: selectedSleepRecord?.entered_bed_at,
+    endTime: selectedSleepRecord?.left_bed_at
+  });
+
+  const { data: movementRecords } = useMovementRecords({
     side,
     startTime: selectedSleepRecord?.entered_bed_at,
     endTime: selectedSleepRecord?.left_bed_at
@@ -73,7 +81,6 @@ export default function SleepPage() {
     const newEndTime = endTime.clone().add(1, 'week');
     setEndTime(newEndTime);
   };
-
   const theme = useTheme();
   const isNextDisabled = endTime && moment(endTime).isSameOrAfter(moment(), 'week');
 
@@ -124,9 +131,10 @@ export default function SleepPage() {
                 endTime={ selectedSleepRecord.left_bed_at }
               />
 
-              <VitalsLineChart vitalsRecords={ vitalsRecords } metric='heart_rate' label='Heart Rate' />
-              <VitalsLineChart vitalsRecords={ vitalsRecords } metric='breathing_rate' label='Breath Rate' />
-              <VitalsLineChart vitalsRecords={ vitalsRecords } metric='hrv' label='HRV' />
+              <VitalsLineChart vitalsRecords={ vitalsRecords } metric='heart_rate' />
+              <MovementChart movementRecords={ movementRecords || [] } label='Movement' />
+              <VitalsLineChart vitalsRecords={ vitalsRecords } metric='breathing_rate' />
+              <VitalsLineChart vitalsRecords={ vitalsRecords } metric='hrv' />
             </>
           )
         }

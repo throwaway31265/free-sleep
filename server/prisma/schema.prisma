@@ -37,3 +37,14 @@ model vitals {
   @@index([side, timestamp])
 }
 
+
+model movement {
+  id              Int      @id @default(autoincrement())
+  timestamp       Int
+  side            String
+  total_movement  Int
+  @@unique([side, timestamp]) // Ensure no duplicate intervals
+  @@index([side, timestamp])
+}
+
+
