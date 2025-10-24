@@ -1,11 +1,18 @@
 # Free Sleep - Jailbreak 8 Sleep Pod & Control Locally
-## Follow us on Discord!
-https://discord.gg/JpArXnBgEj
+
+## [Discord Server](https://discord.gg/JpArXnBgEj)
+
+- Support
 - Feature requests
 - Updates
-- Support
+- Contributing
 
-## 👉 [HOW TO INSTALL](./INSTALLATION.md) 🛠️ 👈
+## 👉 [Installation Instructions](./INSTALLATION.md)
+
+
+## [🤖 Custom ChatGPT Support Bot](https://chatgpt.com/g/g-68fb217791dc8191b82d2d0ae7b29940-free-sleep-bot) 
+
+- A custom ChatGPT with Free Sleep documentation and related resources. It can help troubleshoot installations, answer setup questions, and guide you through common issues.
 
 ---  
 
@@ -13,7 +20,7 @@ https://discord.gg/JpArXnBgEj
 Yes, I tested reversing it on my pod 3 by  [resetting the firmware](docs/pod_3_teardown/6_firmware_reset.jpeg). After the reset, setup your pod as a new pod again.
 
 ## Will I brick my pod?
-Pod 3 **without** the SD card & Pod 4 are impossible to brick - _as long as you follow the directions_ 
+Pod 3 **without** the SD card, Pod 4, and Pod 5 are impossible to brick - _as long as you follow the directions_ 
 
 
 ## Compatability
