@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { isSystemDateValid } from './jobs/isSystemDateValid.js';
 const prisma = new PrismaClient();
 class ServerStatus {
     // eslint-disable-next-line no-use-before-define
@@ -100,8 +101,20 @@ class ServerStatus {
             this.database.message = message;
         }
     }
+    updateSystemDate() {
+        const isValid = isSystemDateValid();
+        if (isValid) {
+            this.systemDate.status = 'healthy';
+            this.systemDate.message = '';
+        }
+        else {
+            this.systemDate.status = 'failed';
+            this.systemDate.message = `Invalid system date: ${new Date().toISOString()}`;
+        }
+    }
     async toJSON() {
         await this.updateDB();
+        this.updateSystemDate();
         return {
             alarmSchedule: this.alarmSchedule,
             database: this.database,

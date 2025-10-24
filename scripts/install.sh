@@ -99,8 +99,17 @@ if systemctl is-active --quiet free-sleep-stream && systemctl list-unit-files | 
   sleep 5
 fi
 
-echo "Making a backup up database prior to migrations"
-cp /persistent/free-sleep-data/free-sleep.db /persistent/free-sleep-data/free-sleep-copy.db
+SRC="/persistent/free-sleep-data/free-sleep.db"
+DEST="/persistent/free-sleep-data/free-sleep-copy.db"
+
+if [ -f "$SRC" ]; then
+  cp "$SRC" "$DEST"
+  echo "Making a backup up database prior to migrations"
+  echo "Database copied to $DEST"
+else
+  echo "Source database not found, skipping copying database."
+fi
+
 
 rm -f /persistent/free-sleep-data/free-sleep.db-shm \
       /persistent/free-sleep-data/free-sleep.db-wal \

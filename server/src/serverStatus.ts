@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { StatusInfo, ServerStatus as ServerStatusType } from './routes/serverStatus/serverStatusSchema.js';
+import { isSystemDateValid } from './jobs/isSystemDateValid.js';
 
 
 const prisma = new PrismaClient();
@@ -106,8 +107,21 @@ class ServerStatus {
       this.database.message = message;
     }
   }
+
+  updateSystemDate() {
+    const isValid = isSystemDateValid();
+    if (isValid) {
+      this.systemDate.status = 'healthy';
+      this.systemDate.message = '';
+    } else {
+      this.systemDate.status = 'failed';
+      this.systemDate.message = `Invalid system date: ${new Date().toISOString()}`;
+    }
+  }
+
   async toJSON(): Promise<ServerStatusType> {
     await this.updateDB();
+    this.updateSystemDate();
     return {
       alarmSchedule: this.alarmSchedule,
       database: this.database,

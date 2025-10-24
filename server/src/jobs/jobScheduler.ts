@@ -11,7 +11,7 @@ import { schedulePrimingRebootAndCalibration } from './primeScheduler.js';
 import config from '../config.js';
 import serverStatus from '../serverStatus.js';
 import { scheduleAlarm } from './alarmScheduler.js';
-
+import { isSystemDateValid } from './isSystemDateValid.js';
 
 
 async function setupJobs() {
@@ -62,12 +62,6 @@ async function setupJobs() {
     logger.error(error);
     serverStatus.jobs.message = message;
   }
-}
-
-
-function isSystemDateValid() {
-  const currentYear = new Date().getFullYear();
-  return currentYear > 2010;
 }
 
 let RETRY_COUNT = 0;
