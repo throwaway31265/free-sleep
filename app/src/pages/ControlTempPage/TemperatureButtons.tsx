@@ -10,9 +10,13 @@ import { useSettings } from '@api/settings.ts';
 
 type TemperatureButtonsProps = {
   refetch: any;
+  currentTargetTemp: number;
 }
 
-export default function TemperatureButtons({ refetch }: TemperatureButtonsProps) {
+const MIN_TEMP_F = 55;
+const MAX_TEMP_F = 110;
+
+export default function TemperatureButtons({ refetch, currentTargetTemp }: TemperatureButtonsProps) {
   const { side, setIsUpdating, isUpdating } = useAppStore();
   const { deviceStatus, setDeviceStatus, originalDeviceStatus } = useControlTempStore();
   const { data: settings } = useSettings();
@@ -91,15 +95,16 @@ export default function TemperatureButtons({ refetch }: TemperatureButtonsProps)
         color="primary"
         sx={ buttonStyle }
         onClick={ () => handleClick(-1) }
-        disabled={ disabled }
+        disabled={ disabled || currentTargetTemp <= MIN_TEMP_F }
       >
         <Remove sx={ { color: iconColor } }/>
       </Button>
       <Button
         variant="outlined"
         sx={ buttonStyle }
+
         onClick={ () => handleClick(1) }
-        disabled={ disabled }
+        disabled={ disabled || currentTargetTemp >= MAX_TEMP_F }
       >
         <Add sx={ { color: iconColor } }/>
       </Button>

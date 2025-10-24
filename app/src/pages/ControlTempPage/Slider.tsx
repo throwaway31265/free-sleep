@@ -111,7 +111,7 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
       />
       {
         isOn && (
-          <TemperatureButtons refetch={ refetch }/>
+          <TemperatureButtons refetch={ refetch } currentTargetTemp={ currentTargetTemp }/>
         ) }
     </div>
   );
