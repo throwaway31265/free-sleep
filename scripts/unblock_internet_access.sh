@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Unblocking internet access..."
+
 iptables -F
 iptables -X
 iptables -t nat -F

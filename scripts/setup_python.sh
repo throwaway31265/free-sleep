@@ -1,6 +1,5 @@
 #!/bin/bash
 
-echo "EXPERIMENTAL - DO NOT RUN UNLESS YOU KNOW WHAT YOU'RE DOING!!!!!"
 
 # --- Variables ---
 

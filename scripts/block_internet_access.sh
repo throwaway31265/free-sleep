@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Blocking internet access..."
+
 # IPv4 Rules
 echo "Configuring IPv4 rules..."
 

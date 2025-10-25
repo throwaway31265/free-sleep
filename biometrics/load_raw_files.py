@@ -140,13 +140,22 @@ def load_raw_files(folder_path: str, start_time: datetime, end_time: datetime, s
 
     if len(file_paths) == 0:
         logger.error('No file paths detected!')
-        raise FileNotFoundError(f'No files found for: {folder_path}')
+        raise FileNotFoundError(f'No files found for: {folder_path}! Is internet blocked?')
 
     for file_path in file_paths:
         if os.path.isfile(file_path):
             _decode_cbor_file(file_path, data, start_time, end_time, side, sensor_count)
         else:
             logger.warning(f'File path deleted before parsed! {file_path}')
+
     _rename_keys(data)
+    data_found = False
+    for key in data.keys():
+        if len(data[key]) > 0:
+            data_found = True
+        logger.debug(f"{key} - Rows found: {len(data[key])}")
+
+    if not data_found:
+        logger.warning('No data found! Mattress topper may be disconnected!')
     gc.collect()
     return data
