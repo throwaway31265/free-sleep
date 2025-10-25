@@ -80,7 +80,6 @@ export async function loadDeviceStatus(response: string): Promise<DeviceStatus> 
     left: {
       currentTemperatureLevel: Number.parseInt(rawDeviceData.heatLevelL, 10),
       currentTemperatureF: calculateTempInF(rawDeviceData.heatLevelL),
-      targetTemperatureLevel: Number.parseInt(rawDeviceData.tgHeatLevelL, 10),
       targetTemperatureF: calculateTempInF(rawDeviceData.tgHeatLevelL),
       secondsRemaining: leftSideSecondsRemaining,
       isOn: leftSideSecondsRemaining > 0,
@@ -89,7 +88,6 @@ export async function loadDeviceStatus(response: string): Promise<DeviceStatus> 
     right: {
       currentTemperatureLevel: Number.parseInt(rawDeviceData.heatLevelR, 10),
       currentTemperatureF: calculateTempInF(rawDeviceData.heatLevelR),
-      targetTemperatureLevel: Number.parseInt(rawDeviceData.tgHeatLevelR, 10),
       targetTemperatureF: calculateTempInF(rawDeviceData.tgHeatLevelR),
       secondsRemaining: rightSideSecondsRemaining,
       isOn: rightSideSecondsRemaining > 0,
