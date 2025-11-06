@@ -10,17 +10,16 @@ Express server intended to run on the 8 sleep pod.
 ```
 systemctl stop free-sleep
 systemctl disable free-sleep
-su - dac
-cd /home/dac/free-sleep/server && /home/dac/.volta/bin/npm run dev
+cd /home/dac/free-sleep/server && bun run dev
 
-# When you're done, undo this by CTR+C out of the npm run dev command & run:
+# When you're done, undo this by CTR+C out of the bun run dev command & run:
 systemctl enable free-sleep
 systemctl start free-sleep
 ```
 2. Run the front-end app with hot reload and point it to your Pod [app/README_APP.md](../app/README_APP.md#Developing)
 
 ### Hot Reloading (on computer, not your Pod)
-- `npm run dev:local`
+- `bun run dev:local`
 
 
 ### My development process
@@ -91,23 +90,24 @@ The server is composed of the following key components:
 ## Installation
 
 ### Prerequisites
-- Node.js (v16 or higher) - This is not optional, the 8 sleep pod has node v-16.14.2
-- NPM or Yarn
+- Bun
 
 ### Setup
 1. Clone the repository.
 2. Install dependencies:
    ```bash
-   npm install
+   bun install
    ```
 3. Build the project:
    ```bash
-   npm run build
+   bun run build
    ```
 4. Start the server:
    ```bash
-   npm start
+   bun start
    ```
+5. Copy `server/.env.pod.sample` to `server/.env.pod` and adjust any environment-specific values as needed. Fresh Pod installs perform this automatically, and future updates leave your customized `.env.pod` in place.
+6. For local development, copy `server/.env.local.sample` to `server/.env.local` and tailor it to your machine. The installer seeds it once, and updates preserve your local overrides.
 
 ---
 
@@ -138,4 +138,3 @@ This project is licensed under the MIT License. See the `LICENSE.md` file for de
 
 ## Acknowledgments
 - Huge thanks to [@bobobo1618](https://github.com/bobobo1618) & their research on how the device is controlled via dac.sock
-

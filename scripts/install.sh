@@ -4,7 +4,7 @@ set -euo pipefail
 
 # --------------------------------------------------------------------------------
 # Variables
-REPO_URL="https://github.com/throwaway31265/free-sleep/archive/refs/heads/main.zip"
+REPO_URL="https://github.com/nikita/free-sleep/archive/refs/heads/main.zip"
 ZIP_FILE="free-sleep.zip"
 REPO_DIR="/home/dac/free-sleep"
 SERVER_DIR="$REPO_DIR/server"
@@ -29,28 +29,32 @@ mv free-sleep-main "$REPO_DIR"
 # (In this script we're already moving it, so there's no leftover)
 # rm -rf free-sleep-main
 
+# Ensure default environment configuration exists for pod deployments
+if [ -f "$SERVER_DIR/.env.pod.sample" ] && [ ! -f "$SERVER_DIR/.env.pod" ]; then
+  cp "$SERVER_DIR/.env.pod.sample" "$SERVER_DIR/.env.pod"
+fi
+# Ensure default environment configuration exists for local development checked into repo
+if [ -f "$SERVER_DIR/.env.local.sample" ] && [ ! -f "$SERVER_DIR/.env.local" ]; then
+  cp "$SERVER_DIR/.env.local.sample" "$SERVER_DIR/.env.local"
+fi
+
 chown -R "$USERNAME":"$USERNAME" "$REPO_DIR"
 
 # --------------------------------------------------------------------------------
-# Install or update Volta
+# Install or update Bun
 # - We check once. If it’s not installed, install it.
-echo "Checking if Volta is installed for user '$USERNAME'..."
-if sudo -u "$USERNAME" bash -c 'command -v volta' > /dev/null 2>&1; then
-  echo "Volta is already installed for user '$USERNAME'."
+echo "Checking if Bun is installed for user '$USERNAME'..."
+if sudo -u "$USERNAME" bash -c 'command -v bun' > /dev/null 2>&1; then
+  echo "Bun is already installed for user '$USERNAME'."
 else
-  echo "Volta is not installed. Installing for user '$USERNAME'..."
-  sudo -u "$USERNAME" bash -c 'curl https://get.volta.sh | bash'
-  # Ensure Volta environment variables are in the DAC user’s profile:
-  if ! grep -q 'export VOLTA_HOME=' "/home/$USERNAME/.profile"; then
-    echo -e '\nexport VOLTA_HOME="/home/dac/.volta"\nexport PATH="$VOLTA_HOME/bin:$PATH"\n' \
+  echo "Bun is not installed. Installing for user '$USERNAME'..."
+  sudo -u "$USERNAME" bash -c 'curl -fsSL https://bun.sh/install | bash'
+  # Ensure Bun environment variables are in the DAC user’s profile:
+  if ! grep -q 'export BUN_INSTALL=' "/home/$USERNAME/.profile"; then
+    echo -e '\nexport BUN_INSTALL="/home/dac/.bun"\nexport PATH="$BUN_INSTALL/bin:$PATH"\n' \
       >> "/home/$USERNAME/.profile"
   fi
 fi
-
-# --------------------------------------------------------------------------------
-# Install (or update) Node via Volta
-echo "Installing/ensuring Node 24.11.0 via Volta..."
-sudo -u "$USERNAME" bash -c "source /home/$USERNAME/.profile && volta install node@24.11.0"
 
 # --------------------------------------------------------------------------------
 # Setup /persistent/free-sleep-data (migrate old configs, logs, etc.)
@@ -75,14 +79,6 @@ for entry in "${FILES_TO_MOVE[@]}"; do
   fi
 done
 
-if [ -d /persistent/deviceinfo/ ]; then
-  chown -R "$USERNAME":"$USERNAME" /persistent/deviceinfo/
-fi
-
-if [ -d /deviceinfo/ ]; then
-  chown -R "$USERNAME":"$USERNAME" /deviceinfo/
-fi
-
 # Change ownership and permissions
 chown -R "$USERNAME":"$USERNAME" /persistent/free-sleep-data/
 chmod 770 /persistent/free-sleep-data/
@@ -90,85 +86,11 @@ chmod g+s /persistent/free-sleep-data/
 
 # --------------------------------------------------------------------------------
 # Install server dependencies
-
-BACKUP_PATH="/home/dac/free-sleep-backup/server/package-lock.json"
-NEW_PATH="/home/dac/free-sleep/server/package-lock.json"
-NODE_MODULES_BACKUP="/home/dac/free-sleep-backup/server/node_modules"
-NODE_MODULES_NEW="/home/dac/free-sleep/server/node_modules"
-
-if [ -f "$BACKUP_PATH" ] && [ -f "$NEW_PATH" ]; then
-  BACKUP_HASH=$(sha256sum "$BACKUP_PATH" | awk '{print $1}')
-  NEW_HASH=$(sha256sum "$NEW_PATH" | awk '{print $1}')
-
-  echo "Backup hash: $BACKUP_HASH"
-  echo "New hash: $NEW_HASH"
-
-  if [ "$BACKUP_HASH" != "$NEW_HASH" ]; then
-    echo "package-lock.json changed — running npm install..."
-    sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.volta/bin/npm install"
-  else
-    echo "package-lock.json unchanged — restoring node_modules from backup..."
-    if [ -d "$NODE_MODULES_BACKUP" ]; then
-      mv "$NODE_MODULES_BACKUP" "$NODE_MODULES_NEW"
-      chown -R "$USERNAME:$USERNAME" "$NODE_MODULES_NEW" || true
-      echo "node_modules restored from backup."
-    else
-      echo "Backup node_modules not found, running npm install instead..."
-      sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.volta/bin/npm install"
-    fi
-  fi
-else
-  echo "One or both package-lock.json files missing, running npm install..."
-  sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.volta/bin/npm install"
-fi
-
-# --------------------------------------------------------------------------------
-# Run Prisma migrations
-
-# Stop the free-sleep-stream service if it was running
-# This is needed to close out the lock files for the SQLite file
-biometrics_enabled="false"
-if systemctl is-active --quiet free-sleep-stream && systemctl list-unit-files | grep -q "^free-sleep-stream.service"; then
-  biometrics_enabled="true"
-  echo "Stopping biometrics service..."
-  systemctl stop free-sleep-stream
-  sleep 5
-fi
-
-SRC="/persistent/free-sleep-data/free-sleep.db"
-DEST="/persistent/free-sleep-data/free-sleep-copy.db"
-
-if [ -f "$SRC" ]; then
-  cp "$SRC" "$DEST"
-  echo "Making a backup up database prior to migrations"
-  echo "Database copied to $DEST"
-else
-  echo "Source database not found, skipping copying database."
-fi
-
-
-
-
-rm -f /persistent/free-sleep-data/free-sleep.db-shm \
-      /persistent/free-sleep-data/free-sleep.db-wal \
-      /persistent/free-sleep-data/free-sleep.db-journal
-
-migration_failed="false"
+echo "Installing dependencies in $SERVER_DIR ..."
+sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun install"
 
 echo "Running Prisma migrations..."
-if sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.volta/bin/npm run migrate deploy"; then
-  echo "Prisma migrations completed successfully."
-else
-  migration_failed="true"
-  echo -e "\033[33mWARNING: Prisma migrations failed! \033[0m"
-fi
-
-
-# Restart free-sleep-stream if it was running before
-if [ "$biometrics_enabled" = "true" ]; then
-  echo "Restarting free-sleep-stream service..."
-  systemctl restart free-sleep-stream
-fi
+sudo -u "$USERNAME" bash -c "cd '$SERVER_DIR' && /home/$USERNAME/.bun/bin/bun run migrate deploy"
 
 # --------------------------------------------------------------------------------
 # Create systemd service
@@ -183,13 +105,13 @@ Description=Free Sleep Server
 After=network.target
 
 [Service]
-ExecStart=/home/$USERNAME/.volta/bin/npm run start
+ExecStart=/home/$USERNAME/.bun/bin/bun run start
 WorkingDirectory=$SERVER_DIR
 Restart=always
 User=$USERNAME
 Environment=NODE_ENV=production
-Environment=VOLTA_HOME=/home/$USERNAME/.volta
-Environment=PATH=/home/$USERNAME/.volta/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
+Environment=BUN_INSTALL=/home/$USERNAME/.bun
+Environment=PATH=/home/$USERNAME/.bun/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
 
 [Install]
 WantedBy=multi-user.target
@@ -205,28 +127,6 @@ systemctl start free-sleep.service
 echo "Checking service status..."
 systemctl status free-sleep.service --no-pager || true
 
-# -----------------------------------------------------------------------------------------------------
-# Create systemd service for updating
-
-UPDATE_SERVICE_FILE="/etc/systemd/system/free-sleep-update.service"
-echo "Creating systemd service file at $UPDATE_SERVICE_FILE..."
-
-cat > "$UPDATE_SERVICE_FILE" <<EOF
-[Unit]
-Description=Free Sleep Updater
-After=free-sleep.service
-
-[Service]
-Type=oneshot
-ExecStart=/home/dac/free-sleep/scripts/update_service.sh
-User=root
-Group=root
-KillMode=process
-# Also capture logs at the unit level (append so your file grows)
-StandardOutput=append:/persistent/free-sleep-data/logs/free-sleep-update.log
-StandardError=append:/persistent/free-sleep-data/logs/free-sleep-update.log
-
-EOF
 # --------------------------------------------------------------------------------
 # Graceful device time update (optional)
 
@@ -239,40 +139,29 @@ else
 fi
 
 # --------------------------------------------------------------------------------
-# Setup passwordless sudo scripts for dac user
+# Setup passwordless reboot for 'dac'
 
 SUDOERS_FILE="/etc/sudoers.d/$USERNAME"
-
-# Reboot
 SUDOERS_RULE="$USERNAME ALL=(ALL) NOPASSWD: /sbin/reboot"
+
 if sudo grep -Fxq "$SUDOERS_RULE" "$SUDOERS_FILE" 2>/dev/null; then
   echo "Rule for '$USERNAME' reboot permissions already exists."
 else
   echo "$SUDOERS_RULE" | sudo tee "$SUDOERS_FILE" > /dev/null
   sudo chmod 440 "$SUDOERS_FILE"
-  echo "Passwordless permission for reboots granted to '$USERNAME'."
+  echo "Passwordless permission for reboot granted to '$USERNAME'."
 fi
 
-# Updates
-SUDOERS_UPDATE_RULE="$USERNAME ALL=(root) NOPASSWD: /bin/systemctl start free-sleep-update.service --no-block"
-if sudo grep -Fxq "$SUDOERS_UPDATE_RULE" "$SUDOERS_FILE" 2>/dev/null; then
-  echo "Rule for '$USERNAME' update permissions already exists."
-else
-  echo "$SUDOERS_UPDATE_RULE" | sudo tee -a "$SUDOERS_FILE" >> /dev/null
-  sudo chmod 440 "$SUDOERS_FILE"
-  echo "Passwordless permission for updates granted to '$USERNAME'."
-fi
-chmod 755 /home/dac/free-sleep/scripts/update_service.sh
+echo ""
 
+# --------------------------------------------------------------------------------
+# Restart free-sleep-stream if it exists
 
-# Biometrics enablement
-SUDOERS_BIOMETRICS_RULE="$USERNAME ALL=(ALL) NOPASSWD: /bin/sh /home/dac/free-sleep/scripts/enable_biometrics.sh"
-if sudo grep -Fxq "$SUDOERS_BIOMETRICS_RULE" "$SUDOERS_FILE" 2>/dev/null; then
-  echo "Rule for '$USERNAME' biometrics permissions already exists."
+if systemctl list-units --full --all | grep -q "free-sleep-stream"; then
+  echo "Restarting free-sleep-stream service..."
+  systemctl restart free-sleep-stream
 else
-  echo "$SUDOERS_BIOMETRICS_RULE" | sudo tee -a "$SUDOERS_FILE" >> /dev/null
-  sudo chmod 440 "$SUDOERS_FILE"
-  echo "Passwordless permission for biometrics granted to '$USERNAME'."
+  echo "free-sleep-stream service does not exist. Skipping restart."
 fi
 
 echo ""
@@ -284,7 +173,3 @@ cat /persistent/free-sleep-data/dac_sock_path.txt 2>/dev/null || echo "No dac.so
 
 echo -e "\033[0;32mInstallation complete! The Free Sleep server is running and will start automatically on boot.\033[0m"
 echo -e "\033[0;32mSee logs with: journalctl -u free-sleep --no-pager --output=cat\033[0m"
-
-if [ "$migration_failed" = "true" ]; then
-  echo -e "\033[33mWARNING: Prisma migrations failed! A backup of your database prior to the migration was saved to /persistent/free-sleep-data/free-sleep-copy.db \033[0m"
-fi
