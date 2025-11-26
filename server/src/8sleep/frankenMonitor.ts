@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import moment from 'moment-timezone';
 import logger from '../logger.js';
 import settingsDB from '../db/settings.js';
@@ -12,13 +13,18 @@ import serverStatus from '../serverStatus.js';
 
 
 
-export class FrankenMonitor {
+export class FrankenMonitor extends EventEmitter {
   private isRunning: boolean;
   private deviceStatus?: DeviceStatus;
 
   constructor() {
+    super();
     this.isRunning = false;
     this.deviceStatus = undefined;
+  }
+
+  public getDeviceStatus(): DeviceStatus | undefined {
+    return this.deviceStatus;
   }
 
   public async start() {
@@ -94,6 +100,8 @@ export class FrankenMonitor {
     } else {
       logger.debug(`Gestures not supported for ${this.deviceStatus.coverVersion}`);
     }
+    // Emit initial status
+    this.emit('deviceStatus', this.deviceStatus);
     // No point in querying device status every 3 seconds for checking the prime status...
     while (this.isRunning) {
       try {
@@ -109,6 +117,7 @@ export class FrankenMonitor {
             this.processGestures(nextDeviceStatus);
           }
           this.deviceStatus = nextDeviceStatus;
+          this.emit('deviceStatus', nextDeviceStatus);
           serverStatus.status.frankenMonitor.status = 'healthy';
           serverStatus.status.frankenMonitor.message = '';
           serverStatus.status.frankenMonitor.timestamp = moment.tz().format();
@@ -124,4 +133,7 @@ export class FrankenMonitor {
     logger.debug('FrankenMonitor loop exited');
   }
 }
+
+// Singleton instance
+export const frankenMonitor = new FrankenMonitor();
 

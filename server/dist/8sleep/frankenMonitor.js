@@ -1,5 +1,6 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="393ca830-5bdf-555c-b1b0-feef86779868")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="de13dbc3-2dcc-530c-952f-a6d756cdb5d7")}catch(e){}}();
+import { EventEmitter } from 'events';
 import moment from 'moment-timezone';
 import logger from '../logger.js';
 import settingsDB from '../db/settings.js';
@@ -9,12 +10,16 @@ import { Version } from '../routes/deviceStatus/deviceStatusSchema.js';
 import { GestureSchema } from '../db/settingsSchema.js';
 import { updateDeviceStatus } from '../routes/deviceStatus/updateDeviceStatus.js';
 import serverStatus from '../serverStatus.js';
-export class FrankenMonitor {
+export class FrankenMonitor extends EventEmitter {
     isRunning;
     deviceStatus;
     constructor() {
+        super();
         this.isRunning = false;
         this.deviceStatus = undefined;
+    }
+    getDeviceStatus() {
+        return this.deviceStatus;
     }
     async start() {
         if (this.isRunning) {
@@ -87,6 +92,8 @@ export class FrankenMonitor {
         else {
             logger.debug(`Gestures not supported for ${this.deviceStatus.coverVersion}`);
         }
+        // Emit initial status
+        this.emit('deviceStatus', this.deviceStatus);
         // No point in querying device status every 3 seconds for checking the prime status...
         while (this.isRunning) {
             try {
@@ -103,6 +110,7 @@ export class FrankenMonitor {
                         this.processGestures(nextDeviceStatus);
                     }
                     this.deviceStatus = nextDeviceStatus;
+                    this.emit('deviceStatus', nextDeviceStatus);
                     serverStatus.status.frankenMonitor.status = 'healthy';
                     serverStatus.status.frankenMonitor.message = '';
                     serverStatus.status.frankenMonitor.timestamp = moment.tz().format();
@@ -119,5 +127,7 @@ export class FrankenMonitor {
         logger.debug('FrankenMonitor loop exited');
     }
 }
+// Singleton instance
+export const frankenMonitor = new FrankenMonitor();
 //# sourceMappingURL=frankenMonitor.js.map
-//# debugId=393ca830-5bdf-555c-b1b0-feef86779868
+//# debugId=de13dbc3-2dcc-530c-952f-a6d756cdb5d7

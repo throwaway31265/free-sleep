@@ -1,11 +1,14 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="9db73c62-f014-5de8-b792-af2dbfb404df")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="0860d8b2-0ac5-5a32-98d2-1b7b348ef62d")}catch(e){}}();
 import './instrument.js';
 import express from 'express';
 import schedule from 'node-schedule';
 import logger from './logger.js';
 import { connectFranken, disconnectFranken } from './8sleep/frankenServer.js';
-import { FrankenMonitor } from './8sleep/frankenMonitor.js';
+import { frankenMonitor } from './8sleep/frankenMonitor.js';
+import { rawTapMonitor } from './8sleep/rawTapMonitor.js';
+import { HUB_VERSION } from './8sleep/loadDeviceStatus.js';
+import { Version } from './routes/deviceStatus/deviceStatusSchema.js';
 import './jobs/jobScheduler.js';
 // Setup code
 import setupMiddleware from './setup/middleware.js';
@@ -18,7 +21,6 @@ import { loadWifiSignalStrength } from './8sleep/wifiSignalStrength.js';
 const port = 3000;
 const app = express();
 let server;
-let frankenMonitor;
 async function disconnectPrisma() {
     try {
         logger.debug('Flushing SQLite');
@@ -65,7 +67,8 @@ async function gracefulShutdown(signal) {
             });
         }
         if (!config.remoteDevMode) {
-            frankenMonitor?.stop();
+            frankenMonitor.stop();
+            rawTapMonitor.stop();
             await disconnectFranken();
             logger.debug('Successfully closed Franken components.');
         }
@@ -89,9 +92,25 @@ async function initFranken() {
 const initFrankenMonitor = () => {
     logger.info('Starting franken monitor...');
     serverStatus.status.frankenMonitor.status = 'started';
-    frankenMonitor = new FrankenMonitor();
     void frankenMonitor.start();
-    logger.info('Frank monitor started!');
+    logger.info('Franken monitor started!');
+};
+const initRawTapMonitor = async () => {
+    // RawTapMonitor is only needed for Pod 3 hub with Pod 4+ cover
+    // Pod 3 hub doesn't relay tap events via socket for newer covers
+    const franken = await connectFranken();
+    const deviceStatus = await franken.getDeviceStatus(false);
+    const coverVersion = deviceStatus.coverVersion;
+    const isPod3Hub = HUB_VERSION === Version.Pod3;
+    const hasPod4PlusCover = coverVersion === Version.Pod4 || coverVersion === Version.Pod5;
+    if (isPod3Hub && hasPod4PlusCover) {
+        logger.info(`Starting RAW tap monitor (hub: ${HUB_VERSION}, cover: ${coverVersion})...`);
+        await rawTapMonitor.start();
+        logger.info('RAW tap monitor started!');
+    }
+    else {
+        logger.info(`RAW tap monitor not needed (hub: ${HUB_VERSION}, cover: ${coverVersion})`);
+    }
 };
 // Main startup function
 async function startServer() {
@@ -106,9 +125,10 @@ async function startServer() {
     // Initialize Franken once before listening
     if (!config.remoteDevMode) {
         void initFranken()
-            .then(() => {
+            .then(async () => {
             setupSentryTags();
             initFrankenMonitor();
+            await initRawTapMonitor();
         })
             .catch(error => {
             serverStatus.status.franken.status = 'failed';
@@ -139,4 +159,4 @@ startServer().catch((err) => {
     process.exit(1);
 });
 //# sourceMappingURL=server.js.map
-//# debugId=9db73c62-f014-5de8-b792-af2dbfb404df
+//# debugId=0860d8b2-0ac5-5a32-98d2-1b7b348ef62d

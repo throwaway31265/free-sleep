@@ -23,6 +23,13 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import LogsPage from './pages/DataPage/LogsPage/LogsPage.tsx';
 import StatusPage from './pages/StatusPage/StatusPage.tsx';
+import { useDeviceStatusStream } from './api/deviceStatus.ts';
+
+// Component that establishes SSE connection for real-time device status
+const DeviceStatusStream = () => {
+  useDeviceStatusStream();
+  return null;
+};
 
 const darkTheme = createTheme({
   palette: {
@@ -57,6 +64,7 @@ const App = () => {
   return (
 
     <QueryClientProvider client={ queryClient }>
+      <DeviceStatusStream />
       <ThemeProvider theme={ darkTheme }>
         <LocalizationProvider dateAdapter={ AdapterMoment }>
 
