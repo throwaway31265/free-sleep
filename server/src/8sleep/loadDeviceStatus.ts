@@ -136,19 +136,16 @@ const detectHubVersion = async (): Promise<Version> => {
     } else if (hwRev >= 'G00') {
       return Version.Pod4;
     } else {
-      const pod3PathExists = await access('/deviceinfo/device-label', constants.F_OK)
-        .then(() => true)
-        .catch(() => false);
-      if (pod3PathExists) return Version.Pod3;
+      // hwRev < G00 indicates Pod 3 hub
+      return Version.Pod3;
     }
-    return Version.NotFound;
   } catch (error) {
     logger.error(error);
     return Version.NotFound;
   }
 };
 
-const HUB_VERSION = await detectHubVersion();
+export const HUB_VERSION = await detectHubVersion();
 
 // The default naming convention was ugly... This remaps the keys to human-readable names
 export async function loadDeviceStatus(response: string, getGestures: boolean): Promise<DeviceStatus> {
