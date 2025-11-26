@@ -5,6 +5,9 @@ import { Server } from 'http';
 import logger from './logger.js';
 import { connectFranken, disconnectFranken } from './8sleep/frankenServer.js';
 import { FrankenMonitor } from './8sleep/frankenMonitor.js';
+import { rawTapMonitor } from './8sleep/rawTapMonitor.js';
+import { HUB_VERSION } from './8sleep/loadDeviceStatus.js';
+import { Version } from './routes/deviceStatus/deviceStatusSchema.js';
 import './jobs/jobScheduler.js';
 
 
@@ -72,6 +75,7 @@ async function gracefulShutdown(signal: string) {
 
     if (!config.remoteDevMode) {
       frankenMonitor?.stop();
+      rawTapMonitor.stop();
       await disconnectFranken();
       logger.debug('Successfully closed Franken components.');
     }
@@ -104,6 +108,25 @@ const initFrankenMonitor = () => {
   logger.info('Frank monitor started!');
 };
 
+const initRawTapMonitor = async () => {
+  // RawTapMonitor is only needed for Pod 3 hub with Pod 4+ cover
+  // Pod 3 hub doesn't relay tap events via socket for newer covers
+  const franken = await connectFranken();
+  const deviceStatus = await franken.getDeviceStatus(false);
+  const coverVersion = deviceStatus.coverVersion;
+
+  const isPod3Hub = HUB_VERSION === Version.Pod3;
+  const hasPod4PlusCover = coverVersion === Version.Pod4 || coverVersion === Version.Pod5;
+
+  if (isPod3Hub && hasPod4PlusCover) {
+    logger.info(`Starting RAW tap monitor (hub: ${HUB_VERSION}, cover: ${coverVersion})...`);
+    await rawTapMonitor.start();
+    logger.info('RAW tap monitor started!');
+  } else {
+    logger.info(`RAW tap monitor not needed (hub: ${HUB_VERSION}, cover: ${coverVersion})`);
+  }
+};
+
 
 // Main startup function
 async function startServer() {
@@ -119,9 +142,10 @@ async function startServer() {
   // Initialize Franken once before listening
   if (!config.remoteDevMode) {
     void initFranken()
-      .then(() => {
+      .then(async () => {
         setupSentryTags();
         initFrankenMonitor();
+        await initRawTapMonitor();
       })
       .catch(error => {
         serverStatus.status.franken.status = 'failed';
