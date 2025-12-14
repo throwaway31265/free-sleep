@@ -1,152 +1,64 @@
-import React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
+import { Paper } from '@mui/material';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-import Toolbar from '@mui/material/Toolbar';
-import Button from '@mui/material/Button';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAppStore } from '@state/appStore.tsx';
-import { useTheme } from '@mui/material/styles';
-import { PAGES } from './pages';
-import freeSleepIcon from '../../public/free-sleep-icon.svg';
+import {
+  Activity,
+  BarChart3,
+  Calendar,
+  Settings,
+  Thermometer
+} from 'lucide-react';
+import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-export default function Navbar() {
+const navItems = [
+  { id: 'temp', route: '/temperature', icon: Thermometer, label: 'Temp' },
+  { id: 'schedule', route: '/schedules', icon: Calendar, label: 'Schedule' },
+  { id: 'data', route: '/data', icon: BarChart3, label: 'Data' },
+  { id: 'status', route: '/status', icon: Activity, label: 'Status' },
+  { id: 'settings', route: '/settings', icon: Settings, label: 'Settings' },
+];
+
+/**
+ * `Navbar` handles the routing logic and renders the bottom navigation bar.
+ */
+export const Navbar = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { isUpdating } = useAppStore();
-  const theme = useTheme(); // Access the Material-UI theme
   const [mobileNavValue, setMobileNavValue] = React.useState(
-    PAGES.findIndex((page) => page.route === pathname)
+    navItems.findIndex((item) => item.route === pathname)
   );
 
-  // Handle navigation for both desktop and mobile
-  const handleNavigation = (route: string) => {
-    navigate(route);
-  };
-
-  const handleMobileNavChange = (
+  const handleNavChange = (
     _event: React.SyntheticEvent,
     newValue: number
   ) => {
     setMobileNavValue(newValue);
-    handleNavigation(PAGES[newValue].route);
+    navigate(navItems[newValue].route);
   };
 
-  const gradient = `linear-gradient(
-  90deg,
-  transparent,
-  ${theme.palette.primary.dark},
-  transparent,
-  ${theme.palette.primary.dark},
-  transparent
-)`;
   return (
-    <>
-      { /* Loading Bar */ }
-      <Box
-        sx={ {
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '4px',
-          background: isUpdating ? gradient : 'transparent',
-          backgroundSize: '200% 100%',
-          animation: isUpdating
-            ? 'slide-gradient 10s linear infinite reverse'
-            : 'none',
-          zIndex: 1201,
-        } }
-      />
-      { /* Desktop Navigation */ }
-      <AppBar
-        position="fixed"
-        color="transparent"
-        sx={ {
-          display: { xs: 'none', md: 'flex' },
-          borderTop: `1px solid ${theme.palette.grey[700]}`,
-          backgroundColor: theme.palette.background.default,
-          boxShadow: 'none',
-          top: 'auto', // Push it to the bottom
-          bottom: 0, // Stick it to the bottom
-          left: 0,
-          right: 0,
-        } }
+    <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3} >
+      <BottomNavigation
+        value={mobileNavValue}
+        onChange={handleNavChange}
+        showLabels
+        sx={{
+          height: 75,
+        }}
       >
-        <Toolbar>
-          <div style={ { flexGrow: 1 } }>
-            <img src={ freeSleepIcon } alt="Join our Discord" width={ 45 } height={ 45 } />
-          </div>
-          <Box sx={ { display: 'flex', gap: 2 } }>
-            { PAGES.map(({ title, route }) => (
-              <Button
-                key={ route }
-                onClick={ () => handleNavigation(route) }
-                sx={ { color: 'white' } }
-                variant={ pathname === route ? 'outlined' : 'text' }
-              >
-                { title }
-              </Button>
-            )) }
-          </Box>
-        </Toolbar>
-      </AppBar>
-
-      { /* Mobile Bottom Navigation */ }
-      <Box
-        sx={ {
-          display: { xs: 'flex', md: 'none' },
-          width: '100%',
-          position: 'fixed',
-          bottom: 0,
-          height: '80px',
-          justifyContent: 'space-between',
-          borderTop: `1px solid ${theme.palette.grey[700]}`,
-          backgroundColor: theme.palette.background.default,
-          zIndex: 10,
-        } }
-      >
-        <BottomNavigation
-          value={ mobileNavValue }
-          onChange={ handleMobileNavChange }
-          sx={ {
-            width: '100%',
-            backgroundColor: theme.palette.background.default,
-            '& .Mui-selected': {
-              color: theme.palette.grey[100],
-            },
-            '& .MuiBottomNavigationAction-root': {
-              color: theme.palette.grey[500],
-            },
-          } }
-        >
-          { PAGES.map(({ title, icon }, index) => (
-            <BottomNavigationAction
-              key={ index }
-              icon={ icon }
-              aria-label={ title }
-              sx={ {
-                '&.Mui-selected': {
-                  color: theme.palette.grey[100],
-                },
-              } }
-            />
-          )) }
-        </BottomNavigation>
-      </Box>
-      <style>
-        { `
-@keyframes slide-gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  100% {
-    background-position: 200% 50%;
-  }
-}
-        ` }
-      </style>
-    </>
+        {navItems.map((item) => (
+          <BottomNavigationAction
+            key={item.id}
+            label={item.label}
+            value={navItems.findIndex((navItem) => navItem.id === item.id)}
+            icon={<item.icon />}
+            sx={{
+              gap: 1,
+            }}
+          />
+        ))}
+      </BottomNavigation>
+    </Paper >
   );
 }
