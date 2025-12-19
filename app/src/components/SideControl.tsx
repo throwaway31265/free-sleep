@@ -23,7 +23,6 @@ export default function SideControl({ showTemp }: SideControlProps) {
       exclusive
       value={ side }
       onChange={ (event) => {
-        // @ts-expect-error
         setSide(event.target.value);
       } }
       size="small"
