@@ -77,6 +77,9 @@ def _decode_cbor_file(file_path: str, data: dict, start_time, end_time, side: Si
 
                 # Decode the next CBOR object
                 row = cbor2.load(raw_data)
+                # Skip records with empty data (malformed records)
+                if not row.get('data'):
+                    continue
                 decoded_data = cbor2.loads(row['data'])
                 if not decoded_data['type'] in load_raw_types:
                     continue
