@@ -115,6 +115,9 @@ class LatestRawFileHandler(FileSystemEventHandler):
                 one_minute_ago = datetime.now() - timedelta(minutes=2)
 
                 if 'data' in row:  # Check if 'data' key exists
+                    # Skip records with empty data (malformed records)
+                    if not row.get('data'):
+                        continue
                     decoded_data = cbor2.loads(row['data'])
                     if decoded_data['type'] != 'piezo-dual':
                         continue
