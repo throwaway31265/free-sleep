@@ -205,6 +205,7 @@ cat > "$SERVICE_FILE" <<EOF
 [Unit]
 Description=Free Sleep Server
 After=network.target
+RequiresMountsFor=/persistent
 
 [Service]
 ExecStart=/home/$USERNAME/.volta/bin/npm run start

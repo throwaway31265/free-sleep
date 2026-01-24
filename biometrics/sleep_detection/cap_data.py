@@ -77,6 +77,10 @@ Run `python3 calibrate_sensor_thresholds.py --side=right --start_time="2025-02-0
 
 def load_cap_df(data: Data, side: Side, expected_row_count=None) -> pd.DataFrame:
     logger.debug('Loading cap df...')
+    if not data.get('cap_senses'):
+        logger.warning('No capSense data found to load!')
+        return pd.DataFrame(columns=[f'{side}_out', f'{side}_cen', f'{side}_in']).set_index(pd.DatetimeIndex([], name='ts'))
+
     df = pd.DataFrame(data['cap_senses'], columns=['ts', side])
 
     df[f'{side}_out'] = df[side].str['out']

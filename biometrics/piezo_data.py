@@ -18,7 +18,15 @@ def _calculate_avg(arr: np.ndarray):
 
 def load_piezo_df(data: Data, side: Side, lower_percentile=2, upper_percentile=98, expected_row_count=None) -> pd.DataFrame:
     logger.debug('Loading piezo df...')
+    if not data.get('piezo_dual'):
+        logger.warning('No piezo data found to load!')
+        return pd.DataFrame(columns=[f'{side}1_avg', f'piezo_{side}1_presence']).set_index(pd.DatetimeIndex([], name='ts'))
+
     df = pd.DataFrame(data['piezo_dual'])
+    if 'ts' not in df.columns:
+        logger.warning('No "ts" column in piezo data!')
+        return pd.DataFrame(columns=[f'{side}1_avg', f'piezo_{side}1_presence']).set_index(pd.DatetimeIndex([], name='ts'))
+
     df.sort_values(by='ts', inplace=True)
     df['ts'] = pd.to_datetime(df['ts'])
     df.set_index('ts', inplace=True)

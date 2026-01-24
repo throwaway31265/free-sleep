@@ -71,6 +71,10 @@ def _parse_args() -> Namespace:
 def _load_piezo_df(start_time: datetime, end_time: datetime, side: Side, folder_path: str) -> pd.DataFrame:
     data = load_raw_files(folder_path, start_time, end_time, side, sensor_count=2, raw_data_types=['piezo-dual'])
 
+    if not data.get('piezo_dual'):
+        logger.warning('No piezo data found to load!')
+        return pd.DataFrame(columns=[f'{side}1', f'{side}2', 'ts']).set_index(pd.DatetimeIndex([], name='ts'))
+
     piezo_df = pd.DataFrame(data['piezo_dual'])
 
     # Ensure ts column is in datetime format before setting index

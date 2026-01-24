@@ -7,6 +7,7 @@ cat > "/etc/systemd/system/free-sleep-stream.service" <<EOF
 [Unit]
 Description=Free Sleep Streamer
 After=network.target
+RequiresMountsFor=/persistent
 
 [Service]
 ExecStart=/home/dac/venv/bin/python /home/dac/free-sleep/biometrics/stream/stream.py
