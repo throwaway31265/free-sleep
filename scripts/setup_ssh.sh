@@ -33,7 +33,7 @@ PermitRootLogin yes
 PermitTTY yes
 Port 8822
 PubkeyAuthentication yes
-Subsystem	sftp	internal-sftp
+Subsystem	sftp	/usr/libexec/sftp-server
 UsePAM yes
 EOF
 
