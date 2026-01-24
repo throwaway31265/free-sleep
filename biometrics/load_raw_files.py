@@ -49,15 +49,17 @@ def _delete_other_side(decoded_data: dict, side: Side, sensor_count: int):
         if side == 'left':
             del_side = 'right'
 
-        if decoded_data['type'] == 'capSense':
+        if del_side in decoded_data:
             del decoded_data[del_side]
-        else:
+
+        if decoded_data['type'] == 'piezo-dual':
             if sensor_count == 1:
                 # Delete sensor 2 of the current side
                 if f'{side}2' in decoded_data:
                     del decoded_data[f'{side}2']
             # Delete opposite side
-            del decoded_data[f'{del_side}1']
+            if f'{del_side}1' in decoded_data:
+                del decoded_data[f'{del_side}1']
             if f'{del_side}2' in decoded_data:
                 del decoded_data[f'{del_side}2']
     except Exception as error:
@@ -76,6 +78,7 @@ def _decode_cbor_file(file_path: str, data: dict, start_time, end_time, side: Si
             try:
 
                 # Decode the next CBOR object
+                # note: we can safely disregard `seq` field, since it's just to debug sequential packets
                 row = cbor2.load(raw_data)
                 decoded_data = cbor2.loads(row['data'])
                 if not decoded_data['type'] in load_raw_types:

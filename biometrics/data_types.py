@@ -13,7 +13,7 @@ RawDataTypes = Literal['bedTemp', 'capSense', 'frzTemp', 'log', 'piezo-dual']
 
 class LogData(TypedDict):
     type: str
-    ts: int
+    ts: str
     level: str
     msg: str
     seq: int
@@ -24,7 +24,7 @@ class LogData(TypedDict):
 
 class PiezoDualData(TypedDict):
     type: str
-    ts: int
+    ts: str
     freq: int
     adc: int
     gain: int
@@ -59,16 +59,17 @@ class PiezoDualData(TypedDict):
 # ---------------------------------------------------------------------------------------------------
 # Capacitance sensor - Used for presence detection (I think)
 
-class CapSenseChannel(TypedDict):
-    out: int
-    cen: int
-    in_: int  # Renamed `in` to `in_` for Python compliance
-    status: str
+CapSenseChannel = TypedDict('CapSenseChannel', {
+    'out': int,
+    'cen': int,
+    'in': int,
+    'status': str
+})
 
 
 class CapSenseData(TypedDict):
     type: str
-    ts: int
+    ts: str
     left: CapSenseChannel
     right: CapSenseChannel
     seq: int
@@ -97,7 +98,7 @@ class CapSenseData(TypedDict):
 
 class FrzTempData(TypedDict):
     type: str
-    ts: int
+    ts: str
     left: int
     right: int
     amb: int
@@ -105,11 +106,12 @@ class FrzTempData(TypedDict):
     seq: int
 
 
-class BedTempChannel(TypedDict):
-    side: int
-    out: int
-    cen: int
-    in_: int  # Renamed `in` to `in_` for Python compliance
+BedTempChannel = TypedDict('BedTempChannel', {
+    'side': int,
+    'out': int,
+    'cen': int,
+    'in': int
+})
 
 
 class BedTempData(TypedDict):
