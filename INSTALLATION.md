@@ -193,7 +193,7 @@ nmcli connection reload
 
 ## 13. Install the free-sleep app, this will set up a systemctl service that auto runs on boot
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/throwaway31265/free-sleep/main/scripts/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/onemec/free-sleep/main/scripts/install.sh)"
 ```
 
 ---

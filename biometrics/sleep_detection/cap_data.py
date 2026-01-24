@@ -77,11 +77,14 @@ Run `python3 calibrate_sensor_thresholds.py --side=right --start_time="2025-02-0
 
 def load_cap_df(data: Data, side: Side, expected_row_count=None) -> pd.DataFrame:
     logger.debug('Loading cap df...')
-    df = pd.DataFrame(data['cap_senses'], columns=['ts', side])
+    df = pd.DataFrame(data.get('cap_senses', []), columns=['ts', side])
+    if df.empty or side not in df.columns:
+        logger.warning(f'No cap data found for side {side}!')
+        return pd.DataFrame()
 
-    df[f'{side}_out'] = df[side].str['out']
-    df[f'{side}_cen'] = df[side].str['cen']
-    df[f'{side}_in'] = df[side].str['in']
+    df[f'{side}_out'] = df[side].apply(lambda x: x.get('out') if isinstance(x, dict) else None)
+    df[f'{side}_cen'] = df[side].apply(lambda x: x.get('cen') if isinstance(x, dict) else None)
+    df[f'{side}_in'] = df[side].apply(lambda x: x.get('in') if isinstance(x, dict) else None)
 
     df.drop(columns=[side], inplace=True)
 
@@ -110,10 +113,21 @@ def detect_presence_cap(
 ) -> pd.DataFrame:
     logger.debug('Detecting cap presence...')
     # Vectorized sensor deltas (removes the need for _sensor_delta row-wise function):
+    # Combined sensor check
+    required_cols = [f'{side}_out', f'{side}_cen', f'{side}_in']
+    if not all(col in merged_df.columns for col in required_cols):
+        logger.warning(f'Missing required columns for cap presence detection: {required_cols}')
+        return merged_df
+
+    # Baseline key check
+    if not all(col in cap_baseline for col in required_cols):
+        logger.warning(f'Missing baseline data for keys: {[col for col in required_cols if col not in cap_baseline]}')
+        return merged_df
+
     merged_df[f'{side}_combined'] = (
-            (merged_df[f'{side}_out'] - cap_baseline[f'{side}_out']['mean']) / cap_baseline[f'{side}_out']['std']
-            + (merged_df[f'{side}_cen'] - cap_baseline[f'{side}_cen']['mean']) / cap_baseline[f'{side}_cen']['std']
-            + (merged_df[f'{side}_in'] - cap_baseline[f'{side}_in']['mean']) / cap_baseline[f'{side}_in']['std']
+            (merged_df[f'{side}_out'] - cap_baseline[f'{side}_out'].get('mean', 0)) / cap_baseline[f'{side}_out'].get('std', 1)
+            + (merged_df[f'{side}_cen'] - cap_baseline[f'{side}_cen'].get('mean', 0)) / cap_baseline[f'{side}_cen'].get('std', 1)
+            + (merged_df[f'{side}_in'] - cap_baseline[f'{side}_in'].get('mean', 0)) / cap_baseline[f'{side}_in'].get('std', 1)
     )
 
     merged_df[f'cap_{side}_occupied'] = (merged_df[f'{side}_combined'] > occupancy_threshold).astype(int)

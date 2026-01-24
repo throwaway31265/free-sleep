@@ -35,7 +35,7 @@ if [ -d /home/dac/free-sleep ]; then
 fi
 
 echo "Attempting to reinstall free-sleep..."
-if /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/throwaway31265/free-sleep/main/scripts/install.sh)"; then
+if /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/onemec/free-sleep/main/scripts/install.sh)"; then
   echo "Reinstall successful."
   rm -rf "$BACKUP_PATH"
   if [ -d "$APP_DIR" ]; then
