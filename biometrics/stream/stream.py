@@ -100,6 +100,41 @@ class LatestRawFileHandler(FileSystemEventHandler):
             return
         self.track_latest_file()
 
+def _iter_raw_records(f):
+    """
+    Generator that yields valid Outer Records from the file.
+    Handles resyncing if corruption is encountered.
+    """
+    # Header format: \xa2 (map of 2) \x63 (str of 3) "seq" \x1a (uint32)
+    header = b'\xa2\x63\x73\x65\x71\x1a'
+    while True:
+        pos = f.tell()
+        try:
+            row = cbor2.load(f)
+            if isinstance(row, dict) and 'data' in row:
+                yield row
+            else:
+                f.seek(pos + 1)
+        except (EOFError, StopIteration):
+            break
+        except Exception as error:
+            logger.debug(f"Framing error at byte {pos}: {error}. Resyncing...")
+            chunk_size = 4096
+            found = False
+            while True:
+                current_pos = f.tell()
+                chunk = f.read(chunk_size)
+                if not chunk: break
+                idx = chunk.find(header)
+                if idx != -1:
+                    raw_pos = current_pos + idx
+                    f.seek(raw_pos)
+                    logger.debug(f"Resynced framing at byte {raw_pos}")
+                    found = True
+                    break
+            if not found: break
+
+
     def follow_latest_file(self):
         """Reads and decodes new CBOR-encoded lines from the latest file."""
         if not self.latest_file_obj:
@@ -108,34 +143,30 @@ class LatestRawFileHandler(FileSystemEventHandler):
         # Move to the last known position before reading
         self.latest_file_obj.seek(self.last_pos)
 
-        while True:
+        for row in _iter_raw_records(self.latest_file_obj):
             try:
-                # Decode CBOR object from a **single line**
-                row = cbor2.load(self.latest_file_obj)  # Load the next CBOR object
+                decoded_data = cbor2.loads(row['data'])
+                if decoded_data.get('type') != 'piezo-dual':
+                    continue
+
                 one_minute_ago = datetime.now() - timedelta(minutes=2)
+                record_time = datetime.fromtimestamp(decoded_data['ts'])
+                if one_minute_ago > record_time:
+                    continue
 
-                if 'data' in row:  # Check if 'data' key exists
-                    decoded_data = cbor2.loads(row['data'])
-                    if decoded_data['type'] != 'piezo-dual':
-                        continue
-                    record_time = datetime.fromtimestamp(decoded_data['ts'])
-                    if one_minute_ago > record_time:
-                        continue
-                    load_piezo_row(decoded_data, 'right')
-                    piezo_record_queue.put(decoded_data)
+                load_piezo_row(decoded_data, 'right')
+                piezo_record_queue.put(decoded_data)
 
-                # Update last read position
-                self.last_pos = self.latest_file_obj.tell()
-
-            except EOFError:
-                # No more CBOR objects to read
-                break
             except Exception as e:
-                logger.error(f"Error decoding CBOR: {e}")
-                break
+                logger.error(f"Error decoding CBOR data: {e}")
+                continue
+
+        # Always update last read position
+        self.last_pos = self.latest_file_obj.tell()
 
 
 def process_biometrics():
+
     piezo_record = piezo_record_queue.get()
     stream_processor = StreamProcessor(piezo_record, debug=False)
     ix = 0

@@ -69,17 +69,54 @@ def _delete_other_side(decoded_data: dict, side: Side, sensor_count: int):
         raise error
 
 
+def _iter_raw_records(f):
+    """
+    Generator that yields valid Outer Records from the file.
+    Handles resyncing if corruption is encountered.
+    """
+    # Header format: \xa2 (map of 2) \x63 (str of 3) "seq" \x1a (uint32)
+    header = b'\xa2\x63\x73\x65\x71\x1a'
+    while True:
+        pos = f.tell()
+        try:
+            row = cbor2.load(f)
+            if isinstance(row, dict) and 'data' in row:
+                yield row
+            else:
+                # Not a valid record, force a resync from next byte
+                f.seek(pos + 1)
+        except (EOFError, StopIteration):
+            break
+        except Exception as error:
+            logger.debug(f"Framing error at byte {pos}: {error}. Resyncing...")
+            # Resync: search for the next occurrence of the row header
+            chunk_size = 4096
+            found = False
+            while True:
+                current_pos = f.tell()
+                chunk = f.read(chunk_size)
+                if not chunk:
+                    break
+
+                idx = chunk.find(header)
+                if idx != -1:
+                    raw_pos = current_pos + idx
+                    f.seek(raw_pos)
+                    logger.debug(f"Resynced framing at byte {raw_pos}")
+                    found = True
+                    break
+
+            if not found:
+                break
+
+
 def _decode_cbor_file(file_path: str, data: dict, start_time, end_time, side: Side, sensor_count: int):
     # logger.debug(f'Loading cbor data from: {file_path}')
     load_raw_types = list(data.keys())
     checked_timespan = False
     with open(file_path, 'rb') as raw_data:
-        while True:
+        for row in _iter_raw_records(raw_data):
             try:
-
-                # Decode the next CBOR object
-                # note: we can safely disregard `seq` field, since it's just to debug sequential packets
-                row = cbor2.load(raw_data)
                 decoded_data = cbor2.loads(row['data'])
                 if not decoded_data['type'] in load_raw_types:
                     continue
@@ -109,10 +146,10 @@ def _decode_cbor_file(file_path: str, data: dict, start_time, end_time, side: Si
                 if decoded_data['type'] in data:
                     data[decoded_data['type']].append(decoded_data)
 
-            except EOFError:
-                break
             except Exception as error:
-                logger.error(error)
+                logger.error(f"Error parsing decoded data: {error}")
+                continue
+
         raw_data.close()
         gc.collect()
     return data

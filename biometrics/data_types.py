@@ -116,7 +116,7 @@ BedTempChannel = TypedDict('BedTempChannel', {
 
 class BedTempData(TypedDict):
     type: str
-    ts: int
+    ts: str
     amb: int
     mcu: int
     hu: int
