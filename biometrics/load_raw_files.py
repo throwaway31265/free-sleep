@@ -50,16 +50,14 @@ def _delete_other_side(decoded_data: dict, side: Side, sensor_count: int):
             del_side = 'right'
 
         if decoded_data['type'] == 'capSense':
-            if del_side in decoded_data:
-                del decoded_data[del_side]
+            del decoded_data[del_side]
         else:
             if sensor_count == 1:
                 # Delete sensor 2 of the current side
                 if f'{side}2' in decoded_data:
                     del decoded_data[f'{side}2']
             # Delete opposite side
-            if f'{del_side}1' in decoded_data:
-                del decoded_data[f'{del_side}1']
+            del decoded_data[f'{del_side}1']
             if f'{del_side}2' in decoded_data:
                 del decoded_data[f'{del_side}2']
     except Exception as error:
@@ -69,106 +67,49 @@ def _delete_other_side(decoded_data: dict, side: Side, sensor_count: int):
         raise error
 
 
-def _iter_raw_records(f):
-    """
-    Generator that yields valid Outer Records from the file.
-    Handles resyncing if corruption is encountered.
-    """
-    header = b'\xa2\x63\x73\x65\x71\x1a'
-    while True:
-        pos = f.tell()
-        try:
-            row = cbor2.load(f)
-            if isinstance(row, dict) and 'data' in row:
-                yield row
-            else:
-                # Not a valid record, force a resync from next byte
-                f.seek(pos + 1)
-                raise ValueError("Invalid record format")
-        except (EOFError, StopIteration):
-            break
-        except Exception as error:
-            logger.debug(f"Framing error at byte {pos}: {error}. Resyncing...")
-            # Resync: search for the next occurrence of the row header
-            chunk_size = 4096
-            found = False
-            while True:
-                current_pos = f.tell()
-                chunk = f.read(chunk_size)
-                if not chunk:
-                    break
-                
-                idx = chunk.find(header)
-                if idx != -1:
-                    raw_pos = current_pos + idx
-                    f.seek(raw_pos)
-                    logger.debug(f"Resynced framing at byte {raw_pos}")
-                    found = True
-                    break
-            
-            if not found:
-                break
-
-
 def _decode_cbor_file(file_path: str, data: dict, start_time, end_time, side: Side, sensor_count: int):
     # logger.debug(f'Loading cbor data from: {file_path}')
     load_raw_types = list(data.keys())
     checked_timespan = False
-    
-    with open(file_path, 'rb') as f:
-        for row in _iter_raw_records(f):
+    with open(file_path, 'rb') as raw_data:
+        while True:
             try:
-                # Each outer record's 'data' field may contain multiple CBOR objects
-                # or a partial object (though usually it's whole objects in this format)
-                import io
-                stream = io.BytesIO(row['data'])
-                
-                while True:
-                    try:
-                        decoded_data = cbor2.load(stream)
-                        if not isinstance(decoded_data, dict) or 'type' not in decoded_data:
-                            continue
 
-                        if not decoded_data['type'] in load_raw_types:
-                            continue
-                            
-                        _delete_other_side(decoded_data, side, sensor_count)
-                        
-                        if not checked_timespan:
-                            timestamp_start = datetime.fromtimestamp(
-                                decoded_data['ts'],
-                                timezone.utc
-                            )
-                            timestamp_end = timestamp_start + timedelta(minutes=15)
-                            if start_time <= timestamp_start <= end_time:
-                                checked_timespan = True
-                            else:
-                                if start_time <= timestamp_end <= end_time:
-                                    checked_timespan = True
-                                else:
-                                    # Still outside range, but might find it in next record
-                                    continue
+                # Decode the next CBOR object
+                row = cbor2.load(raw_data)
+                decoded_data = cbor2.loads(row['data'])
+                if not decoded_data['type'] in load_raw_types:
+                    continue
+                _delete_other_side(decoded_data, side, sensor_count)
+                if not checked_timespan:
+                    timestamp_start = datetime.fromtimestamp(
+                        decoded_data['ts'],
+                        timezone.utc
+                    )
+                    timestamp_end = timestamp_start + timedelta(minutes=15)
+                    if start_time <= timestamp_start <= end_time:
+                        checked_timespan = True
+                    else:
+                        if start_time <= timestamp_end <= end_time:
+                            checked_timespan = True
+                        else:
+                            raw_data.close()
+                            return
 
-                        if decoded_data['type'] == 'piezo-dual':
-                            load_piezo_row(decoded_data, side)
+                if decoded_data['type'] == 'piezo-dual':
+                    load_piezo_row(decoded_data, side)
 
-                        decoded_data['ts'] = datetime.fromtimestamp(
-                            decoded_data['ts'],
-                            timezone.utc
-                        ).strftime("%Y-%m-%d %H:%M:%S")
-                        data[decoded_data['type']].append(decoded_data)
+                decoded_data['ts'] = datetime.fromtimestamp(
+                    decoded_data['ts'],
+                    timezone.utc
+                ).strftime("%Y-%m-%d %H:%M:%S")
+                data[decoded_data['type']].append(decoded_data)
 
-                    except EOFError:
-                        # Finished reading objects from this outer record
-                        break
-                    except Exception as inner_error:
-                        logger.warning(f"Error decoding inner object in record {row.get('seq')}: {inner_error}")
-                        # If inner decoding fails, we skip to the NEXT outer record
-                        break
-
+            except EOFError:
+                break
             except Exception as error:
-                logger.error(f"Unexpected error processing outer record: {error}")
-        
+                logger.error(error)
+        raw_data.close()
         gc.collect()
     return data
 
