@@ -42,7 +42,7 @@ const Banner = ({ metric }: BannerProps) => {
       text: <Typography>Heart rate data has been validated with six participants, and accuracy may be limited.
         You can help improve future accuracy by contributing your own data for validation or
         by experimenting and improving the algorithm yourself.
-        See the <Link href='https://github.com/throwaway31265/free-sleep?tab=readme-ov-file#biometrics-'>documentation</Link>
+        See the <Link href='https://github.com/onemec/free-sleep?tab=readme-ov-file#biometrics-'>documentation</Link>
         &nbsp;for details on current measurement accuracy.
       </Typography>,
     },
