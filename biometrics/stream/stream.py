@@ -42,6 +42,7 @@ logger = get_logger('free-sleep-stream')
 from stream_processor import StreamProcessor
 from load_raw_files import load_piezo_row
 from service_health import update_health
+from cbor_helpers import iter_raw_records
 
 # Global queue for processing decoded biometric data
 piezo_record_queue = queue.Queue()
@@ -100,41 +101,6 @@ class LatestRawFileHandler(FileSystemEventHandler):
             return
         self.track_latest_file()
 
-def _iter_raw_records(f):
-    """
-    Generator that yields valid Outer Records from the file.
-    Handles resyncing if corruption is encountered.
-    """
-    # Header format: \xa2 (map of 2) \x63 (str of 3) "seq" \x1a (uint32)
-    header = b'\xa2\x63\x73\x65\x71\x1a'
-    while True:
-        pos = f.tell()
-        try:
-            row = cbor2.load(f)
-            if isinstance(row, dict) and 'data' in row:
-                yield row
-            else:
-                f.seek(pos + 1)
-        except (EOFError, StopIteration):
-            break
-        except Exception as error:
-            logger.debug(f"Framing error at byte {pos}: {error}. Resyncing...")
-            chunk_size = 4096
-            found = False
-            while True:
-                current_pos = f.tell()
-                chunk = f.read(chunk_size)
-                if not chunk: break
-                idx = chunk.find(header)
-                if idx != -1:
-                    raw_pos = current_pos + idx
-                    f.seek(raw_pos)
-                    logger.debug(f"Resynced framing at byte {raw_pos}")
-                    found = True
-                    break
-            if not found: break
-
-
     def follow_latest_file(self):
         """Reads and decodes new CBOR-encoded lines from the latest file."""
         if not self.latest_file_obj:
@@ -143,12 +109,14 @@ def _iter_raw_records(f):
         # Move to the last known position before reading
         self.latest_file_obj.seek(self.last_pos)
 
-        for row in _iter_raw_records(self.latest_file_obj):
+        # Use the resyncing generator to iterate through valid records
+        for row in iter_raw_records(self.latest_file_obj):
             try:
                 decoded_data = cbor2.loads(row['data'])
                 if decoded_data.get('type') != 'piezo-dual':
                     continue
 
+                # Filter for recent records
                 one_minute_ago = datetime.now() - timedelta(minutes=2)
                 record_time = datetime.fromtimestamp(decoded_data['ts'])
                 if one_minute_ago > record_time:
@@ -166,7 +134,8 @@ def _iter_raw_records(f):
 
 
 def process_biometrics():
-
+    """Continuously processes biometric records from the queue."""
+    # Initialize processor with first available record
     piezo_record = piezo_record_queue.get()
     stream_processor = StreamProcessor(piezo_record, debug=False)
     ix = 0
@@ -179,7 +148,7 @@ def process_biometrics():
             piezo_record = piezo_record_queue.get(timeout=5)
 
             if piezo_record is None:
-                # Stop if None is received
+                # Stop if None is received (system shutdown)
                 break
 
             stream_processor.process_piezo_record(piezo_record)
@@ -210,7 +179,7 @@ def watch_directory(directory="/persistent"):
         while True:
             time.sleep(1)
             handler.track_latest_file()  # Check if a newer file exists
-            handler.follow_latest_file()  # Read new CBOR entries line-by-line
+            handler.follow_latest_file()  # Read new CBOR entries with resync support
     except KeyboardInterrupt:
         observer.stop()
         piezo_record_queue.put(None)  # Send stop signal to processing thread

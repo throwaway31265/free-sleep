@@ -55,6 +55,9 @@ def load_piezo_df(data: Data, side: Side, lower_percentile=2, upper_percentile=9
 
 def detect_presence_piezo(df: pd.DataFrame, side: Side, rolling_seconds=10, threshold_percent=0.75, range_rolling_seconds=10, range_threshold=10_000,
                           clean=True):
+    if df.empty:
+        return df
+
     """Detects presence on a bed using piezo sensor data.
 
      The function determines when a person is present based on the sensor's range values.

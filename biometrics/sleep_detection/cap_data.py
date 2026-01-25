@@ -111,6 +111,9 @@ def detect_presence_cap(
         threshold_percent=0.75,
         clean=True
 ) -> pd.DataFrame:
+    if merged_df.empty:
+        return merged_df
+
     logger.debug('Detecting cap presence...')
     # Vectorized sensor deltas (removes the need for _sensor_delta row-wise function):
     # Combined sensor check
