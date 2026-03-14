@@ -19,6 +19,7 @@ This is set up to run as a systemctl service, but you can manually run it with:
 
 import sys
 import platform
+import struct
 import cbor2
 from datetime import datetime, timedelta
 
@@ -45,6 +46,75 @@ from service_health import update_health
 
 # Global queue for processing decoded biometric data
 piezo_record_queue = queue.Queue()
+
+
+def _read_raw_record(f):
+    """
+    Manually parse one outer {seq, data} CBOR record using f.read().
+
+    The cbor2 C extension (_cbor2) reads files in internal 4096-byte chunks,
+    so cbor2.load(f) advances f.tell() by 4096 bytes regardless of the actual
+    record size. Since RAW file records are typically 17-5000 bytes, this causes
+    nearly every record to be skipped silently.
+
+    This function parses the outer {seq: uint, data: bytes} wrapper byte-by-byte
+    using f.read(), keeping f.tell() accurate after each record.
+
+    Returns the raw inner data bytes, or None for empty placeholder records
+    (which the Pod firmware writes as sequence number markers with data=b'').
+    Raises EOFError at end of file, ValueError on malformed data.
+    """
+    b = f.read(1)
+    if not b:
+        raise EOFError
+    if b[0] != 0xa2:
+        raise ValueError('Expected outer map 0xa2, got 0x%02x' % b[0])
+    if f.read(4) != b'\x63\x73\x65\x71':
+        raise ValueError('Expected seq key')
+    hdr = f.read(1)
+    if not hdr:
+        raise EOFError
+    if hdr[0] == 0x1a:
+        seq_bytes = f.read(4)
+        if len(seq_bytes) < 4:
+            raise EOFError
+    elif hdr[0] == 0x1b:
+        seq_bytes = f.read(8)
+        if len(seq_bytes) < 8:
+            raise EOFError
+    else:
+        raise ValueError('Unexpected seq encoding: 0x%02x' % hdr[0])
+    if f.read(5) != b'\x64\x64\x61\x74\x61':
+        raise ValueError('Expected data key')
+    bs = f.read(1)
+    if not bs:
+        raise EOFError
+    ai = bs[0] & 0x1f
+    if ai <= 23:
+        length = ai
+    elif ai == 24:
+        lb = f.read(1)
+        if not lb:
+            raise EOFError
+        length = lb[0]
+    elif ai == 25:
+        lb = f.read(2)
+        if len(lb) < 2:
+            raise EOFError
+        length = struct.unpack('>H', lb)[0]
+    elif ai == 26:
+        lb = f.read(4)
+        if len(lb) < 4:
+            raise EOFError
+        length = struct.unpack('>I', lb)[0]
+    else:
+        raise ValueError('Unsupported length encoding: %d' % ai)
+    data = f.read(length)
+    if len(data) < length:
+        raise EOFError
+    if not data:
+        return None  # empty placeholder record, caller should skip
+    return data
 
 
 def _safe_getmtime(path: str) -> float:
@@ -110,19 +180,28 @@ class LatestRawFileHandler(FileSystemEventHandler):
 
         while True:
             try:
-                # Decode CBOR object from a **single line**
-                row = cbor2.load(self.latest_file_obj)  # Load the next CBOR object
+                # Use manual reader instead of cbor2.load() to avoid the cbor2
+                # C extension reading in 4096-byte chunks, which causes it to
+                # skip most records regardless of their actual size.
+                data_bytes = _read_raw_record(self.latest_file_obj)
+                if data_bytes is None:
+                    self.last_pos = self.latest_file_obj.tell()
+                    continue  # empty placeholder record
+
+                decoded_data = cbor2.loads(data_bytes)
                 one_minute_ago = datetime.now() - timedelta(minutes=2)
 
-                if 'data' in row:  # Check if 'data' key exists
-                    decoded_data = cbor2.loads(row['data'])
-                    if decoded_data['type'] != 'piezo-dual':
-                        continue
-                    record_time = datetime.fromtimestamp(decoded_data['ts'])
-                    if one_minute_ago > record_time:
-                        continue
-                    load_piezo_row(decoded_data, 'right')
-                    piezo_record_queue.put(decoded_data)
+                if not isinstance(decoded_data, dict) or decoded_data.get('type') != 'piezo-dual':
+                    self.last_pos = self.latest_file_obj.tell()
+                    continue
+
+                record_time = datetime.fromtimestamp(decoded_data['ts'])
+                if one_minute_ago > record_time:
+                    self.last_pos = self.latest_file_obj.tell()
+                    continue
+
+                load_piezo_row(decoded_data, 'right')
+                piezo_record_queue.put(decoded_data)
 
                 # Update last read position
                 self.last_pos = self.latest_file_obj.tell()
@@ -131,7 +210,9 @@ class LatestRawFileHandler(FileSystemEventHandler):
                 # No more CBOR objects to read
                 break
             except Exception as e:
-                logger.error(f"Error decoding CBOR: {e}")
+                logger.error(f"Error reading record: {e}")
+                # Seek back to last known good position to avoid cascading errors
+                self.latest_file_obj.seek(self.last_pos)
                 break
 
 
