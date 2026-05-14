@@ -42,16 +42,27 @@ def _read_raw_record(f):
     hdr = f.read(1)
     if not hdr:
         raise EOFError
-    if hdr[0] == 0x1a:
-        seq_bytes = f.read(4)
-        if len(seq_bytes) < 4:
+    val = hdr[0]
+    if val <= 0x17:
+        pass  # tiny uint, value is in the AI bits; no extra bytes
+    elif val == 0x18:
+        b = f.read(1)
+        if not b:
             raise EOFError
-    elif hdr[0] == 0x1b:
-        seq_bytes = f.read(8)
-        if len(seq_bytes) < 8:
+    elif val == 0x19:
+        b = f.read(2)
+        if len(b) < 2:
+            raise EOFError
+    elif val == 0x1a:
+        b = f.read(4)
+        if len(b) < 4:
+            raise EOFError
+    elif val == 0x1b:
+        b = f.read(8)
+        if len(b) < 8:
             raise EOFError
     else:
-        raise ValueError('Unexpected seq encoding: 0x%02x' % hdr[0])
+        raise ValueError('Unexpected seq encoding: 0x%02x' % val)
     if f.read(5) != b'\x64\x64\x61\x74\x61':
         raise ValueError('Expected data key')
     bs = f.read(1)
