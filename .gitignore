@@ -1,24 +1,24 @@
-.idea
-.vscode
-node_modules
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
 .DS_Store
+Thumbs.db
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-*.tsbuildinfo
-tmp
-
+# Logs
 *.log
-
-server/lowdb/*
-server/~/free-sleep-database
-!.gitkeep
-app/dist/
-
-/server/free-sleep-data/*
-
-!.gitkeep
