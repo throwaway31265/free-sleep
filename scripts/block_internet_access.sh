@@ -2,6 +2,38 @@
 
 echo "Blocking internet access..."
 
+allow_dns_to_configured_resolvers() {
+  if [ ! -f /etc/resolv.conf ]; then
+    echo "No /etc/resolv.conf found; skipping DNS firewall allowances."
+    return
+  fi
+
+  echo "Allowing DNS traffic to configured resolvers..."
+  while read -r keyword resolver _; do
+    if [ "$keyword" != "nameserver" ] || [ -z "$resolver" ]; then
+      continue
+    fi
+
+    case "$resolver" in
+      *:*)
+        ip6tables -A OUTPUT -d "$resolver" -p udp --dport 53 -j ACCEPT
+        ip6tables -A INPUT -s "$resolver" -p udp --sport 53 -j ACCEPT
+        ip6tables -A OUTPUT -d "$resolver" -p tcp --dport 53 -j ACCEPT
+        ip6tables -A INPUT -s "$resolver" -p tcp --sport 53 -j ACCEPT
+        ;;
+      *.*)
+        iptables -A OUTPUT -d "$resolver" -p udp --dport 53 -j ACCEPT
+        iptables -A INPUT -s "$resolver" -p udp --sport 53 -j ACCEPT
+        iptables -A OUTPUT -d "$resolver" -p tcp --dport 53 -j ACCEPT
+        iptables -A INPUT -s "$resolver" -p tcp --sport 53 -j ACCEPT
+        ;;
+      *)
+        echo "Skipping unrecognized resolver address: $resolver"
+        ;;
+    esac
+  done < /etc/resolv.conf
+}
+
 # IPv4 Rules
 echo "Configuring IPv4 rules..."
 
@@ -47,6 +79,8 @@ iptables -A OUTPUT -d 172.16.0.0/12 -j ACCEPT
 # Allow LAN traffic Class C (192.168.0.0/16)
 iptables -A INPUT -s 192.168.0.0/16 -j ACCEPT
 iptables -A OUTPUT -d 192.168.0.0/16 -j ACCEPT
+
+allow_dns_to_configured_resolvers
 
 # Allow NTP traffic - this allows us to synchronize the system time
 iptables -I OUTPUT -p udp --dport 123 -j ACCEPT
@@ -95,4 +129,3 @@ ip6tables -A OUTPUT -j DROP
 ip6tables-save > /etc/iptables/ip6tables.rules
 
 echo "Blocked WAN internet access successfully!"
-
