@@ -105,7 +105,10 @@ def _decode_cbor_file(file_path: str, data: dict, start_time, end_time, side: Si
                 ).strftime("%Y-%m-%d %H:%M:%S")
                 data[decoded_data['type']].append(decoded_data)
 
-            except EOFError:
+            # The active RAW segment can end in a partially written CBOR item.
+            # cbor2 reports that as CBORDecodeEOF (not Python's EOFError); both
+            # mean there is no more complete data available in this snapshot.
+            except (EOFError, cbor2.CBORDecodeEOF):
                 break
             except Exception as error:
                 logger.error(error)
