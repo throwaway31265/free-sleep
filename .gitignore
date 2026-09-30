@@ -1,24 +1,30 @@
-# Byte-compiled / optimized / DLL files
+.idea
+.vscode
+node_modules
+.DS_Store
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+*.tsbuildinfo
+tmp
+
+*.log
+
+server/lowdb/*
+server/~/free-sleep-database
+!.gitkeep
+app/dist/
+
+/server/free-sleep-data/*
+
+!.gitkeep
+
+# Local Python test artifacts
+.venv/
 __pycache__/
 *.py[cod]
-*$py.class
-
-# C extensions
-*.so
-
-# Virtual environments
-venv/
-ENV/
-env/
-.venv/
-
-# IDEs
-.vscode/
-.idea/
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
+.pytest_cache/

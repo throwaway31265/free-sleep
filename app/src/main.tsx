@@ -7,7 +7,8 @@ import { createRoot } from 'react-dom/client';
 import { CssBaseline } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
+import { theme } from './theme';
 
 import ControlTempPage from './pages/ControlTempPage/ControlTempPage';
 import SettingsPage from './pages/SettingsPage/SettingsPage';
@@ -24,24 +25,6 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import LogsPage from './pages/DataPage/LogsPage/LogsPage.tsx';
 import StatusPage from './pages/StatusPage/StatusPage.tsx';
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    background: {
-      default: '#010101'
-    },
-    grey: {
-      100: '#e8eaed',
-      300: '#a6adbe',
-      400: '#88878c',
-      500: '#606060',
-      700: '#272727',
-      800: '#262626',
-      900: '#242424',
-    }
-  },
-});
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -57,7 +40,7 @@ const App = () => {
   return (
 
     <QueryClientProvider client={ queryClient }>
-      <ThemeProvider theme={ darkTheme }>
+      <ThemeProvider theme={ theme }>
         <LocalizationProvider dateAdapter={ AdapterMoment }>
 
           <AppStoreProvider>

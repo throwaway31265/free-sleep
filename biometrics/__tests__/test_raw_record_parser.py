@@ -160,7 +160,7 @@ class TestMalformedInput:
         """Data length says 10 bytes but only 5 are present."""
         head = b'\xa2\x63seq\x18\x01\x64data'
         # uint8 length = 10, only 5 bytes follow
-        raw = head + b'\x18\x0a' + b'\x00' * 5
+        raw = head + b'\x58\x0a' + b'\x00' * 5
         handle = BytesIO(raw)
         with pytest.raises(EOFError):
             _read_raw_record(handle)
@@ -241,3 +241,53 @@ class TestExistingHelpers:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+@pytest.mark.parametrize('seq', [0, 23, 24, 255, 256, 65535, 65536, 2**32])
+def test_all_sequence_integer_widths(seq):
+    raw = outer_record(seq, b'payload')
+    handle = BytesIO(raw)
+    assert _read_raw_record(handle) == b'payload'
+    assert handle.tell() == len(raw)
+
+
+@pytest.mark.parametrize('value', ['text', 0, [], {}])
+def test_data_must_be_a_byte_string(value):
+    with pytest.raises(ValueError, match='byte string'):
+        _read_raw_record(BytesIO(cbor2.dumps({'seq': 1, 'data': value})))
+
+
+def test_stream_uses_shared_parser_and_retries_partial_record(monkeypatch):
+    import importlib.util
+    import types
+    from pathlib import Path
+    from datetime import datetime
+
+    processor = types.ModuleType('stream_processor')
+    processor.StreamProcessor = object
+    health = types.ModuleType('service_health')
+    health.update_health = lambda *args: None
+    monkeypatch.setitem(sys.modules, 'stream_processor', processor)
+    monkeypatch.setitem(sys.modules, 'service_health', health)
+    path = Path(__file__).resolve().parents[1] / 'stream' / 'stream.py'
+    spec = importlib.util.spec_from_file_location('raw_stream_fixture', path)
+    stream = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(stream)
+    assert stream._read_raw_record is _read_raw_record
+
+    now = datetime.now().timestamp()
+    payload = cbor2.dumps({'type': 'piezo-dual', 'ts': now, 'right1': b'\0' * 4})
+    skipped = outer_record(0, b'') + outer_record(1, cbor2.dumps({'type': 'log'}))
+    first = outer_record(2, payload)
+    second = outer_record(3, payload)
+    handle = BytesIO(skipped + first + second[:-2])
+    handler = stream.LatestRawFileHandler.__new__(stream.LatestRawFileHandler)
+    handler.latest_file_obj = handle
+    handler.last_pos = 0
+    handler.follow_latest_file()
+    assert handler.last_pos == len(skipped + first)
+    assert stream.piezo_record_queue.qsize() == 1
+    handle.seek(0, 2)
+    handle.write(second[-2:])
+    handler.follow_latest_file()
+    assert handler.last_pos == len(skipped + first + second)
+    assert stream.piezo_record_queue.qsize() == 2

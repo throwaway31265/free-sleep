@@ -37,7 +37,13 @@ export default function VersionStatus() {
             color="success"
             variant="filled"
             size="small"
-            sx={ { width: '100px' } }
+            sx={ {
+              minWidth: '112px',
+              width: 'fit-content',
+              '.MuiChip-label': {
+                overflow: 'visible',
+              },
+            } }
           />
         )
       }

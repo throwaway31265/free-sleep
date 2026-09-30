@@ -7,6 +7,7 @@
   "scripts": {
     "start": "dotenv -e .env.pod -- node dist/server.js",
     "build": "tsc && npm run sentry:sourcemaps",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org free-sleep --project server ./dist && sentry-cli sourcemaps upload --org free-sleep --project server ./dist",
     "build:pr": "tsc",
     "dev": "MODE=dev dotenv -e .env.pod -- nodemon --watch src --ext ts --exec \"node --loader ts-node/esm\" src/server.ts",
     "dev:local": "dotenv -e .env.local -- nodemon --watch src --ext ts --exec \"node --loader ts-node/esm\" src/server.ts",

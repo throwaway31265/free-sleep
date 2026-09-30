@@ -68,6 +68,8 @@ def _read_raw_record(f):
     bs = f.read(1)
     if not bs:
         raise EOFError
+    if bs[0] >> 5 != 2:
+        raise ValueError("Expected a CBOR byte string for data")
     ai = bs[0] & 0x1f
     if ai <= 23:
         length = ai

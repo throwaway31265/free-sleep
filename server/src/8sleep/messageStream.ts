@@ -2,6 +2,13 @@ import { once } from 'events';
 import binarySplit from 'binary-split';
 import { Transform } from 'stream';
 
+export class MessageReadTimeoutError extends Error {
+  public constructor(timeoutMs: number) {
+    super(`Timed out waiting for Franken response after ${timeoutMs}ms`);
+    this.name = 'MessageReadTimeoutError';
+  }
+}
+
 export class MessageStream {
   private readonly splitter: Transform;
   private readonly queue: Buffer[] = [];
@@ -27,7 +34,26 @@ export class MessageStream {
     readable.on('error', (error) => this.splitter.destroy(error));
   }
 
-  public async readMessage(): Promise<Buffer> {
+  private async waitForData(timeoutMs?: number) {
+    if (!timeoutMs) {
+      await once(this.splitter, 'data');
+      return;
+    }
+
+    let timeout: NodeJS.Timeout | undefined;
+    try {
+      await Promise.race([
+        once(this.splitter, 'data'),
+        new Promise<never>((_resolve, reject) => {
+          timeout = setTimeout(() => reject(new MessageReadTimeoutError(timeoutMs)), timeoutMs);
+        }),
+      ]);
+    } finally {
+      if (timeout) clearTimeout(timeout);
+    }
+  }
+
+  public async readMessage(timeoutMs?: number): Promise<Buffer> {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       if (this.queue.length > 0) {
@@ -44,7 +70,7 @@ export class MessageStream {
         throw new Error('stream ended');
       }
 
-      await once(this.splitter, 'data');
+      await this.waitForData(timeoutMs);
     }
   }
 }

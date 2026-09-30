@@ -1,7 +1,13 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="e0e3226d-75bc-57dc-a2ce-b489355871f6")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="0c1e81fa-3b2b-5897-bd67-8ac21ca60c64")}catch(e){}}();
 import { once } from 'events';
 import binarySplit from 'binary-split';
+export class MessageReadTimeoutError extends Error {
+    constructor(timeoutMs) {
+        super(`Timed out waiting for Franken response after ${timeoutMs}ms`);
+        this.name = 'MessageReadTimeoutError';
+    }
+}
 export class MessageStream {
     splitter;
     queue = [];
@@ -21,7 +27,26 @@ export class MessageStream {
         readable.pipe(this.splitter);
         readable.on('error', (error) => this.splitter.destroy(error));
     }
-    async readMessage() {
+    async waitForData(timeoutMs) {
+        if (!timeoutMs) {
+            await once(this.splitter, 'data');
+            return;
+        }
+        let timeout;
+        try {
+            await Promise.race([
+                once(this.splitter, 'data'),
+                new Promise((_resolve, reject) => {
+                    timeout = setTimeout(() => reject(new MessageReadTimeoutError(timeoutMs)), timeoutMs);
+                }),
+            ]);
+        }
+        finally {
+            if (timeout)
+                clearTimeout(timeout);
+        }
+    }
+    async readMessage(timeoutMs) {
         // eslint-disable-next-line no-constant-condition
         while (true) {
             if (this.queue.length > 0) {
@@ -35,9 +60,9 @@ export class MessageStream {
             if (this.ended) {
                 throw new Error('stream ended');
             }
-            await once(this.splitter, 'data');
+            await this.waitForData(timeoutMs);
         }
     }
 }
 //# sourceMappingURL=messageStream.js.map
-//# debugId=e0e3226d-75bc-57dc-a2ce-b489355871f6
+//# debugId=0c1e81fa-3b2b-5897-bd67-8ac21ca60c64

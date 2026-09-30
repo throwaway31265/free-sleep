@@ -358,10 +358,11 @@ def smooth_signal(data, sample_rate, window_length=None, polyorder=3):
 
     '''
 
-    if window_length == None:
+    if window_length is None:
         window_length = sample_rate // 10
 
-    if window_length % 2 == 0 or window_length == 0: window_length += 1
+    if window_length % 2 == 0:
+        window_length += 1
 
     smoothed = savgol_filter(data, window_length=window_length,
                              polyorder=polyorder)

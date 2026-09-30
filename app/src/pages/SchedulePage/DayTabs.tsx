@@ -3,6 +3,8 @@ import { useScheduleStore } from './scheduleStore.tsx';
 import { useAppStore } from '@state/appStore.tsx';
 import { LOWERCASE_DAYS } from './days.ts';
 
+const formatDayLabel = (day: string) => `${day[0].toUpperCase()}${day.slice(1)}`;
+
 export default function DayTabs() {
   const { selectDay, selectedDayIndex } = useScheduleStore();
   const { isUpdating } = useAppStore();
@@ -35,10 +37,10 @@ export default function DayTabs() {
               >
                 { /* Mobile: 3 letters | Larger screens: full name */ }
                 <Box sx={ { display: { xs: 'block', sm: 'none' } } }>
-                  { day.substring(0, 3).toUpperCase() }
+                  { formatDayLabel(day.substring(0, 3)) }
                 </Box>
                 <Box sx={ { display: { xs: 'none', sm: 'block' } } }>
-                  { day.toUpperCase() }
+                  { formatDayLabel(day) }
                 </Box>
               </Box>
             }
