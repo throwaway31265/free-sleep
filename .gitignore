@@ -22,3 +22,9 @@ app/dist/
 /server/free-sleep-data/*
 
 !.gitkeep
+
+# Local Python test artifacts
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/

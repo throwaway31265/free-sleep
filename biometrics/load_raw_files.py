@@ -1,3 +1,4 @@
+import struct
 import numpy as np
 import traceback
 from datetime import datetime, timedelta, timezone
@@ -13,6 +14,88 @@ from data_types import *
 from get_logger import get_logger
 
 logger = get_logger()
+
+
+def _read_raw_record(f):
+    """
+    Manually parse one outer {seq, data} CBOR record using f.read().
+
+    The cbor2 C extension (_cbor2) reads files in internal 4096-byte chunks,
+    so cbor2.load(f) advances f.tell() by 4096 bytes regardless of the actual
+    record size. Since RAW file records are typically 17-5000 bytes, this causes
+    nearly every record to be skipped silently.
+
+    This function parses the outer {seq: uint, data: bytes} wrapper byte-by-byte
+    using f.read(), keeping f.tell() accurate after each record.
+
+    Returns the raw inner data bytes, or None for empty placeholder records
+    (which the Pod firmware writes as sequence number markers with data=b'').
+    Raises EOFError at end of file, ValueError on malformed data.
+    """
+    b = f.read(1)
+    if not b:
+        raise EOFError
+    if b[0] != 0xa2:
+        raise ValueError('Expected outer map 0xa2, got 0x%02x' % b[0])
+    if f.read(4) != b'\x63\x73\x65\x71':
+        raise ValueError('Expected seq key')
+    hdr = f.read(1)
+    if not hdr:
+        raise EOFError
+    val = hdr[0]
+    if val <= 0x17:
+        pass  # tiny uint, value is in the AI bits; no extra bytes
+    elif val == 0x18:
+        b = f.read(1)
+        if not b:
+            raise EOFError
+    elif val == 0x19:
+        b = f.read(2)
+        if len(b) < 2:
+            raise EOFError
+    elif val == 0x1a:
+        b = f.read(4)
+        if len(b) < 4:
+            raise EOFError
+    elif val == 0x1b:
+        b = f.read(8)
+        if len(b) < 8:
+            raise EOFError
+    else:
+        raise ValueError('Unexpected seq encoding: 0x%02x' % val)
+    if f.read(5) != b'\x64\x64\x61\x74\x61':
+        raise ValueError('Expected data key')
+    bs = f.read(1)
+    if not bs:
+        raise EOFError
+    if bs[0] >> 5 != 2:
+        raise ValueError("Expected a CBOR byte string for data")
+    ai = bs[0] & 0x1f
+    if ai <= 23:
+        length = ai
+    elif ai == 24:
+        lb = f.read(1)
+        if not lb:
+            raise EOFError
+        length = lb[0]
+    elif ai == 25:
+        lb = f.read(2)
+        if len(lb) < 2:
+            raise EOFError
+        length = struct.unpack('>H', lb)[0]
+    elif ai == 26:
+        lb = f.read(4)
+        if len(lb) < 4:
+            raise EOFError
+        length = struct.unpack('>I', lb)[0]
+    else:
+        raise ValueError('Unsupported length encoding: %d' % ai)
+    data = f.read(length)
+    if len(data) < length:
+        raise EOFError
+    if not data:
+        return None  # empty placeholder record, caller should skip
+    return data
 
 
 def get_current_files(folder_path: str):
@@ -75,9 +158,13 @@ def _decode_cbor_file(file_path: str, data: dict, start_time, end_time, side: Si
         while True:
             try:
 
-                # Decode the next CBOR object
-                row = cbor2.load(raw_data)
-                decoded_data = cbor2.loads(row['data'])
+                # Use manual reader instead of cbor2.load() to avoid the cbor2
+                # C extension reading in 4096-byte chunks, which causes it to
+                # skip most records regardless of their actual size.
+                data_bytes = _read_raw_record(raw_data)
+                if data_bytes is None:
+                    continue  # empty placeholder record
+                decoded_data = cbor2.loads(data_bytes)
                 if not decoded_data['type'] in load_raw_types:
                     continue
                 _delete_other_side(decoded_data, side, sensor_count)

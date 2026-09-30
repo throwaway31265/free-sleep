@@ -35,12 +35,13 @@ import threading
 
 from get_logger import get_logger
 # Give time for the express.js server to boot
-print('Sleeping for 30 seconds before starting stream service...')
-time.sleep(30)
+if __name__ == '__main__':
+    print('Sleeping for 30 seconds before starting stream service...')
+    time.sleep(30)
 logger = get_logger('free-sleep-stream')
 
 from stream_processor import StreamProcessor
-from load_raw_files import load_piezo_row
+from load_raw_files import load_piezo_row, _read_raw_record
 from service_health import update_health
 
 # Global queue for processing decoded biometric data
@@ -110,22 +111,28 @@ class LatestRawFileHandler(FileSystemEventHandler):
 
         while True:
             try:
-                # Decode CBOR object from a **single line**
-                row = cbor2.load(self.latest_file_obj)  # Load the next CBOR object
+                # Use manual reader instead of cbor2.load() to avoid the cbor2
+                # C extension reading in 4096-byte chunks, which causes it to
+                # skip most records regardless of their actual size.
+                data_bytes = _read_raw_record(self.latest_file_obj)
+                if data_bytes is None:
+                    self.last_pos = self.latest_file_obj.tell()
+                    continue  # empty placeholder record
+
+                decoded_data = cbor2.loads(data_bytes)
                 one_minute_ago = datetime.now() - timedelta(minutes=2)
 
-                if 'data' in row:  # Check if 'data' key exists
-                    # Skip records with empty data (malformed records)
-                    if not row.get('data'):
-                        continue
-                    decoded_data = cbor2.loads(row['data'])
-                    if decoded_data['type'] != 'piezo-dual':
-                        continue
-                    record_time = datetime.fromtimestamp(decoded_data['ts'])
-                    if one_minute_ago > record_time:
-                        continue
-                    load_piezo_row(decoded_data, 'right')
-                    piezo_record_queue.put(decoded_data)
+                if not isinstance(decoded_data, dict) or decoded_data.get('type') != 'piezo-dual':
+                    self.last_pos = self.latest_file_obj.tell()
+                    continue
+
+                record_time = datetime.fromtimestamp(decoded_data['ts'])
+                if one_minute_ago > record_time:
+                    self.last_pos = self.latest_file_obj.tell()
+                    continue
+
+                load_piezo_row(decoded_data, 'right')
+                piezo_record_queue.put(decoded_data)
 
                 # Update last read position
                 self.last_pos = self.latest_file_obj.tell()
@@ -134,7 +141,9 @@ class LatestRawFileHandler(FileSystemEventHandler):
                 # No more CBOR objects to read
                 break
             except Exception as e:
-                logger.error(f"Error decoding CBOR: {e}")
+                logger.error(f"Error reading record: {e}")
+                # Seek back to last known good position to avoid cascading errors
+                self.latest_file_obj.seek(self.last_pos)
                 break
 
 
@@ -195,4 +204,5 @@ def watch_directory(directory="/persistent"):
     observer.join()
 
 # Start watching and processing the latest .RAW file
-watch_directory("/persistent")
+if __name__ == '__main__':
+    watch_directory("/persistent")
