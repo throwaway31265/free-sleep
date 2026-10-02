@@ -2,6 +2,10 @@ import numpy as np
 import traceback
 from datetime import datetime, timedelta, timezone
 import cbor2
+import asyncio
+import socket
+import nats
+from nats.js.api import ConsumerConfig, DeliverPolicy
 from pathlib import Path
 import gc
 import sys
@@ -13,6 +17,95 @@ from data_types import *
 from get_logger import get_logger
 
 logger = get_logger()
+
+
+# Mapping old payload key strings to the new NATS subjects
+# A list of data streams can be found with 'nats stream subjects raw'
+# raw.log, raw.frz.health, raw.sens.health, raw.frz.temp, raw.sens.bedtemp,
+# raw.sens.piezo, raw.sens.piezo, raw.frz.therm, raw.sens.capsense
+SUBJECT_MAP = {
+    'bedTemp': 'raw.sens.bedtemp',
+    'capSense': 'raw.sens.capsense',
+    'frzTemp': 'raw.frz.temp',
+    'log': 'raw.log',
+    'piezo-dual': 'raw.sens.piezo'
+}
+
+
+def is_nats_running(host="127.0.0.1", port=4222, timeout=2):
+    """Checks if NATS server is active on localhost."""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except (ConnectionRefusedError, TimeoutError, OSError):
+        return False
+
+
+async def _fetch_jetstream_historical_data(start_time: datetime, end_time: datetime, raw_data_types: list, side: Side, sensor_count: int) -> dict:
+    """Connects to JetStream and fetches historical messages inside the time window."""
+    nc = None
+    # Initialize dictionary keys exactly matching raw_data_types (e.g. 'piezo-dual', 'capSense' for analyze sleep)
+    extracted_data = {field: [] for field in raw_data_types}
+        
+    try:
+        # Connect to the NATS JetStream Server to request data logs
+        nc = await nats.connect("nats://127.0.0.1:4222")
+        js = nc.jetstream()
+
+        for field in raw_data_types:
+            subject = SUBJECT_MAP.get(field)
+            if not subject:
+                continue
+            
+            try:
+                # Request logs for the data type using the start time provided
+                sub = await js.subscribe(
+                    subject, 
+                    stream="raw", 
+                    config=ConsumerConfig(
+                        deliver_policy=DeliverPolicy.BY_START_TIME,
+                        opt_start_time=start_time
+                    )
+                )
+
+                while True:
+                    try:
+                        msg = await sub.next_msg(timeout=0.5)
+                        decoded_record = cbor2.loads(msg.data)
+                        if 'ts' in decoded_record:
+                            # Stop grabbing records once we hit the end_time
+                            raw_ts = datetime.fromtimestamp(decoded_record['ts'], timezone.utc)
+                            if raw_ts >= end_time:
+                                break 
+                        # This only uses 1 sensor count during analyze sleep, which avoids an issue with dropping dumplicates in sleep_detector.
+                        # Numpy should probably drop duplicate ndarrays instead of pandas failing on it.
+                        # Ideally we should also filter out the other side instead of adding it in the first place.
+                        _delete_other_side(decoded_record, side, sensor_count)
+                        if field == 'piezo-dual':
+                            # Load only the side we're checking and process it
+                            load_piezo_row(decoded_record, side)
+
+                        # Adjust timestamp in the same way as the legacy pipeline
+                        decoded_record['ts'] = datetime.fromtimestamp(
+                                            decoded_record['ts'],
+                                            timezone.utc
+                                        ).strftime("%Y-%m-%d %H:%M:%S")
+                        extracted_data[field].append(decoded_record)
+                        await msg.ack()
+
+                    except asyncio.TimeoutError:
+                        break
+            except Exception as sub_err:
+                logger.error(f"Failed to fetch JetStream data for {field}: {sub_err}")
+                
+    except Exception as err:
+        logger.error(f"NATS Connection error inside load_raw_files: {err}")
+    finally:
+        if nc is not None and nc.is_connected:
+            await nc.close()
+            
+    return extracted_data
+
 
 
 def get_current_files(folder_path: str):
@@ -141,22 +234,26 @@ def load_raw_files(folder_path: str, start_time: datetime, end_time: datetime, s
         if raw_data_types is None:
             raw_data_types = ['bedTemp', 'capSense', 'frzTemp', 'log', 'piezo-dual']
 
-        for field in raw_data_types:
-            data[field] = []
-        logger.info(f'Loading RAW files from {folder_path} | {start_time.isoformat()} -> {end_time.isoformat()}')
+        # If NATS is running we grab data from JetStream records stored in /persistent/jetstream
+        if is_nats_running():
+            logger.info("NATS detected! Fetching data from JetStream store...")
+            data = asyncio.run(_fetch_jetstream_historical_data(start_time, end_time, raw_data_types, side, sensor_count))
+            logger.info("Data fetched from JetStream store successfully.")
+        else:
+            for field in raw_data_types:
+                data[field] = []
+            logger.info(f'Loading RAW files from {folder_path} | {start_time.isoformat()} -> {end_time.isoformat()}')
+            file_paths = get_current_files(folder_path)
 
-        file_paths = get_current_files(folder_path)
+            if len(file_paths) == 0:
+                logger.error('No file paths detected!')
+                raise FileNotFoundError(f'No files found for: {folder_path}! Is internet blocked?')
 
-        if len(file_paths) == 0:
-            logger.error('No file paths detected!')
-            raise FileNotFoundError(f'No files found for: {folder_path}! Is internet blocked?')
-
-        for file_path in file_paths:
-            if os.path.isfile(file_path):
-                _decode_cbor_file(file_path, data, start_time, end_time, side, sensor_count)
-            else:
-                logger.warning(f'File path deleted before parsed! {file_path}')
-
+            for file_path in file_paths:
+                if os.path.isfile(file_path):
+                    _decode_cbor_file(file_path, data, start_time, end_time, side, sensor_count)
+                else:
+                    logger.warning(f'File path deleted before parsed! {file_path}')
         _rename_keys(data)
         data_found = False
         for key in data.keys():

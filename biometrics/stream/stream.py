@@ -21,6 +21,10 @@ import sys
 import platform
 import cbor2
 from datetime import datetime, timedelta
+import asyncio
+import socket
+import nats
+from nats.js.api import ConsumerConfig, DeliverPolicy
 
 if platform.system().lower() == 'linux':
     sys.path.append('/home/dac/free-sleep/biometrics/')
@@ -45,6 +49,62 @@ from service_health import update_health
 
 # Global queue for processing decoded biometric data
 piezo_record_queue = queue.Queue()
+
+
+# Check if NATS is handling data collection (with newer firmware)
+def is_nats_running(host="127.0.0.1", port=4222, timeout=2):
+    # Connects to the NATS JetStream server if it's running
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except (ConnectionRefusedError, TimeoutError, OSError):
+        return False
+
+
+# When NATS is running, we can listen directly for incoming data and send it to the legacy pipeline
+async def watch_jetstream_directly():
+    """Consumes CBOR metrics from JetStream and mirrors LatestRawFileHandler logic."""
+    logger.info('NATS detected! Listening for sensor data in real-time...')
+    update_health('stream', 'started', '')
+    # Track active NATS Connection
+    nc = None
+
+    try:
+        nc = await nats.connect("nats://127.0.0.1:4222")
+        js = nc.jetstream()
+
+        # Only listen to piezo records for processing
+        sub = await js.subscribe("raw.sens.piezo", stream="raw", config=ConsumerConfig(
+            deliver_policy=DeliverPolicy.NEW
+        ))
+
+        while True:
+            msg = await sub.next_msg(timeout=None)
+            
+            try:
+                decoded_data = cbor2.loads(msg.data) 
+                
+                if not isinstance(decoded_data, dict) or decoded_data.get('type') != 'piezo-dual':
+                    await msg.ack()
+                    continue
+                # Side is not used, but must be 'left' or 'right' to call
+                load_piezo_row(decoded_data, 'right')
+                piezo_record_queue.put(decoded_data)
+
+            except Exception as parse_err:
+                logger.error(f"Failed to process NATS/CBOR record payload: {parse_err}")
+
+            await msg.ack()
+
+    except asyncio.CancelledError:
+        logger.info("NATS task execution cancelled.")
+    except Exception as error:
+        logger.error(f"NATS Stream encountered an error: {error}")
+        update_health('stream', 'failed', repr(error))
+        raise error
+    finally:
+        if nc is not None and nc.is_connected:
+            await nc.close()
 
 
 def _safe_getmtime(path: str) -> float:
@@ -194,5 +254,22 @@ def watch_directory(directory="/persistent"):
 
     observer.join()
 
-# Start watching and processing the latest .RAW file
-watch_directory("/persistent")
+# Decide whether to listen to NATS stream, or start watching and processing the latest .RAW file
+if is_nats_running():
+    # Use the same legacy thread logic for processing biometrics
+    processing_thread = threading.Thread(target=process_biometrics, daemon=True)
+    processing_thread.start()
+    try:
+        asyncio.run(watch_jetstream_directly())
+    except KeyboardInterrupt:
+        logger.info("Stopping NATS stream processor...")
+    finally:
+        # Replicate legacy raw file cleanup behavior
+        piezo_record_queue.put(None)
+        processing_thread.join()
+
+else:
+    try:
+        watch_directory("/persistent/")
+    except KeyboardInterrupt:
+        logger.info("Stopping legacy stream processor...")
