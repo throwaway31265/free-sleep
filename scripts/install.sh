@@ -10,6 +10,21 @@ REPO_DIR="/home/dac/free-sleep"
 SERVER_DIR="$REPO_DIR/server"
 USERNAME="dac"
 
+# Stop both services before replacing code or touching the database. Restore them on failure too.
+services_to_restore=""
+restore_services() {
+  for service_name in $services_to_restore; do
+    systemctl start "$service_name" || true
+  done
+}
+trap restore_services EXIT
+for service_name in free-sleep-stream free-sleep; do
+  if systemctl is-active --quiet "$service_name"; then
+    services_to_restore="$service_name $services_to_restore"
+    systemctl stop "$service_name"
+  fi
+done
+
 # --------------------------------------------------------------------------------
 # Download the repository
 echo "Downloading the repository..."
@@ -147,33 +162,18 @@ echo ""
 # Run Prisma migrations
 
 
-# Stop the free-sleep-stream service if it was running
-# This is needed to close out the lock files for the SQLite file
-biometrics_enabled="false"
-if systemctl is-active --quiet free-sleep-stream && systemctl list-unit-files | grep -q "^free-sleep-stream.service"; then
-  biometrics_enabled="true"
-  echo "Stopping biometrics service..."
-  systemctl stop free-sleep-stream
-  sleep 5
-fi
-
 SRC="/persistent/free-sleep-data/free-sleep.db"
 DEST="/persistent/free-sleep-data/free-sleep-copy.db"
 
 if [ -f "$SRC" ]; then
-  cp "$SRC" "$DEST"
-  echo "Making a backup up database prior to migrations"
-  echo "Database copied to $DEST"
+  echo "Verifying and backing up the database prior to migrations..."
+  python3 "$REPO_DIR/scripts/sqlite_maintenance.py" backup "$SRC" "$DEST" --checkpoint
 else
   echo "Source database not found, skipping copying database."
 fi
 
 
 
-
-rm -f /persistent/free-sleep-data/free-sleep.db-shm \
-      /persistent/free-sleep-data/free-sleep.db-wal \
-      /persistent/free-sleep-data/free-sleep.db-journal
 
 migration_failed="false"
 
@@ -185,12 +185,6 @@ else
   echo -e "\033[33mWARNING: Prisma migrations failed! \033[0m"
 fi
 
-
-# Restart free-sleep-stream if it was running before
-if [ "$biometrics_enabled" = "true" ]; then
-  echo "Restarting free-sleep-stream service..."
-  systemctl restart free-sleep-stream
-fi
 
 echo ""
 
@@ -289,6 +283,21 @@ else
   echo "Passwordless permission for updates granted to '$USERNAME'."
 fi
 chmod 755 /home/dac/free-sleep/scripts/update_service.sh
+
+# Keep the update guard outside the downloaded checkout, including across older installers.
+MAINTENANCE_DIR="/persistent/free-sleep-maintenance"
+mkdir -p "$MAINTENANCE_DIR" /etc/systemd/system/free-sleep-update.service.d
+cp "$REPO_DIR/scripts/update_service.sh" "$MAINTENANCE_DIR/update_service.sh"
+cp "$REPO_DIR/scripts/sqlite_maintenance.py" "$MAINTENANCE_DIR/sqlite_maintenance.py"
+chown -R root:root "$MAINTENANCE_DIR"
+chmod 755 "$MAINTENANCE_DIR" "$MAINTENANCE_DIR/update_service.sh"
+chmod 644 "$MAINTENANCE_DIR/sqlite_maintenance.py"
+cat > /etc/systemd/system/free-sleep-update.service.d/sqlite-maintenance.conf <<EOF
+[Service]
+ExecStart=
+ExecStart=$MAINTENANCE_DIR/update_service.sh
+EOF
+systemctl daemon-reload
 
 
 # Biometrics enablement

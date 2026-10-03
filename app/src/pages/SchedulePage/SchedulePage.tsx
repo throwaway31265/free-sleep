@@ -22,6 +22,7 @@ import { useSettings } from '@api/settings';
 import { LOWERCASE_DAYS } from './days.ts';
 import TemperatureScheduleChart from './ScheduleChart.tsx';
 import ErrorBoundary from '@components/ErrorBoundary.tsx';
+import PageHeader from '@components/PageHeader.tsx';
 
 
 const getAdjustedDayOfWeek = (): DayOfWeek => {
@@ -100,11 +101,11 @@ export default function SchedulePage() {
     <PageContainer
       sx={ {
         width: '100%',
-        maxWidth: { xs: '100%', sm: '800px' },
         mx: 'auto',
-        mb: 15,
+        maxWidth: 800,
       } }
     >
+      <PageHeader title="Schedules"/>
       <SideControl/>
 
       <DayTabs/>

@@ -82,7 +82,7 @@ export default function UpdateFreeSleepButton() {
 
   return (
     <>
-      <Button variant="outlined" onClick={ handleClickOpen } size="small" sx={ { width: '150px' } }>
+      <Button variant="outlined" onClick={ handleClickOpen } size="small" sx={ { width: '100%' } }>
         Update free sleep
       </Button>
       <Dialog

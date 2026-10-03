@@ -13,7 +13,7 @@ export default function PowerScheduleSection({ displayCelsius }: { displayCelsiu
   const disabled = !selectedSchedule?.power.enabled || isUpdating;
   const onTemperatureValue = selectedSchedule?.power?.onTemperature || 82;
   return (
-    <Paper elevation={ 2 } sx={ { pt: 2, pl: 4, pr: 4, pb: 2, width: '100%' } }>
+    <Paper elevation={ 2 } sx={ { p: { xs: 2.5, sm: 3 }, width: '100%' } }>
       <Box sx={ { display: 'flex', alignItems: 'center', gap: 3, p: 0, width: '100%', mb: 3 } }>
         { /* Start time */ }
         <TextField
@@ -50,7 +50,7 @@ export default function PowerScheduleSection({ displayCelsius }: { displayCelsiu
       { /* Temperature slider */ }
       <Box sx={ { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, flex: 1, pr: 1 } }>
         { /* Temperature label */ }
-        <Typography sx={ { mb: 0, textAlign: 'center' } } variant="body2" color={ theme.palette.grey[200] }>
+        <Typography sx={ { mb: 0, textAlign: 'center' } } variant="body2" color="text.primary">
           { `Power on temperature ${formatTemperature(selectedSchedule?.power?.onTemperature || 82, displayCelsius)}` }
         </Typography>
         <Slider

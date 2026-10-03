@@ -2,12 +2,12 @@ import moment from 'moment-timezone';
 import { useServerStatus } from '@api/serverStatus.ts';
 import {
   CircularProgress,
-  Stack,
   Typography,
 } from '@mui/material';
 import Grid from '@mui/material/GridLegacy';
 
 import PageContainer from '../PageContainer.tsx';
+import PageHeader from '@components/PageHeader.tsx';
 import StatusCard from './StatusCard.tsx';
 import { ServerStatusKey, StatusInfo } from '@api/serverStatusSchema.ts';
 
@@ -21,25 +21,20 @@ export default function StatusPage() {
         width: '100%',
         maxWidth: { xs: '100%', sm: '800px' },
         mx: 'auto',
-        mb: 15,
       } }
     >
-      <Stack spacing={ 1 } alignItems="center">
-        <Typography variant="h5" fontWeight={ 800 }>
-          Server Status
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={ {
-            color: (t) => t.palette.text.secondary,
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            minHeight: 24,
-          } }
-        >
+      <PageHeader title="Server Status"/>
+      <Typography
+        variant="body2"
+        sx={ {
+          color: (t) => t.palette.text.secondary,
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+          minHeight: 24,
+        } }
+      >
           Updated at: { formatted }
-        </Typography>
-      </Stack>
+      </Typography>
       { isLoading && <CircularProgress /> }
 
       {

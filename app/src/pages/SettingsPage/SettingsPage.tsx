@@ -1,7 +1,8 @@
 import { DeepPartial } from 'ts-essentials';
-import { Typography, Box } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
-
+import { Box, Divider } from '@mui/material';
+import BedOutlinedIcon from '@mui/icons-material/BedOutlined';
+import WaterDropOutlinedIcon from '@mui/icons-material/WaterDropOutlined';
+import MemoryOutlinedIcon from '@mui/icons-material/MemoryOutlined';
 import SideSettings from './SideSettings.tsx';
 import PageContainer from '../PageContainer.tsx';
 import { Settings } from '@api/settingsSchema.ts';
@@ -12,12 +13,14 @@ import LicenseModal from './LicenseModal.tsx';
 import PrimeControl from './PrimeControl.tsx';
 import Donate from './Donate.tsx';
 import DiscordLink from './DiscordLink.tsx';
-import Divider from './Divider.tsx';
 import FeaturesSection from './FeaturesSection/FeaturesSection.tsx';
 import Section from './Section.tsx';
+import SettingsHint from './SettingsHint.tsx';
 import DeviceSettingsSection from './DeviceSettingsSection/DeviceSettingsSection.tsx';
+import DeviceInfo from './DeviceSettingsSection/DeviceInfo.tsx';
+import DailyReboot from './DeviceSettingsSection/DailyReboot.tsx';
 import ErrorBoundary from '@components/ErrorBoundary.tsx';
-
+import PageHeader from '@components/PageHeader.tsx';
 
 export default function SettingsPage() {
   const { data: settings, refetch } = useSettings();
@@ -35,49 +38,53 @@ export default function SettingsPage() {
   };
 
   return (
-    <PageContainer sx={ { mb: 15, mt: 2 } }>
-      <ErrorBoundary componentName='Device settings'>
-        <DeviceSettingsSection updateSettings={ updateSettings } />
+    <PageContainer sx={ { maxWidth: 760, gap: 2.5 } }>
+      <PageHeader title="Settings"/>
+      <ErrorBoundary componentName="Device settings">
+        <DeviceSettingsSection updateSettings={ updateSettings }/>
       </ErrorBoundary>
-      <ErrorBoundary componentName='Priming settings'>
-        <Section title="Priming">
-          <DailyPriming settings={ settings } updateSettings={ updateSettings }/>
-          <br/>
-          <PrimeControl/>
-
-          <Box display="flex" gap={ 1 } sx={ { mt: 2 } }>
-            <InfoIcon sx={ { color: 'text.secondary' } }/>
-            <Typography color='text.secondary'>
-            Regular priming helps prevent air bubbles, ensures even cooling and heating.
-            Schedule priming during a time that you're not on the bed.
-            </Typography>
+      <ErrorBoundary componentName="Side settings">
+        <Section title="Side settings" icon={ <BedOutlinedIcon/> }>
+          <Box sx={ { display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5 } }>
+            <SideSettings side="left" settings={ settings } updateSettings={ updateSettings }/>
+            <SideSettings side="right" settings={ settings } updateSettings={ updateSettings }/>
+          </Box>
+          <Box sx={ { mt: 2 } }>
+            <SettingsHint>
+              Away mode:
+              Disables schedules and temperature control for one side.
+              That side will mirror any temperature or schedule changes from the active side.
+              If both sides are in away mode, no schedules will apply.
+            </SettingsHint>
           </Box>
         </Section>
       </ErrorBoundary>
-
+      <ErrorBoundary componentName="Priming settings">
+        <Section title="Priming" icon={ <WaterDropOutlinedIcon/> }>
+          <Box sx={ { display: 'flex', flexDirection: 'column', gap: 2 } }>
+            <DailyPriming settings={ settings } updateSettings={ updateSettings }/>
+            <Divider/>
+            <Box sx={ { '& > .MuiButton-root': { width: '100%' } } }><PrimeControl/></Box>
+            <SettingsHint>
+              Regular priming helps prevent air bubbles, ensures even cooling and heating.
+              Schedule priming during a time that you're not on the bed.
+            </SettingsHint>
+          </Box>
+        </Section>
+      </ErrorBoundary>
       <FeaturesSection/>
-      <ErrorBoundary componentName='Side settings'>
-
-        <Section title="Side settings">
-          <SideSettings side="left" settings={ settings } updateSettings={ updateSettings }/>
-          <br/>
-          <SideSettings side="right" settings={ settings } updateSettings={ updateSettings }/>
-          <Box display="flex" gap={ 1 } sx={ { mt: 1 } }>
-
-            <InfoIcon sx={ { color: 'text.secondary' } }/>
-            <Typography color="text.secondary">
-            Away mode:
-            Disables schedules and temperature control for one side.
-            That side will mirror any temperature or schedule changes from the active side.
-            If both sides are in away mode, no schedules will apply.
-            </Typography>
+      <ErrorBoundary componentName="Device info">
+        <Section title="Device" icon={ <MemoryOutlinedIcon/> }>
+          <Box sx={ { display: 'flex', flexDirection: 'column', gap: 2.5 } }>
+            <DeviceInfo/>
+            <Divider/>
+            <DailyReboot settings={ settings } updateSettings={ updateSettings }/>
           </Box>
         </Section>
       </ErrorBoundary>
-      <ErrorBoundary componentName='Info section'>
+      <ErrorBoundary componentName="Info section">
         <DiscordLink/>
         <Donate/>
-        <Divider/>
         <LicenseModal/>
       </ErrorBoundary>
     </PageContainer>

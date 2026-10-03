@@ -39,11 +39,15 @@ export default function LedBrightnessSlider() {
   };
   return (
 
-    <Box sx={ { display: 'flex', flexDirection: 'column', gap: 1, width: '90%' } }>
-      <Typography sx={ { } }>
+    <Box sx={ { display: 'flex', flexDirection: 'column', gap: 1, width: '100%' } }>
+      <Box sx={ { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }>
+        <Typography variant="body2" fontWeight={ 500 }>
         LED Brightness
-      </Typography>
+        </Typography>
+        <Typography variant="caption" color="text.secondary">{ settingsCopy?.ledBrightness || 0 }%</Typography>
+      </Box>
       <Slider
+        aria-label="LED Brightness"
         value={ settingsCopy?.ledBrightness || 0 }
         onChangeCommitted={ handleSave }
         onChange={ (_, newValue) => {
@@ -59,7 +63,7 @@ export default function LedBrightnessSlider() {
           { value: 100, label: '100%' },
         ] }
         disabled={ isUpdating }
-        sx={ { width: '100%', ml: 2 } }
+        sx={ { width: 'calc(100% - 16px)', mx: 1, mb: 1, '& .MuiSlider-markLabel': { fontSize: 11 } } }
       />
     </Box>
   );

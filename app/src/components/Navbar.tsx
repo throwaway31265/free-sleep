@@ -1,152 +1,103 @@
-import React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import BottomNavigation from '@mui/material/BottomNavigation';
-import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-import Toolbar from '@mui/material/Toolbar';
-import Button from '@mui/material/Button';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Badge, Box, BottomNavigation, BottomNavigationAction, Button, LinearProgress, Typography } from '@mui/material';
+import { ReactElement } from 'react';
+import NightsStayOutlinedIcon from '@mui/icons-material/NightsStayOutlined';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppStore } from '@state/appStore.tsx';
-import { useTheme } from '@mui/material/styles';
-import { PAGES } from './pages';
-import freeSleepIcon from '../../public/free-sleep-icon.svg';
+import { useServerInfo } from '@api/serverInfo.ts';
+import { PAGES, getPageForPath } from './pages';
 
 export default function Navbar() {
-  const navigate = useNavigate();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { isUpdating } = useAppStore();
-  const theme = useTheme(); // Access the Material-UI theme
-  const [mobileNavValue, setMobileNavValue] = React.useState(
-    PAGES.findIndex((page) => page.route === pathname)
+  const { data: serverInfo, isError: versionError } = useServerInfo();
+  const updateAvailable = Boolean(serverInfo?.updateAvailable) && !versionError;
+  const activePage = getPageForPath(pathname);
+
+  // Use the same cached version check as Settings for both navigation layouts.
+  const navigationIcon = (route: string, icon: ReactElement) => (
+    <Badge
+      variant="dot"
+      color="info"
+      invisible={ route !== '/settings' || !updateAvailable }
+      sx={ { '& .MuiBadge-badge': { boxShadow: '0 0 0 2px #111111' } } }
+    >
+      { icon }
+    </Badge>
   );
 
-  // Handle navigation for both desktop and mobile
-  const handleNavigation = (route: string) => {
-    navigate(route);
-  };
-
-  const handleMobileNavChange = (
-    _event: React.SyntheticEvent,
-    newValue: number
-  ) => {
-    setMobileNavValue(newValue);
-    handleNavigation(PAGES[newValue].route);
-  };
-
-  const gradient = `linear-gradient(
-  90deg,
-  transparent,
-  ${theme.palette.primary.dark},
-  transparent,
-  ${theme.palette.primary.dark},
-  transparent
-)`;
   return (
     <>
-      { /* Loading Bar */ }
+      { isUpdating && <LinearProgress sx={ { position: 'fixed', top: 0, left: 0, right: 0, height: 2, zIndex: 1400 } }/> }
       <Box
+        component="aside"
         sx={ {
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '4px',
-          background: isUpdating ? gradient : 'transparent',
-          backgroundSize: '200% 100%',
-          animation: isUpdating
-            ? 'slide-gradient 10s linear infinite reverse'
-            : 'none',
-          zIndex: 1201,
-        } }
-      />
-      { /* Desktop Navigation */ }
-      <AppBar
-        position="fixed"
-        color="transparent"
-        sx={ {
-          display: { xs: 'none', md: 'flex' },
-          borderTop: `1px solid ${theme.palette.grey[700]}`,
-          backgroundColor: theme.palette.background.default,
-          boxShadow: 'none',
-          top: 'auto', // Push it to the bottom
-          bottom: 0, // Stick it to the bottom
-          left: 0,
-          right: 0,
+          display: { xs: 'none', md: 'flex' }, position: 'fixed', inset: '0 auto 0 0', width: 224, p: 2,
+          flexDirection: 'column', borderRight: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', zIndex: 1100,
         } }
       >
-        <Toolbar>
-          <div style={ { flexGrow: 1 } }>
-            <img src={ freeSleepIcon } alt="Join our Discord" width={ 45 } height={ 45 } />
-          </div>
-          <Box sx={ { display: 'flex', gap: 2 } }>
-            { PAGES.map(({ title, route }) => (
-              <Button
-                key={ route }
-                onClick={ () => handleNavigation(route) }
-                sx={ { color: 'white' } }
-                variant={ pathname === route ? 'outlined' : 'text' }
-              >
-                { title }
-              </Button>
-            )) }
+        <Box component={ Link } to="/" sx={ { display: 'flex', alignItems: 'center', gap: 1.25, p: 1, mb: 4, textDecoration: 'none' } }>
+          <Box sx={ { display: 'grid', placeItems: 'center', width: 32, height: 32, borderRadius: 1, bgcolor: 'action.selected' } }>
+            <NightsStayOutlinedIcon sx={ { color: 'primary.main', fontSize: 20 } }/>
           </Box>
-        </Toolbar>
-      </AppBar>
-
-      { /* Mobile Bottom Navigation */ }
+          <Typography sx={ { color: 'text.primary', fontSize: 17, fontWeight: 600, letterSpacing: '-0.04em' } }>free sleep</Typography>
+          <Typography variant="overline" sx={ { ml: 'auto', color: 'text.secondary', fontSize: 8 } }>LOCAL</Typography>
+        </Box>
+        <Typography variant="overline" color="text.secondary" sx={ { px: 1.5, mb: 1 } }>Workspace</Typography>
+        <Box component="nav" aria-label="Main navigation" sx={ { display: 'flex', flexDirection: 'column', gap: 0.5 } }>
+          { PAGES.map(({ title, route, icon }) => (
+            <Button
+              key={ route }
+              component={ Link }
+              to={ route }
+              startIcon={ navigationIcon(route, icon) }
+              aria-current={ activePage.route === route ? 'page' : undefined }
+              aria-label={ route === '/settings' && updateAvailable ? 'Settings, update available' : title }
+              sx={ {
+                justifyContent: 'flex-start', px: 1.5, py: 1.15,
+                color: activePage.route === route ? 'text.primary' : 'text.secondary',
+                bgcolor: activePage.route === route ? 'action.selected' : 'transparent',
+                '& .MuiButton-startIcon': { mr: 1.5, color: activePage.route === route ? 'primary.main' : 'text.secondary' },
+                '& .MuiSvgIcon-root': { fontSize: 19 },
+              } }
+            >
+              { title }
+            </Button>
+          )) }
+        </Box>
+      </Box>
       <Box
+        component="nav"
+        aria-label="Mobile navigation"
         sx={ {
-          display: { xs: 'flex', md: 'none' },
-          width: '100%',
-          position: 'fixed',
-          bottom: 0,
-          height: '80px',
-          justifyContent: 'space-between',
-          borderTop: `1px solid ${theme.palette.grey[700]}`,
-          backgroundColor: theme.palette.background.default,
-          zIndex: 10,
+          display: { xs: 'block', md: 'none' }, position: 'fixed', bottom: 0, left: 0, right: 0,
+          borderTop: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', zIndex: 1100,
+          pb: 'env(safe-area-inset-bottom)',
         } }
       >
         <BottomNavigation
-          value={ mobileNavValue }
-          onChange={ handleMobileNavChange }
+          showLabels
+          value={ PAGES.indexOf(activePage) }
+          onChange={ (_, index) => navigate(PAGES[index].route) }
           sx={ {
-            width: '100%',
-            backgroundColor: theme.palette.background.default,
-            '& .Mui-selected': {
-              color: theme.palette.grey[100],
-            },
-            '& .MuiBottomNavigationAction-root': {
-              color: theme.palette.grey[500],
-            },
+            bgcolor: 'transparent', height: 68,
+            '& .MuiBottomNavigationAction-root': { minWidth: 0, color: 'text.secondary', px: 0.5, gap: 0.75 },
+            '& .MuiBottomNavigationAction-label, & .MuiBottomNavigationAction-label.Mui-selected': { fontSize: 10, fontWeight: 500 },
+            '& .Mui-selected': { color: 'primary.main' },
+            '& .MuiSvgIcon-root': { fontSize: 22 },
           } }
         >
-          { PAGES.map(({ title, icon }, index) => (
+          { PAGES.map(({ title, route, icon }) => (
             <BottomNavigationAction
-              key={ index }
-              icon={ icon }
-              aria-label={ title }
-              sx={ {
-                '&.Mui-selected': {
-                  color: theme.palette.grey[100],
-                },
-              } }
+              key={ route }
+              label={ title }
+              icon={ navigationIcon(route, icon) }
+              aria-current={ activePage.route === route ? 'page' : undefined }
+              aria-label={ route === '/settings' && updateAvailable ? 'Settings, update available' : title }
             />
           )) }
         </BottomNavigation>
       </Box>
-      <style>
-        { `
-@keyframes slide-gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  100% {
-    background-position: 200% 50%;
-  }
-}
-        ` }
-      </style>
     </>
   );
 }

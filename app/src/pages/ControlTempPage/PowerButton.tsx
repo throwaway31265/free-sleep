@@ -1,3 +1,4 @@
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import SearchIcon from '@mui/icons-material/Search';
 import { Button, Box } from '@mui/material';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
@@ -22,7 +23,7 @@ export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
   const { data: settings } = useSettings();
   const { data: services } = useServices();
   const setDeviceStatus = useControlTempStore(state => state.setDeviceStatus);
-  const isInAwayMode = settings?.[side].awayMode;
+  const isInAwayMode = settings?.[side]?.awayMode;
   const disabled = isUpdating || isInAwayMode;
   const [showAnalyzeSleep, setShowAnalyzeSleep] = useState(false);
   const [showAnalyzeNotification, setShowAnalyzeNotification] = useState(false);
@@ -70,8 +71,14 @@ export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
   if (isInAwayMode) return null;
 
   return (
-    <Box sx={ { mt: -6, display: 'flex', flexDirection: 'column', gap: 2 } }>
-      <Button variant="outlined" disabled={ disabled } onClick={ () => handleOnClick(!isOn) }>
+    <Box sx={ { display: 'flex', flexDirection: 'column', gap: 2 } }>
+      <Button
+        fullWidth
+        variant={ isOn ? 'outlined' : 'contained' }
+        disabled={ disabled }
+        onClick={ () => handleOnClick(!isOn) }
+        startIcon={ <PowerSettingsNewIcon sx={ { fontSize: 17 } }/> }
+      >
         { isOn ? 'Turn off' : 'Turn on' }
       </Button>
       {

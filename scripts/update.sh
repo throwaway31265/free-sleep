@@ -22,7 +22,27 @@ print_json_if_exists "/home/dac/free-sleep/server/src/serverInfo.json" "Server i
 BACKUP_PATH="/home/dac/free-sleep-backup"
 APP_DIR="/home/dac/free-sleep"
 
-systemctl stop free-sleep
+# Keep biometrics stopped through the downloaded installer, including older installers.
+services_to_restore=""
+restore_services() {
+  for service_name in $services_to_restore; do
+    systemctl start "$service_name" || true
+  done
+}
+trap restore_services EXIT
+for service_name in free-sleep-stream free-sleep; do
+  if systemctl is-active --quiet "$service_name"; then
+    services_to_restore="$service_name $services_to_restore"
+    systemctl stop "$service_name"
+  fi
+done
+
+if [ -f /persistent/free-sleep-data/free-sleep.db ]; then
+  python3 "$APP_DIR/scripts/sqlite_maintenance.py" backup \
+    /persistent/free-sleep-data/free-sleep.db \
+    /persistent/free-sleep-data/free-sleep-copy.db --checkpoint
+fi
+
 systemctl disable free-sleep
 
 # Unblock internet first

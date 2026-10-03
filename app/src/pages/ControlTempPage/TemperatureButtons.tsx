@@ -42,12 +42,12 @@ export default function TemperatureButtons({ refetch, currentTargetTemp }: Tempe
   }, [postUpdate]);
 
 
-  const isInAwayMode = settings?.[side].awayMode;
+  const isInAwayMode = settings?.[side]?.awayMode;
   if (isInAwayMode) return null;
 
   const disabled = isUpdating || isInAwayMode;
-  const borderColor = theme.palette.grey[800];
-  const iconColor = theme.palette.grey[500];
+  const borderColor = theme.palette.divider;
+  const iconColor = theme.palette.text.primary;
 
   const handleClick = (change: number) => {
     if (!deviceStatus) return;
@@ -62,10 +62,10 @@ export default function TemperatureButtons({ refetch, currentTargetTemp }: Tempe
   };
 
   const buttonStyle = {
-    borderWidth: '2px',
+    borderWidth: '1px',
     borderColor,
-    width: 50,
-    height: 50,
+    width: 48,
+    height: 48,
     borderRadius: '50%',
     minWidth: 0,
     padding: 0,
@@ -74,12 +74,12 @@ export default function TemperatureButtons({ refetch, currentTargetTemp }: Tempe
   return (
     <Box
       sx={ {
-        top: '75%',
+        top: '78%',
         position: 'absolute',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: '100px',
+        gap: '88px',
         width: '100%',
         marginLeft: 'auto',
         marginRight: 'auto',
@@ -88,6 +88,7 @@ export default function TemperatureButtons({ refetch, currentTargetTemp }: Tempe
       <Button
         variant="outlined"
         color="primary"
+        aria-label="Decrease temperature"
         sx={ buttonStyle }
         onClick={ () => handleClick(-1) }
         disabled={ disabled || currentTargetTemp <= MIN_TEMP_F }
@@ -96,6 +97,7 @@ export default function TemperatureButtons({ refetch, currentTargetTemp }: Tempe
       </Button>
       <Button
         variant="outlined"
+        aria-label="Increase temperature"
         sx={ buttonStyle }
 
         onClick={ () => handleClick(1) }

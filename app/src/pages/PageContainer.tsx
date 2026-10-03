@@ -1,44 +1,21 @@
-import React from 'react';
-import { Container, ContainerProps } from '@mui/material';
-import { SxProps } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { PropsWithChildren } from 'react';
+import { Container, ContainerProps, SxProps, Theme } from '@mui/material';
 import ErrorBoundary from '@components/ErrorBoundary.tsx';
 
+type PageContainerProps = { containerProps?: ContainerProps; sx?: SxProps<Theme> };
 
-type PageContainerProps = {
-  containerProps?: ContainerProps;
-  sx?: SxProps
-}
-
-export default function PageContainer({ children, sx, containerProps }: React.PropsWithChildren<PageContainerProps>) {
-  const theme = useTheme();
-
+export default function PageContainer({ children, sx = [], containerProps }: PropsWithChildren<PageContainerProps>) {
   return (
-    <ErrorBoundary componentName='Page container'>
+    <ErrorBoundary componentName="Page container">
       <Container
         { ...containerProps }
-        id='PageContainer'
-        sx={ {
-          display: 'flex',
-          flexDirection: 'column',
-          flexGrow: 1,
-          alignItems: 'center',
-          gap: 2,
-          margin: 0,
-          justifyContent: 'center',
-          [theme.breakpoints.up('sm')]: {
-            width: '90%',
-            padding: 0,
-            paddingTop: 6,
-            paddingBottom: 6,
-            maxWidth: '700px',
-          },
-          [theme.breakpoints.down('sm')]: {
-            width: '100%',
-            padding: 1,
-          },
-          ...sx,
-        } }
+        id="PageContainer"
+        maxWidth={ false }
+        sx={ [
+          { display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 2.5,
+            width: '100%', maxWidth: 1000, mx: 'auto', px: { xs: 2.5, sm: 4, lg: 5 }, py: { xs: 3, md: 5 } },
+          ...(Array.isArray(sx) ? sx : [sx]),
+        ] }
       >
         { children }
       </Container>

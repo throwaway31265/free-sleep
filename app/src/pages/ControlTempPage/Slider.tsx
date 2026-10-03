@@ -22,7 +22,7 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
   const { deviceStatus, setDeviceStatus } = useControlTempStore();
   const { isUpdating, setIsUpdating, side } = useAppStore();
   const { data: settings } = useSettings();
-  const isInAwayMode = settings?.[side].awayMode;
+  const isInAwayMode = settings?.[side]?.awayMode;
   const disabled = isUpdating || isInAwayMode || !isOn;
   const { width, ref } = useResizeDetector();
   const theme = useTheme();
@@ -49,7 +49,7 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
       });
   };
 
-  const arcBackgroundColor = theme.palette.grey[700];
+  const arcBackgroundColor = theme.palette.divider;
 
   const sideStatus = deviceStatus?.[side];
   const minTemp = Math.min(sideStatus?.currentTemperatureF || 55, sideStatus?.targetTemperatureF || 55);
@@ -59,15 +59,15 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
   return (
     <div
       ref={ ref }
-      style={ { position: 'relative', display: 'inline-block', width: '100%', maxWidth: '400px' } }
+      style={ { position: 'relative', display: 'inline-block', width: '100%', maxWidth: '320px' } }
     >
       { /* Circular Slider */ }
       <div className={ `${styles.Slider} ${disabled && styles.Disabled} ${isHeating && styles.Heating}` }>
         <CircularSliderWithChildren
           disabled={ disabled }
           onControlFinished={ handleControlFinished }
-          size={ width }
-          trackWidth={ 6 }
+          size={ width ?? 280 }
+          trackWidth={ 7 }
           minValue={ MIN_TEMP_F }
           maxValue={ MAX_TEMP_F }
           startAngle={ 60 }
@@ -97,7 +97,7 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
               }
             },
           } }
-          handleSize={ 8 }
+          handleSize={ 11 }
         >
           <TemperatureLabel
             isOn={ isOn }

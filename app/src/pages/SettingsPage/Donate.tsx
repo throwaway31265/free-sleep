@@ -29,76 +29,56 @@ export default function Donate() {
   };
 
   return (
-    <Section title="">
-      <Box
-        sx={ {
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          width: '100%',
-
-          flexDirection: 'column',
-
-        } }
-      >
-        <Typography variant="h6" sx={ { display: 'flex', alignItems: 'center' } }>
-          Support the Project <AttachMoneyIcon fontSize="large"/>
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
+    <Section title="Support the Project" icon={ <AttachMoneyIcon/> }>
+      <Box sx={ { display: 'flex', flexDirection: 'column', gap: 2 } }>
+        <Typography variant="body2" color="text.secondary" sx={ { fontSize: 12 } }>
           Like the app? Don't like paying $200/year elsewhere? Buy me a drink instead!
         </Typography>
-        <br />
         <Box
           sx={ {
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            width: '100%',
-            flexDirection: 'column',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1,
+            py: 1, borderBottom: '1px solid', borderColor: 'divider',
           } }
         >
-          <Link href="https://paypal.me/realfreesleep" target="_blank">
-            <img src={ paypalIcon } alt="Donate via PayPal" width={ 225 } height={ 60 }/>
+          <Link href="https://paypal.me/realfreesleep" target="_blank" sx={ { display: 'flex', alignItems: 'center', minHeight: 44 } }>
+            <img src={ paypalIcon } alt="Donate via PayPal" width={ 135 } height={ 36 }/>
           </Link>
-          <Link href="https://paypal.me/realfreesleep" target="_blank">
+          <Link href="https://paypal.me/realfreesleep" target="_blank" sx={ { fontSize: 12, py: 1.5 } }>
             Donate via PayPal
           </Link>
         </Box>
-        <br />
-        <Typography variant='h6' sx={ { display: 'flex', alignItems: 'center' } }>
-          Bitcoin <CurrencyBitcoinIcon />
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          { copySuccess ? 'Copied!' : 'Copy and send to the bitcoin address below' }
-        </Typography>
-        <TextField
-          inputRef={ textFieldRef }
-          variant="outlined"
-          fullWidth
-          onSelect={ handleCopy }
-          value={ bitcoinAddress }
-          size='small'
-          sx={ {
-            cursor: 'pointer',
-            '& .MuiInputBase-input': {
+        <Box>
+          <Typography variant="body2" fontWeight={ 500 } sx={ { display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 } }>
+            Bitcoin <CurrencyBitcoinIcon sx={ { fontSize: 18 } }/>
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={ { fontSize: 12, mb: 1.5 } }>
+            { copySuccess ? 'Copied!' : 'Copy and send to the bitcoin address below' }
+          </Typography>
+          <TextField
+            inputRef={ textFieldRef }
+            variant="outlined"
+            fullWidth
+            onSelect={ handleCopy }
+            value={ bitcoinAddress }
+            size="small"
+            sx={ {
               cursor: 'pointer',
-              fontSize: '12px',
-              fontFamily: 'monospace',
-            }
-          } }
-          inputProps={ { readOnly: true } }
-          InputProps={ {
-            endAdornment: (
-              <InputAdornment position="end">
-                <Tooltip title="Copy">
-                  <IconButton onClick={ handleCopy }>
-                    <ContentCopyIcon/>
-                  </IconButton>
-                </Tooltip>
-              </InputAdornment>
-            ),
-          } }
-        />
+              '& .MuiInputBase-input': { cursor: 'pointer', fontSize: '12px', fontFamily: 'monospace', py: 1.5 },
+            } }
+            inputProps={ { readOnly: true } }
+            InputProps={ {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <Tooltip title="Copy">
+                    <IconButton onClick={ handleCopy }>
+                      <ContentCopyIcon sx={ { fontSize: 18 } }/>
+                    </IconButton>
+                  </Tooltip>
+                </InputAdornment>
+              ),
+            } }
+          />
+        </Box>
       </Box>
     </Section>
   );

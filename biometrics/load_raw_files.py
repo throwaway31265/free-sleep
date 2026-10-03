@@ -11,6 +11,7 @@ import os
 sys.path.append(os.getcwd())
 from data_types import *
 from get_logger import get_logger
+from raw_records import read_raw_record
 
 logger = get_logger()
 
@@ -74,11 +75,21 @@ def _decode_cbor_file(file_path: str, data: dict, start_time, end_time, side: Si
     with open(file_path, 'rb') as raw_data:
         while True:
             try:
+                payload = read_raw_record(raw_data)
+            except EOFError:
+                # read_raw_record normalizes partial CBOR wrappers to EOFError.
+                break
+            except Exception as error:
+                # A damaged wrapper has no reliable boundary for the next record.
+                logger.error(error)
+                break
 
-                # Decode the next CBOR object
-                row = cbor2.load(raw_data)
-                decoded_data = cbor2.loads(row['data'])
-                if not decoded_data['type'] in load_raw_types:
+            if payload is None:
+                continue
+
+            try:
+                decoded_data = cbor2.loads(payload)
+                if not isinstance(decoded_data, dict) or decoded_data.get('type') not in load_raw_types:
                     continue
                 _delete_other_side(decoded_data, side, sensor_count)
                 if not checked_timespan:
@@ -105,12 +116,8 @@ def _decode_cbor_file(file_path: str, data: dict, start_time, end_time, side: Si
                 ).strftime("%Y-%m-%d %H:%M:%S")
                 data[decoded_data['type']].append(decoded_data)
 
-            # The active RAW segment can end in a partially written CBOR item.
-            # cbor2 reports that as CBORDecodeEOF (not Python's EOFError); both
-            # mean there is no more complete data available in this snapshot.
-            except (EOFError, cbor2.CBORDecodeEOF):
-                break
             except Exception as error:
+                # The wrapper was complete, so a bad payload can be skipped safely.
                 logger.error(error)
         raw_data.close()
         gc.collect()

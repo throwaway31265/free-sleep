@@ -11,7 +11,7 @@ const LicenseModal: React.FC = () => {
   return (
     <div>
       { /* Button to Open Modal */ }
-      <Button variant="contained" onClick={ handleOpen }>
+      <Button variant="outlined" fullWidth onClick={ handleOpen }>
         View License and Disclaimer
       </Button>
 
@@ -28,11 +28,14 @@ const LicenseModal: React.FC = () => {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: '80%',
-            maxHeight: '80vh',
+            width: 'calc(100% - 40px)',
+            maxWidth: 640,
+            maxHeight: '80dvh',
             bgcolor: 'background.paper',
             boxShadow: 24,
-            p: 4,
+            p: { xs: 2.5, sm: 4 },
+            border: '1px solid',
+            borderColor: 'divider',
             overflowY: 'auto',
             borderRadius: '8px',
           } }
@@ -50,6 +53,7 @@ const LicenseModal: React.FC = () => {
               overflowY: 'auto',
               maxHeight: '60vh',
               lineHeight: '1.6',
+              fontSize: 12,
             } }
           >
             { `**Last Updated:** January 2, 2025

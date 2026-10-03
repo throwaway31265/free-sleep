@@ -34,13 +34,15 @@ import queue
 import threading
 
 from get_logger import get_logger
-# Give time for the express.js server to boot
-print('Sleeping for 30 seconds before starting stream service...')
-time.sleep(30)
+if __name__ == '__main__':
+    # Give time for the express.js server to boot.
+    print('Sleeping for 30 seconds before starting stream service...')
+    time.sleep(30)
 logger = get_logger('free-sleep-stream')
 
 from stream_processor import StreamProcessor
 from load_raw_files import load_piezo_row
+from raw_records import read_raw_record
 from service_health import update_health
 
 # Global queue for processing decoded biometric data
@@ -110,32 +112,33 @@ class LatestRawFileHandler(FileSystemEventHandler):
 
         while True:
             try:
-                # Decode CBOR object from a **single line**
-                row = cbor2.load(self.latest_file_obj)  # Load the next CBOR object
-                one_minute_ago = datetime.now() - timedelta(minutes=2)
-
-                if 'data' in row:  # Check if 'data' key exists
-                    # Skip records with empty data (malformed records)
-                    if not row.get('data'):
-                        continue
-                    decoded_data = cbor2.loads(row['data'])
-                    if decoded_data['type'] != 'piezo-dual':
-                        continue
-                    record_time = datetime.fromtimestamp(decoded_data['ts'])
-                    if one_minute_ago > record_time:
-                        continue
-                    load_piezo_row(decoded_data, 'right')
-                    piezo_record_queue.put(decoded_data)
-
-                # Update last read position
-                self.last_pos = self.latest_file_obj.tell()
-
+                payload = read_raw_record(self.latest_file_obj)
             except EOFError:
-                # No more CBOR objects to read
+                # Retry an incomplete wrapper after the firmware appends more bytes.
+                self.latest_file_obj.seek(self.last_pos)
                 break
-            except Exception as e:
-                logger.error(f"Error decoding CBOR: {e}")
+            except Exception as error:
+                logger.error(f"Error reading RAW record: {error}")
+                self.latest_file_obj.seek(self.last_pos)
                 break
+
+            # Commit every complete wrapper, including skipped or malformed payloads.
+            self.last_pos = self.latest_file_obj.tell()
+            if payload is None:
+                continue
+
+            try:
+                decoded_data = cbor2.loads(payload)
+                if not isinstance(decoded_data, dict) or decoded_data.get('type') != 'piezo-dual':
+                    continue
+                recent_cutoff = datetime.now() - timedelta(minutes=2)
+                record_time = datetime.fromtimestamp(decoded_data['ts'])
+                if recent_cutoff > record_time:
+                    continue
+                load_piezo_row(decoded_data, 'right')
+                piezo_record_queue.put(decoded_data)
+            except Exception as error:
+                logger.error(f"Error decoding RAW payload: {error}")
 
 
 def process_biometrics():
@@ -194,5 +197,5 @@ def watch_directory(directory="/persistent"):
 
     observer.join()
 
-# Start watching and processing the latest .RAW file
-watch_directory("/persistent")
+if __name__ == '__main__':
+    watch_directory("/persistent")
