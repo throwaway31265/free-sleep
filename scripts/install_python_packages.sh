@@ -27,5 +27,5 @@ echo "Activating python venv..."
 source /home/dac/venv/bin/activate
 
 set -x
-/home/dac/venv/bin/python -m pip install numpy scipy pandas cbor2 watchdog "sentry-sdk"
+/home/dac/venv/bin/python -m pip install numpy scipy pandas cbor2 watchdog "sentry-sdk" nats-py
 set +x
