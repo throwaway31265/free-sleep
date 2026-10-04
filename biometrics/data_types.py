@@ -5,6 +5,7 @@ from typing import TypedDict, Union
 
 # endregion
 Side = Literal['left', 'right']
+# capSense requests both legacy and normalized capSense2 records.
 RawDataTypes = Literal['bedTemp', 'capSense', 'frzTemp', 'log', 'piezo-dual']
 
 
@@ -60,13 +61,18 @@ class PiezoDualData(TypedDict):
 # Capacitance sensor - Used for presence detection (I think)
 
 class CapSenseChannel(TypedDict):
-    out: int
-    cen: int
-    in_: int  # Renamed `in` to `in_` for Python compliance
+    out: Union[int, float, None]
+    cen: Union[int, float, None]
+    in_: Union[int, float, None]  # Renamed `in` to `in_` for Python compliance
     status: str
 
 
-class CapSenseData(TypedDict):
+class CapSenseMetadata(TypedDict, total=False):
+    cap_format: Literal['capSense2']
+    version: int
+
+
+class CapSenseData(CapSenseMetadata):
     type: str
     ts: int
     left: CapSenseChannel

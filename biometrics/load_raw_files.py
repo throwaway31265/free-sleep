@@ -16,6 +16,7 @@ sys.path.append(os.getcwd())
 from data_types import *
 from get_logger import get_logger
 from raw_records import read_raw_record
+from capacitance import normalize_capacitance_record
 
 logger = get_logger()
 
@@ -72,12 +73,21 @@ async def _fetch_jetstream_historical_data(start_time: datetime, end_time: datet
                 while True:
                     try:
                         msg = await sub.next_msg(timeout=0.5)
+                    except asyncio.TimeoutError:
+                        break
+
+                    try:
                         decoded_record = cbor2.loads(msg.data)
-                        if 'ts' in decoded_record:
-                            # Stop grabbing records once we hit the end_time
-                            raw_ts = datetime.fromtimestamp(decoded_record['ts'], timezone.utc)
-                            if raw_ts >= end_time:
-                                break 
+                        if not isinstance(decoded_record, dict):
+                            continue
+                        decoded_record = normalize_capacitance_record(decoded_record)
+                        if decoded_record.get('type') != field:
+                            continue
+                        raw_ts = datetime.fromtimestamp(decoded_record['ts'], timezone.utc)
+                        if raw_ts >= end_time:
+                            break
+                        if raw_ts < start_time:
+                            continue
                         # This only uses 1 sensor count during analyze sleep, which avoids an issue with dropping dumplicates in sleep_detector.
                         # Numpy should probably drop duplicate ndarrays instead of pandas failing on it.
                         # Ideally we should also filter out the other side instead of adding it in the first place.
@@ -92,10 +102,11 @@ async def _fetch_jetstream_historical_data(start_time: datetime, end_time: datet
                                             timezone.utc
                                         ).strftime("%Y-%m-%d %H:%M:%S")
                         extracted_data[field].append(decoded_record)
+                    except Exception as error:
+                        # One malformed message must not discard the rest of the subscription.
+                        logger.error(f'Invalid {field} record: {error}')
+                    finally:
                         await msg.ack()
-
-                    except asyncio.TimeoutError:
-                        break
             except Exception as sub_err:
                 logger.error(f"Failed to fetch JetStream data for {field}: {sub_err}")
                 
@@ -142,9 +153,7 @@ def _delete_other_side(decoded_data: dict, side: Side, sensor_count: int):
         if side == 'left':
             del_side = 'right'
 
-        if decoded_data['type'] == 'capSense':
-            del decoded_data[del_side]
-        else:
+        if decoded_data['type'] == 'piezo-dual':
             if sensor_count == 1:
                 # Delete sensor 2 of the current side
                 if f'{side}2' in decoded_data:
@@ -153,6 +162,8 @@ def _delete_other_side(decoded_data: dict, side: Side, sensor_count: int):
             del decoded_data[f'{del_side}1']
             if f'{del_side}2' in decoded_data:
                 del decoded_data[f'{del_side}2']
+        else:
+            decoded_data.pop(del_side, None)
     except Exception as error:
         logger.error(error)
         traceback.print_exc()
@@ -181,7 +192,10 @@ def _decode_cbor_file(file_path: str, data: dict, start_time, end_time, side: Si
 
             try:
                 decoded_data = cbor2.loads(payload)
-                if not isinstance(decoded_data, dict) or decoded_data.get('type') not in load_raw_types:
+                if not isinstance(decoded_data, dict):
+                    continue
+                decoded_data = normalize_capacitance_record(decoded_data)
+                if decoded_data.get('type') not in load_raw_types:
                     continue
                 _delete_other_side(decoded_data, side, sensor_count)
                 if not checked_timespan:

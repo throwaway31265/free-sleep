@@ -207,6 +207,7 @@ def detect_sleep(side: Side, start_time: datetime, end_time: datetime, folder_pa
 
     piezo_df = load_piezo_df(data, side, expected_row_count=expected_row_count)
     cap_df = load_cap_df(data, side, expected_row_count=expected_row_count)
+    cap_format = cap_df.attrs['cap_format']
     # Cleanup data
     del data
     gc.collect()
@@ -231,7 +232,7 @@ def detect_sleep(side: Side, start_time: datetime, end_time: datetime, folder_pa
     del cap_df
     gc.collect()
 
-    cap_baseline = load_baseline(side)
+    cap_baseline = load_baseline(side, cap_format=cap_format)
 
     detect_presence_cap(
         merged_df,
@@ -285,4 +286,3 @@ def detect_movement(side: Side, merged_df: pd.DataFrame):
     merged_df.drop(merged_df.index, inplace=True)
     del merged_df
     gc.collect()
-

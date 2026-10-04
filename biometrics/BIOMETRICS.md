@@ -51,9 +51,29 @@
 
 ### 1. Capacitance sensor data
 
-- This measures pressure in 1 second intervals. There's 3 sensors for each side
+- Legacy Pod 3/4 firmware writes `capSense`, with three integer channels per side.
+- New Pod 5 firmware writes `capSense2` version 1, with eight floats per side in
+  `values`. `capacitance.py` adapts it before filtering in both RAW and NATS loaders.
+  The first three adjacent pairs are averaged into `out`, `cen`, and `in`; the
+  final reference-like pair is excluded. This is an empirical compatibility
+  mapping, also used by [Nightstand](https://github.com/LTimothy/nightstand/blob/main/biometrics/load_raw_files.py),
+  rather than a documented physical sensor layout.
+- Valid Pod 5 readings sharing a second are averaged before merging with piezo
+  data, so rolling windows keep their one-row-per-second timing. Bad status,
+  missing pairs, negative placeholders, and nonfinite sensor values are excluded
+  independently for each side. Legacy values and row handling are preserved.
+- Calibration retains the legacy standard-deviation floor of `5`; Pod 5 uses a
+  separate initial floor of `1` in its smaller native units. Its actual baseline
+  mean and standard deviation are measured from the empty-bed window. The Pod 5
+  floor follows the [existing implementation's measured starting point](https://github.com/LTimothy/nightstand/blob/main/biometrics/sleep_detection/cap_data.py)
+  and still needs validation on recordings with known occupancy from more beds.
+- Existing untagged baseline JSON files remain valid for legacy firmware. Pod 5
+  baselines store `format`, `version`, and `channels`; a format mismatch requires
+  recalibration. Mixed-format time windows are rejected to avoid mixing units.
+  Calibration requires a stable five-minute window with at least 80% valid rows;
+  insufficient data leaves the previous baseline file intact.
 
-- Sample:
+- Legacy sample:
 
 ```json
 {
@@ -72,6 +92,24 @@
     "status": "good"
   },
   "seq": 1610679
+}
+```
+
+Pod 5 sample (before normalization):
+
+```json
+{
+  "type": "capSense2",
+  "version": 1,
+  "ts": 1761860556,
+  "left": {
+    "values": [12.633, 12.638, 13.074, 13.090, 15.312, 15.294, 1.171, 1.174],
+    "status": "good"
+  },
+  "right": {
+    "values": [12.892, 12.881, 12.227, 12.225, 16.112, 16.126, 1.209, 1.207],
+    "status": "good"
+  }
 }
 ```
 
@@ -110,7 +148,6 @@
   "type": "piezo-dual"
 }
 ```
-
 
 
 

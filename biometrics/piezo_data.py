@@ -108,12 +108,15 @@ def identify_baseline_period(merged_df: pd.DataFrame, side: str, threshold_range
 
     for start_time in merged_df.index:
         end_time = start_time + window_size
+        # A short tail or sparse window cannot establish a five-minute baseline.
+        if end_time > merged_df.index[-1] + pd.Timedelta(seconds=1):
+            break
 
         # Ensure non-overlapping window
         window_df = merged_df.loc[(merged_df.index >= start_time) & (merged_df.index < end_time)]
 
-        if len(window_df) == 0:
-            continue  # Skip if no data
+        if len(window_df) < math.ceil(window_size.total_seconds() * 0.8):
+            continue
 
         # Condition 1: Max range values must be < threshold_range
         if window_df[range_column].max() >= threshold_range:

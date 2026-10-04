@@ -91,6 +91,8 @@ def calibrate_sensor_thresholds(side: Side, start_time: datetime, end_time: date
         raw_data_types=['capSense', 'piezo-dual']
     )
 
+    cap_df = load_cap_df(data, side, expected_row_count=expected_row_count)
+    cap_format = cap_df.attrs['cap_format']
     piezo_df = load_piezo_df(data, side, expected_row_count=expected_row_count)
     detect_presence_piezo(
         piezo_df,
@@ -102,7 +104,6 @@ def calibrate_sensor_thresholds(side: Side, start_time: datetime, end_time: date
         clean=False
     )
 
-    cap_df = load_cap_df(data, side, expected_row_count=expected_row_count)
     # Cleanup data
     del data
     gc.collect()
@@ -117,8 +118,10 @@ def calibrate_sensor_thresholds(side: Side, start_time: datetime, end_time: date
 
     # Create baseline
     baseline_start_time, baseline_end_time = identify_baseline_period(merged_df, side, threshold_range=10_000, empty_minutes=5)
-    cap_baseline = create_cap_baseline_from_cap_df(merged_df, baseline_start_time, baseline_end_time, side, min_std=5)
-    save_baseline(side, cap_baseline)
+    cap_baseline = create_cap_baseline_from_cap_df(
+        merged_df, baseline_start_time, baseline_end_time, side, cap_format=cap_format
+    )
+    save_baseline(side, cap_baseline, cap_format=cap_format)
 
     # Cleanup
     merged_df.drop(merged_df.index, inplace=True)
@@ -203,4 +206,3 @@ if __name__ == "__main__":
             update_health(job_key, 'failed', repr(error))
         else:
             update_health_both_sides('failed', repr(error))
-
