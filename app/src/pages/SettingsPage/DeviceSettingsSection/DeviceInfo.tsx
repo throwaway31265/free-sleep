@@ -15,14 +15,14 @@ export default function DeviceInfo() {
     <Box sx={ { display: 'flex', flexDirection: 'column', gap: 2 } }>
       <Box sx={ { display: 'flex', flexDirection: 'column', gap: 1.5 } }>
         <Box sx={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 } }>
-          <Typography variant="body2" color="text.secondary">Device</Typography>
+          <Typography variant="body2" sx={ { color: 'text.secondary' } }>Device</Typography>
           <Box sx={ { display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 0.75 } }>
             { !hideCover && <Chip label={ `${deviceStatus.coverVersion} Cover` } size="small"/> }
             { !hideHub && <Chip label={ `${deviceStatus.hubVersion} Hub` } size="small"/> }
           </Box>
         </Box>
         <Box sx={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 } }>
-          <Typography variant="body2" color="text.secondary">Free Sleep Build</Typography>
+          <Typography variant="body2" sx={ { color: 'text.secondary' } }>Free Sleep Build</Typography>
           <Box sx={ { display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 0.75 } }>
             <Chip label={ `v${deviceStatus?.freeSleep?.version}` } size="small"/>
             <Chip label={ deviceStatus?.freeSleep?.branch } size="small"/>

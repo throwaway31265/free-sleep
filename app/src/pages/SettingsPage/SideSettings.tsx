@@ -46,8 +46,10 @@ export default function SideSettings({ side, settings, updateSettings }: AwayMod
         onChange={ (e) => setSideName(e.target.value) }
         onBlur={ handleBlur }
         disabled={ isUpdating }
-        inputProps={ { maxLength: 20 } }
         fullWidth
+        slotProps={ {
+          htmlInput: { maxLength: 20 }
+        } }
       />
       <SettingToggle
         label="Away mode"

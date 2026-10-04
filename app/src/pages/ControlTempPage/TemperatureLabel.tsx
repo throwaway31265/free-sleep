@@ -31,7 +31,7 @@ export default function TemperatureLabel({
 
   return (
     <Box sx={ { textAlign: 'center', whiteSpace: 'nowrap', pointerEvents: 'none' } }>
-      <Typography variant="body2" color="text.secondary" sx={ { minHeight: 21 } }>{ isOn ? targetLabel : '' }</Typography>
+      <Typography variant="body2" sx={ { color: 'text.secondary', minHeight: 21 } }>{ isOn ? targetLabel : '' }</Typography>
       <Typography
         component="p"
         sx={ {
@@ -51,13 +51,13 @@ export default function TemperatureLabel({
       { isOn && (
         <Box sx={ { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.75 } }>
           <Box component="span" sx={ { width: 5, height: 5, borderRadius: '50%', bgcolor: sliderColor } }/>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption" sx={ { color: 'text.secondary' } }>
             Currently at { formatTemperature(currentTemperatureF, displayCelsius) }
           </Typography>
         </Box>
       ) }
       { power?.enabled && (isOn || !settings?.[side]?.awayMode) && (
-        <Typography variant="caption" color="text.secondary" sx={ { display: 'block', mt: 0.75 } }>
+        <Typography variant="caption" sx={ { color: 'text.secondary', display: 'block', mt: 0.75 } }>
           { isOn ? 'Turns off at' : 'Turns on at' } { moment(isOn ? power.off : power.on, 'HH:mm').format('h:mm A') }
         </Typography>
       ) }

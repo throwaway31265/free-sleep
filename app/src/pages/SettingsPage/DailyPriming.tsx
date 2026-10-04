@@ -47,16 +47,17 @@ export default function DailyPriming({ settings, updateSettings }: PrimePodSched
               display: 'none',
             },
           } }
-          InputProps={ {
-            endAdornment: (
-              <InputAdornment position="end" sx={ { cursor: 'pointer' } } >
-                <AccessTime sx={ { color: theme.palette.text.secondary } } fontSize='small'/>
-              </InputAdornment>
-            ),
+          slotProps={ {
+            input: {
+              endAdornment: (
+                <InputAdornment position="end" sx={ { cursor: 'pointer' } } >
+                  <AccessTime sx={ { color: theme.palette.text.secondary } } fontSize='small'/>
+                </InputAdornment>
+              ),
+            }
           } }
         />
       </Box>
     </>
-
   );
 }

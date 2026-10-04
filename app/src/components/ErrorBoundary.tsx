@@ -27,14 +27,13 @@ const ErrorMessage = ({ componentName, errorInfo }: ErrorMessageProps) => {
     return (
       <Alert severity='error'>
 
-        <Typography color='text.secondary' sx={ { fontFamily: 'monospace' } }>
+        <Typography sx={ { color: 'text.secondary', fontFamily: 'monospace' } }>
           ERROR: &nbsp;
           { errorMessage }
           <br />
           { errorInfo.componentStack }
         </Typography>
       </Alert>
-
     );
   } else {
     return (

@@ -41,18 +41,13 @@ export default function StatusRow({ job, statusInfo }: StatusRowProps) {
         display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0,
       } }
     >
-      <Box
-        sx={ {
-          display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto',
-          alignItems: 'start', gap: 1.5,
-        } }
-      >
-        <Typography component="h2" variant="body1" fontWeight={ 600 } sx={ { overflowWrap: 'anywhere' } }>
+      <Box sx={ { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'start', gap: 1.5 } }>
+        <Typography component="h2" variant="body1" sx={ { fontWeight: 600, overflowWrap: 'anywhere' } }>
           { statusInfo.name }
         </Typography>
         <StatusChip info={ statusInfo }/>
       </Box>
-      <Typography variant="body2" color="text.secondary" sx={ { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' } }>
+      <Typography variant="body2" sx={ { color: 'text.secondary', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' } }>
         { statusInfo.description }
       </Typography>
       { statusInfo.message && (
@@ -67,7 +62,9 @@ export default function StatusRow({ job, statusInfo }: StatusRowProps) {
       { (timestamp || isRunnable) && (
         <Box sx={ { display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mt: 0.5 } }>
           { timestamp && (
-            <Typography variant="caption" color="text.secondary" sx={ { fontVariantNumeric: 'tabular-nums', overflowWrap: 'anywhere' } }>
+            <Typography
+              variant="caption"
+              sx={ { color: 'text.secondary', fontVariantNumeric: 'tabular-nums', overflowWrap: 'anywhere' } }>
               { timestamp }
             </Typography>
           ) }

@@ -44,7 +44,7 @@ export default function Navbar() {
           <Typography sx={ { color: 'text.primary', fontSize: 17, fontWeight: 600, letterSpacing: '-0.04em' } }>free sleep</Typography>
           <Typography variant="overline" sx={ { ml: 'auto', color: 'text.secondary', fontSize: 8 } }>LOCAL</Typography>
         </Box>
-        <Typography variant="overline" color="text.secondary" sx={ { px: 1.5, mb: 1 } }>Workspace</Typography>
+        <Typography variant="overline" sx={ { color: 'text.secondary', px: 1.5, mb: 1 } }>Workspace</Typography>
         <Box component="nav" aria-label="Main navigation" sx={ { display: 'flex', flexDirection: 'column', gap: 0.5 } }>
           { PAGES.map(({ title, route, icon }) => (
             <Button

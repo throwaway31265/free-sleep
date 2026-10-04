@@ -32,7 +32,7 @@ export default function TemperatureFormatSelector({
 
   return (
     <Box sx={ { minWidth: 0 } }>
-      <Typography variant="body2" fontWeight={ 500 } sx={ { mb: 1 } }>Temperature format</Typography>
+      <Typography variant="body2" sx={ { fontWeight: 500, mb: 1 } }>Temperature format</Typography>
       <ToggleButtonGroup
         disabled={ isUpdating }
         color='primary'

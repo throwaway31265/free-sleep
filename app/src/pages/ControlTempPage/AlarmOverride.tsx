@@ -93,38 +93,33 @@ export default function AlarmOverride({
     <Dialog
       open={ open }
       fullScreen={ isSmallScreen }
-      PaperProps={ {
-        sx: isSmallScreen
-          ? {
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            textAlign: 'center',
-            maxWidth: '85vw',
-            maxHeight: '35vh',
-            borderRadius: '10px',
-            margin: 0,
-            p: 4,
-          }
-          : {
-            p: 4,
-            width: '50%',
-            height: '225px',
-          },
+      slotProps={ {
+        paper: {
+          sx: isSmallScreen
+            ? {
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              textAlign: 'center',
+              maxWidth: '85vw',
+              maxHeight: '35vh',
+              borderRadius: '10px',
+              margin: 0,
+              p: 4,
+            }
+            : {
+              p: 4,
+              width: '50%',
+              height: '225px',
+            },
+        }
       } }
     >
-      <Typography variant="h5" textAlign="center">
+      <Typography variant="h5" sx={ { textAlign: 'center' } }>
         Override alarm for tonight?
       </Typography>
 
-      <DialogActions
-        sx={ {
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        } }
-      >
+      <DialogActions sx={ { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' } }>
         <TextField
           label="Alarm"
           type="time"
@@ -138,12 +133,14 @@ export default function AlarmOverride({
               display: 'none',
             },
           } }
-          InputProps={ {
-            endAdornment: (
-              <InputAdornment position="end" sx={ { cursor: 'pointer' } }>
-                <AccessTime sx={ { color: theme.palette.grey[500] } } fontSize="small" />
-              </InputAdornment>
-            ),
+          slotProps={ {
+            input: {
+              endAdornment: (
+                <InputAdornment position="end" sx={ { cursor: 'pointer' } }>
+                  <AccessTime sx={ { color: theme.palette.grey[500] } } fontSize="small" />
+                </InputAdornment>
+              ),
+            }
           } }
         />
 
@@ -152,7 +149,7 @@ export default function AlarmOverride({
         { isSaving ? (
           <CircularProgress size={ 10 } />
         ) : (
-          <Box display="flex" gap={ 1 }>
+          <Box sx={ { display: 'flex', gap: 1 } }>
             <Button variant="contained" color="error" size="small" onClick={ handleCancel }>
               Cancel
             </Button>

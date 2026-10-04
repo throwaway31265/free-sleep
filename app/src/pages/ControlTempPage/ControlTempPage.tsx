@@ -41,7 +41,7 @@ export default function ControlTempPage() {
         <Box sx={ { display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 } }>
           <Box sx={ { display: 'flex', alignItems: 'center', gap: 0.75 } }>
             <ThermostatOutlinedIcon sx={ { color: 'text.secondary', fontSize: 17 } }/>
-            <Typography variant="body2" fontWeight={ 500 }>Bed temperature</Typography>
+            <Typography variant="body2" sx={ { fontWeight: 500 } }>Bed temperature</Typography>
           </Box>
           <Chip label={ isPending ? 'Connecting' : isOn ? 'Active' : 'Standby' } color={ isOn ? 'success' : 'default' } size="small"/>
         </Box>

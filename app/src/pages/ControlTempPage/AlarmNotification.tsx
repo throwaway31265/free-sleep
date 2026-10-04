@@ -86,11 +86,11 @@ export default function AlarmNotification() {
         scheduledAlarmTimeHhMm={ scheduledAlarmTimeHhMm }
         alarmDisabled={ alarmDisabled }
       />
-      <Box display="flex" justifyContent="space-between">
+      <Box sx={ { display: 'flex', justifyContent: 'space-between' } }>
         {
           alarmDisabled ?
             (
-              <Box display='flex' justifyContent='space-between' width='100%' alignItems='center'>
+              <Box sx={ { display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' } }>
                 <div>
 
                 Alarm is disabled

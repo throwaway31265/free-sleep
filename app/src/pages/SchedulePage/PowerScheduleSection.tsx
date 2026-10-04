@@ -37,12 +37,14 @@ export default function PowerScheduleSection({ displayCelsius }: { displayCelsiu
               display: 'none',
             },
           } }
-          InputProps={ {
-            endAdornment: (
-              <InputAdornment position="end" sx={ { cursor: 'pointer' } } >
-                <AccessTime sx={ { color: theme.palette.grey[500] } } fontSize='small'/>
-              </InputAdornment>
-            ),
+          slotProps={ {
+            input: {
+              endAdornment: (
+                <InputAdornment position="end" sx={ { cursor: 'pointer' } } >
+                  <AccessTime sx={ { color: theme.palette.grey[500] } } fontSize='small'/>
+                </InputAdornment>
+              ),
+            }
           } }
         />
         <PowerOffTime/>
@@ -50,7 +52,7 @@ export default function PowerScheduleSection({ displayCelsius }: { displayCelsiu
       { /* Temperature slider */ }
       <Box sx={ { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, flex: 1, pr: 1 } }>
         { /* Temperature label */ }
-        <Typography sx={ { mb: 0, textAlign: 'center' } } variant="body2" color="text.primary">
+        <Typography variant="body2" sx={ { color: 'text.primary', mb: 0, textAlign: 'center' } }>
           { `Power on temperature ${formatTemperature(selectedSchedule?.power?.onTemperature || 82, displayCelsius)}` }
         </Typography>
         <Slider

@@ -1,4 +1,6 @@
-import { http, HttpResponse, delay } from 'msw';
+import { http, HttpResponse } from 'msw/http';
+import { delay } from 'msw/utils/delay';
+import { sse } from 'msw/sse';
 import type { SleepRecord } from '@api/sleepSchema.ts';
 import type { Jobs } from '@api/jobs.ts';
 import {
@@ -154,46 +156,30 @@ export const handlers = [
     await delay(120);
     return HttpResponse.json({ logs: getLogFiles() });
   }),
-  http.get('/api/logs/:filename', ({ params }) => {
-    const filename = params.filename as string;
+  // Stream existing and newly appended demo log entries until the viewer disconnects.
+  sse('/api/logs/:filename', ({ params, request, client }) => {
+    const filename = String(params.filename);
     const logStore = listLogs();
     const initialLogs = deepClone(logStore[filename] ?? []);
     if (!logStore[filename]) {
-
-      // @ts-expect-error
-      return HttpResponse.eventStream({
-        // @ts-expect-error
-        open(controller) {
-          controller.send({ data: JSON.stringify({ message: 'Log file not found' }) });
-          controller.close();
-        },
-      });
+      client.send({ data: JSON.stringify({ message: 'Log file not found' }) });
+      client.close();
+      return;
     }
 
-    // @ts-expect-error
-    return HttpResponse.eventStream({
-      headers: {
-        'Cache-Control': 'no-cache',
-      },
-      // @ts-expect-error
-      open(controller) {
-        initialLogs.forEach((entry) => {
-          controller.send({ data: JSON.stringify({ message: entry }) });
-        });
-        let lastIndex = initialLogs.length;
-        const interval = setInterval(() => {
-          const latest = listLogs()[filename] ?? [];
-          if (latest.length > lastIndex) {
-            latest.slice(lastIndex).forEach((entry) => {
-              controller.send({ data: JSON.stringify({ message: entry }) });
-            });
-            lastIndex = latest.length;
-          }
-        }, 2000);
-
-        return () => clearInterval(interval);
-      },
+    initialLogs.forEach((entry) => {
+      client.send({ data: JSON.stringify({ message: entry }) });
     });
+    let lastIndex = initialLogs.length;
+    const interval = setInterval(() => {
+      const latest = listLogs()[filename] ?? [];
+      if (latest.length > lastIndex) {
+        latest.slice(lastIndex).forEach((entry) => {
+          client.send({ data: JSON.stringify({ message: entry }) });
+        });
+        lastIndex = latest.length;
+      }
+    }, 2000);
+    request.signal.addEventListener('abort', () => clearInterval(interval), { once: true });
   }),
 ];
-

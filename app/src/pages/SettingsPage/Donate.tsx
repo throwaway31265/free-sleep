@@ -31,7 +31,7 @@ export default function Donate() {
   return (
     <Section title="Support the Project" icon={ <AttachMoneyIcon/> }>
       <Box sx={ { display: 'flex', flexDirection: 'column', gap: 2 } }>
-        <Typography variant="body2" color="text.secondary" sx={ { fontSize: 12 } }>
+        <Typography variant="body2" sx={ { color: 'text.secondary', fontSize: 12 } }>
           Like the app? Don't like paying $200/year elsewhere? Buy me a drink instead!
         </Typography>
         <Box
@@ -48,10 +48,10 @@ export default function Donate() {
           </Link>
         </Box>
         <Box>
-          <Typography variant="body2" fontWeight={ 500 } sx={ { display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 } }>
+          <Typography variant="body2" sx={ { fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 } }>
             Bitcoin <CurrencyBitcoinIcon sx={ { fontSize: 18 } }/>
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={ { fontSize: 12, mb: 1.5 } }>
+          <Typography variant="body2" sx={ { color: 'text.secondary', fontSize: 12, mb: 1.5 } }>
             { copySuccess ? 'Copied!' : 'Copy and send to the bitcoin address below' }
           </Typography>
           <TextField
@@ -65,19 +65,21 @@ export default function Donate() {
               cursor: 'pointer',
               '& .MuiInputBase-input': { cursor: 'pointer', fontSize: '12px', fontFamily: 'monospace', py: 1.5 },
             } }
-            inputProps={ { readOnly: true } }
-            InputProps={ {
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Tooltip title="Copy">
-                    <IconButton onClick={ handleCopy }>
-                      <ContentCopyIcon sx={ { fontSize: 18 } }/>
-                    </IconButton>
-                  </Tooltip>
-                </InputAdornment>
-              ),
-            } }
-          />
+            slotProps={ {
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Tooltip title="Copy">
+                      <IconButton onClick={ handleCopy }>
+                        <ContentCopyIcon sx={ { fontSize: 18 } }/>
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                ),
+              },
+
+              htmlInput: { readOnly: true }
+            } } />
         </Box>
       </Box>
     </Section>

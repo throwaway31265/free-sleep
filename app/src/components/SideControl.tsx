@@ -30,7 +30,7 @@ export default function SideControl({ showTemp }: SideControlProps) {
               { settings?.[bedSide]?.name || `${bedSide === 'left' ? 'Left' : 'Right'} side` }
             </Typography>
             { showTemp && side !== bedSide && (
-              <Typography component="span" variant="caption" color="text.secondary" sx={ { flexShrink: 0 } }>
+              <Typography component="span" variant="caption" sx={ { color: 'text.secondary', flexShrink: 0 } }>
                 { deviceStatus?.[bedSide]?.isOn ? formatTemperature(deviceStatus[bedSide].targetTemperatureF, isCelsius) : 'Off' }
               </Typography>
             ) }

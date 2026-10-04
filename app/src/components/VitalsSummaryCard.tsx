@@ -22,11 +22,11 @@ type TileProps = {
 const Tile = ({ title, value, unit }: TileProps) => {
   const theme = useTheme();
   return (
-    <Box key={ title } textAlign="center" flex={ 1 } minWidth="30%">
+    <Box key={ title } sx={ { textAlign: 'center', flex: 1, minWidth: '30%' } }>
       <Typography variant="body2" color={ theme.palette.grey[400] }>
         { title }
       </Typography>
-      <Typography variant="body1" fontWeight="bold" color={ theme.palette.grey[100] }>
+      <Typography variant="body1" color={ theme.palette.grey[100] } sx={ { fontWeight: 'bold' } }>
         { value ? value: '--' }{ ' ' }
         <Typography variant="body2" component="span" color={ theme.palette.grey[400] }>
           { unit }
@@ -48,7 +48,7 @@ export default function VitalsSummaryCard({ startTime, endTime }: BiometricsSumm
       </Typography>
       { isFetching && <CircularProgress sx={ { display: 'block', mx: 'auto', my: 2 } } /> }
       { !isFetching && vitalsSummary !== undefined && (
-        <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={ 2 }>
+        <Box sx={ { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 } }>
           <Tile value={ vitalsSummary.avgHeartRate } title="Heart rate" unit="bpm" />
           <Tile value={ vitalsSummary.minHeartRate } title="Min HR" unit="bpm" />
           <Tile value={ vitalsSummary.maxHeartRate } title="Max HR" unit="bpm" />

@@ -12,6 +12,22 @@ The app uses Material-UI for styling and layout, Zustand for state management, a
 - `VITE_POD_IP=<YOUR_POD_IP> npm run dev`
 - `VITE_POD_IP=192.168.50.231 npm run dev`
 
+## Dependency upgrades
+
+Use Node 24, matching `.nvmrc` and the pinned Volta runtime. After changing dependencies,
+run `npx tsc -b`, `npm run lint`, and `npm run build:demo`. Preview the demo with
+`VITE_ENV=demo npm run preview` so Vite serves `app/dist`.
+
+These major upgrades are intentionally deferred:
+
+- ESLint 10: `eslint-plugin-react` currently supports ESLint through v9. Wait for
+  plugin support or migrate the React lint rules together.
+- Zod 4: app schemas re-export server schemas using Zod 3. Migrate both packages
+  and their validation behavior together.
+- TypeScript 7: `typescript-eslint` currently requires TypeScript below 6.1. The app
+  explicitly uses the existing TypeScript 5.9 compiler until a coordinated upgrade.
+- Node 26 types: keep `@types/node` on v24 while the runtime remains Node 24.
+
 ---
 
 ## Key Features

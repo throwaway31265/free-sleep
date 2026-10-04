@@ -45,10 +45,12 @@ const buildComponents = (): ThemeOptions['components'] => ({
         color: theme.palette.text.primary,
         '&:hover': { borderColor: theme.palette.text.secondary, background: theme.palette.action.hover },
       }),
-      containedPrimary: ({ theme }) => ({
-        backgroundColor: theme.palette.mode === 'dark' ? '#ededed' : '#202020',
-        color: theme.palette.mode === 'dark' ? '#202020' : '#ffffff',
-        '&:hover': { backgroundColor: theme.palette.mode === 'dark' ? '#ffffff' : '#383838' },
+      contained: ({ theme }) => ({
+        '&.MuiButton-colorPrimary': {
+          backgroundColor: theme.palette.mode === 'dark' ? '#ededed' : '#202020',
+          color: theme.palette.mode === 'dark' ? '#202020' : '#ffffff',
+          '&:hover': { backgroundColor: theme.palette.mode === 'dark' ? '#ffffff' : '#383838' },
+        },
       }),
     },
   },
@@ -104,13 +106,15 @@ const buildComponents = (): ThemeOptions['components'] => ({
   MuiAlert: {
     styleOverrides: {
       root: { borderRadius: 10, fontSize: 13, alignItems: 'center' },
-      standardWarning: ({ theme }) => ({
-        backgroundColor: alpha(theme.palette.warning.main, 0.06),
-        border: `1px solid ${alpha(theme.palette.warning.main, 0.18)}`,
-      }),
-      standardInfo: ({ theme }) => ({
-        backgroundColor: alpha(theme.palette.info.main, 0.06),
-        border: `1px solid ${alpha(theme.palette.info.main, 0.18)}`,
+      standard: ({ theme }) => ({
+        '&.MuiAlert-colorWarning': {
+          backgroundColor: alpha(theme.palette.warning.main, 0.06),
+          border: `1px solid ${alpha(theme.palette.warning.main, 0.18)}`,
+        },
+        '&.MuiAlert-colorInfo': {
+          backgroundColor: alpha(theme.palette.info.main, 0.06),
+          border: `1px solid ${alpha(theme.palette.info.main, 0.18)}`,
+        },
       }),
     },
   },

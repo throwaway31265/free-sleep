@@ -125,7 +125,7 @@ export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineCha
               moment(periodStart).format('HH:mm'),
           },
         ] }
-        legend={ { hidden: true } }
+        hideLegend
         series={ [
           {
             id: label,

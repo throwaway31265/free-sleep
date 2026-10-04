@@ -38,13 +38,12 @@ export default function LedBrightnessSlider() {
       });
   };
   return (
-
     <Box sx={ { display: 'flex', flexDirection: 'column', gap: 1, width: '100%' } }>
       <Box sx={ { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }>
-        <Typography variant="body2" fontWeight={ 500 }>
+        <Typography variant="body2" sx={ { fontWeight: 500 } }>
         LED Brightness
         </Typography>
-        <Typography variant="caption" color="text.secondary">{ settingsCopy?.ledBrightness || 0 }%</Typography>
+        <Typography variant="caption" sx={ { color: 'text.secondary' } }>{ settingsCopy?.ledBrightness || 0 }%</Typography>
       </Box>
       <Slider
         aria-label="LED Brightness"

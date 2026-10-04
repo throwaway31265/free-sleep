@@ -57,12 +57,14 @@ export default function AlarmTime() {
           display: 'none',
         },
       } }
-      InputProps={ {
-        endAdornment: (
-          <InputAdornment position="end" sx={ { cursor: 'pointer' } } >
-            <AccessTime sx={ { color: theme.palette.grey[500] } } fontSize='small'/>
-          </InputAdornment>
-        ),
+      slotProps={ {
+        input: {
+          endAdornment: (
+            <InputAdornment position="end" sx={ { cursor: 'pointer' } } >
+              <AccessTime sx={ { color: theme.palette.grey[500] } } fontSize='small'/>
+            </InputAdornment>
+          ),
+        }
       } }
 
     />

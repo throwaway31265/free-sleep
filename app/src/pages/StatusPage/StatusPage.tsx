@@ -16,20 +16,18 @@ export default function StatusPage() {
   const updatedAt = moment(dataUpdatedAt);
   const formatted = updatedAt.format('YYYY-MM-DD HH:mm:ss z');
   return (
-    <PageContainer
-      sx={ {
-        width: '100%',
-        maxWidth: 760,
-        mx: 'auto',
-      } }
-    >
+    <PageContainer sx={ { width: '100%', maxWidth: 760, mx: 'auto' } }>
       <Box>
         <PageHeader title="Server Status"/>
         <Typography
           variant="caption"
-          color="text.secondary"
-          sx={ { display: 'block', mt: 1, fontVariantNumeric: 'tabular-nums', overflowWrap: 'anywhere' } }
-        >
+          sx={ {
+            color: 'text.secondary',
+            display: 'block',
+            mt: 1,
+            fontVariantNumeric: 'tabular-nums',
+            overflowWrap: 'anywhere'
+          } }>
           Updated at: { formatted }
         </Typography>
       </Box>

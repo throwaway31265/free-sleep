@@ -111,7 +111,7 @@ export default function SleepRecordCard({ sleepRecord, refetch }: SleepRecordPro
         Sleep Summary
       </Typography>
 
-      <Box display="flex" flexDirection="column" gap={ 1 }>
+      <Box sx={ { display: 'flex', flexDirection: 'column', gap: 1 } }>
         { [
           { label: 'Period', value: `${startDay} - ${endDay}` },
           { label: 'Bedtime', value: bedtime, icon: <BedtimeIcon fontSize="small" /> },
@@ -123,9 +123,9 @@ export default function SleepRecordCard({ sleepRecord, refetch }: SleepRecordPro
             value: `${sleepRecord.times_exited_bed} ${sleepRecord.times_exited_bed === 1 ? 'time' : 'times'}`,
           },
         ].map(({ label, value, icon }) => (
-          <Box key={ label } display="flex" justifyContent="space-between" alignItems="center">
-            <Box display="flex" alignItems="center" gap={ 2 }>
-              { icon && <Box display="flex" alignItems="center">{ icon }</Box> }
+          <Box key={ label } sx={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }>
+            <Box sx={ { display: 'flex', alignItems: 'center', gap: 2 } }>
+              { icon && <Box sx={ { display: 'flex', alignItems: 'center' } }>{ icon }</Box> }
               <Typography sx={ { fontWeight: 'bold' } }>{ label }</Typography>
             </Box>
             <Typography>{ value }</Typography>
@@ -137,7 +137,7 @@ export default function SleepRecordCard({ sleepRecord, refetch }: SleepRecordPro
       <Dialog open={ editOpen } onClose={ () => setEditOpen(false) } fullWidth>
         <DialogTitle>Edit Sleep Record</DialogTitle>
         <DialogContent>
-          <Box display="flex" flexDirection="column" gap={ 2 } mt={ 1 }>
+          <Box sx={ { display: 'flex', flexDirection: 'column', gap: 2, mt: 1 } }>
             <DateTimePicker
               label="Entered Bed At"
               value={ enteredBedAt }

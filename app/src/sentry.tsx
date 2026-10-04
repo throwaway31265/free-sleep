@@ -32,8 +32,6 @@ export const initSentry = () => {
 
     Sentry.init({
       dsn: 'https://ddadf73739b2b5dfa084cf8e2734c8a7@o4510246020710401.ingest.us.sentry.io/4510246033817600',
-      // Setting this option to true will send default PII data to Sentry.
-      // For example, automatic IP address collection on events
       integrations: [
         Sentry.reactRouterV7BrowserTracingIntegration({
           useEffect: React.useEffect,
@@ -44,7 +42,22 @@ export const initSentry = () => {
         }),
       ],
       tracesSampleRate: 1.0,
-      sendDefaultPii: false,
+      // Keep the previous data collection settings when upgrading to Sentry 11.
+      dataCollection: {
+        userInfo: false,
+        cookies: false,
+        httpHeaders: {
+          request: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+          response: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+        },
+        httpBodies: [],
+        urlQueryParams: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+        genAI: { inputs: false, outputs: false },
+        databaseQueryData: false,
+        queues: false,
+        graphQL: { document: false, variables: false },
+      },
+      traceLifecycle: 'static',
       sampleRate: 1,
       environment: 'production',
       release: info.version,

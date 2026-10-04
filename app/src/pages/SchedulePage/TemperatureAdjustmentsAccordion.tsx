@@ -126,13 +126,7 @@ export default function TemperatureAdjustmentsAccordion({ displayCelsius }: { di
             .map(([time, temperature]) => (
               <Box
                 key={ time }
-                sx={ {
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  mb: 2,
-                  gap: 1,
-                } }
+                sx={ { display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, gap: 1 } }
               >
                 { /* Time selector */ }
                 <TextField
@@ -156,12 +150,14 @@ export default function TemperatureAdjustmentsAccordion({ displayCelsius }: { di
                       display: 'none',
                     },
                   } }
-                  InputProps={ {
-                    endAdornment: (
-                      <InputAdornment position="end" sx={ { cursor: 'pointer' } } >
-                        <AccessTime sx={ { color: theme.palette.grey[500] } } fontSize='small'/>
-                      </InputAdornment>
-                    ),
+                  slotProps={ {
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end" sx={ { cursor: 'pointer' } } >
+                          <AccessTime sx={ { color: theme.palette.grey[500] } } fontSize='small'/>
+                        </InputAdornment>
+                      ),
+                    }
                   } }
                 />
 

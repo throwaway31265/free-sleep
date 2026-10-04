@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Card, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { LineChart, lineElementClasses, areaElementClasses } from '@mui/x-charts/LineChart';
+import { LineChart, lineClasses } from '@mui/x-charts/LineChart';
 import { useResizeDetector } from 'react-resize-detector';
 import moment from 'moment-timezone';
 import type { MovementRecord } from '@api/movement.ts';
@@ -140,9 +140,9 @@ export default function MovementAreaChart({
           min: 0,
           max: 3,
           tickMinStep: 1,
-          valueFormatter: (y) => {
-            const m: Record<number, string> = { 1: 'REM', 2: 'Light', 3: 'Awake' };
-            return m[Number(y)] ?? ''; // hide any unexpected ticks
+          valueFormatter: (value: number) => {
+            const labels: Record<number, string> = { 1: 'REM', 2: 'Light', 3: 'Awake' };
+            return labels[Number(value)] ?? ''; // hide any unexpected ticks
           },
         }] }
         series={ [{
@@ -154,10 +154,10 @@ export default function MovementAreaChart({
           curve: 'stepAfter',
         }] }
         margin={ { left: 70, right: 30, top: 10, bottom: 40 } }
-        slotProps={ { legend: { hidden: true } } }
+        hideLegend
         sx={ {
-          [`& .${lineElementClasses.root}`]: { stroke: theme.palette.secondary.dark },
-          [`& .${areaElementClasses.root}`]: { fill: theme.palette.secondary.dark, opacity: 0.70, filter: 'none' },
+          [`& .${lineClasses.line}`]: { stroke: theme.palette.secondary.dark },
+          [`& .${lineClasses.area}`]: { fill: theme.palette.secondary.dark, opacity: 0.70, filter: 'none' },
         } }
       />
     </Card>

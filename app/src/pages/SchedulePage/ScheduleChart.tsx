@@ -2,7 +2,7 @@
 import { useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
 import { Paper } from '@mui/material';
-import { LineChart, lineElementClasses, areaElementClasses } from '@mui/x-charts/LineChart';
+import { LineChart, lineClasses } from '@mui/x-charts/LineChart';
 import { useDrawingArea } from '@mui/x-charts/hooks';
 
 import { useScheduleStore } from './scheduleStore.tsx';
@@ -247,8 +247,8 @@ export default function TemperatureScheduleChart() {
         } }
         sx={ {
           pt: 0,
-          [`& .${lineElementClasses.root}`]: { stroke: `url(#${gradLineId})` },
-          [`& .${areaElementClasses.root}`]: { fill: `url(#${gradAreaId})`, filter: 'none' },
+          [`& .${lineClasses.line}`]: { stroke: `url(#${gradLineId})` },
+          [`& .${lineClasses.area}`]: { fill: `url(#${gradAreaId})`, filter: 'none' },
           '& .MuiChartsAxis-bottom .MuiChartsAxis-line': {
             stroke: axisColor,
           },
@@ -265,7 +265,7 @@ export default function TemperatureScheduleChart() {
             stroke: axisColor,
           },
         } }
-        slotProps={ { legend: { hidden: true } } }
+        hideLegend
       >
         <HorizontalTempGradient
           idArea={ gradAreaId }
