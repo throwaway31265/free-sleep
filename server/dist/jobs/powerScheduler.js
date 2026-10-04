@@ -1,5 +1,5 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="c47fea5f-3fdb-5d34-b9c3-a971bf6baffc")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="6b43c70f-e2b3-5d28-8caa-657592d8aaa4")}catch(e){}}();
 import schedule from 'node-schedule';
 import { updateDeviceStatus } from '../routes/deviceStatus/updateDeviceStatus.js';
 import { getDayIndexForSchedule, getDayOfWeekIndex, logJob } from './utils.js';
@@ -85,7 +85,7 @@ export const schedulePowerOffAndSleepAnalysis = (settingsData, side, day, power)
     if (settingsData.timeZone === null)
         return;
     const offRule = new schedule.RecurrenceRule();
-    const dayOfWeekIndex = getDayIndexForSchedule(day, power.off);
+    const dayOfWeekIndex = getDayIndexForSchedule(day, power.off, power.on);
     offRule.dayOfWeek = dayOfWeekIndex;
     const time = power.off;
     const [offHour, offMinute] = time.split(':').map(Number);
@@ -114,4 +114,4 @@ export const schedulePowerOffAndSleepAnalysis = (settingsData, side, day, power)
     });
 };
 //# sourceMappingURL=powerScheduler.js.map
-//# debugId=c47fea5f-3fdb-5d34-b9c3-a971bf6baffc
+//# debugId=6b43c70f-e2b3-5d28-8caa-657592d8aaa4

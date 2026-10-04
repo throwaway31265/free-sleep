@@ -1,5 +1,5 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="e7951faa-771c-5de4-bed5-937e3379a3a4")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="690a873d-524b-592c-92aa-6220efa7f1a2")}catch(e){}}();
 import { exec } from 'child_process';
 import logger from '../logger.js';
 function execAsync(cmd) {
@@ -40,4 +40,4 @@ export async function loadWifiSignalStrength() {
     }
 }
 //# sourceMappingURL=wifiSignalStrength.js.map
-//# debugId=e7951faa-771c-5de4-bed5-937e3379a3a4
+//# debugId=690a873d-524b-592c-92aa-6220efa7f1a2

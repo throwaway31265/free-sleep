@@ -1,5 +1,5 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="f7c415b0-2bec-56be-b72d-bb0b23135cc1")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="db39d296-3006-596f-ac6f-ecb70407ce0c")}catch(e){}}();
 import { z } from 'zod';
 import { TIME_ZONES } from './timeZones.js';
 import { TimeSchema } from './schedulesSchema.js';
@@ -54,4 +54,4 @@ export const SettingsSchema = z.object({
     rebootDaily: z.boolean(),
 }).strict();
 //# sourceMappingURL=settingsSchema.js.map
-//# debugId=f7c415b0-2bec-56be-b72d-bb0b23135cc1
+//# debugId=db39d296-3006-596f-ac6f-ecb70407ce0c

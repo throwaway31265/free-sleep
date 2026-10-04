@@ -1,5 +1,5 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="0c1e81fa-3b2b-5897-bd67-8ac21ca60c64")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="8bd57111-2ce7-58e0-acf8-513bf1c791cb")}catch(e){}}();
 import { once } from 'events';
 import binarySplit from 'binary-split';
 export class MessageReadTimeoutError extends Error {
@@ -65,4 +65,4 @@ export class MessageStream {
     }
 }
 //# sourceMappingURL=messageStream.js.map
-//# debugId=0c1e81fa-3b2b-5897-bd67-8ac21ca60c64
+//# debugId=8bd57111-2ce7-58e0-acf8-513bf1c791cb

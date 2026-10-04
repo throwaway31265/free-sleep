@@ -1,5 +1,5 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="635124b4-1e48-5793-8ddc-c9d5acc18465")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="f1167bd7-b29f-5303-9dbd-7361f880d054")}catch(e){}}();
 import express from 'express';
 import cors from 'cors';
 import logger from '../logger.js';
@@ -76,4 +76,4 @@ export default function (app) {
     });
 }
 //# sourceMappingURL=middleware.js.map
-//# debugId=635124b4-1e48-5793-8ddc-c9d5acc18465
+//# debugId=f1167bd7-b29f-5303-9dbd-7361f880d054

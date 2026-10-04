@@ -1,5 +1,5 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="6a909daf-4dc2-552c-a962-8a4316e9cd26")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="f98a05b1-173e-5eba-9940-954630df819a")}catch(e){}}();
 import settingsDB from './settings.js';
 import moment from 'moment-timezone';
 export const loadVitals = async (vitalRecords) => {
@@ -11,4 +11,4 @@ export const loadVitals = async (vitalRecords) => {
     }));
 };
 //# sourceMappingURL=loadVitals.js.map
-//# debugId=6a909daf-4dc2-552c-a962-8a4316e9cd26
+//# debugId=f98a05b1-173e-5eba-9940-954630df819a

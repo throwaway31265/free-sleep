@@ -5,7 +5,7 @@
 // So I made a copy of their packages here, so we don't depend on being able to install
 // @eight/promises && @eight/promise-streams
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="93fd6816-2749-5d68-b104-0e043037fad0")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="4597a914-7619-5911-8e51-66ad113619c4")}catch(e){}}();
 export function toPromise(func) {
     return new Promise((resolve, reject) => {
         func((err, result) => {
@@ -32,4 +32,4 @@ export function wait(milliseconds) {
     return ret;
 }
 //# sourceMappingURL=promises.js.map
-//# debugId=93fd6816-2749-5d68-b104-0e043037fad0
+//# debugId=4597a914-7619-5911-8e51-66ad113619c4

@@ -1,5 +1,5 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="ce63dcd3-9049-5b9c-a6c6-b46c5fac8ff2")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="7b0fe748-2823-5243-997c-394f60f205ce")}catch(e){}}();
 import { executePythonScript } from './executePython.js';
 export const executeCalibrateSensors = (side, startTime, endTime) => {
     executePythonScript({
@@ -12,4 +12,4 @@ export const executeCalibrateSensors = (side, startTime, endTime) => {
     });
 };
 //# sourceMappingURL=calibrateSensors.js.map
-//# debugId=ce63dcd3-9049-5b9c-a6c6-b46c5fac8ff2
+//# debugId=7b0fe748-2823-5243-997c-394f60f205ce

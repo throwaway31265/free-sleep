@@ -11,10 +11,23 @@ export const initSentry = () => {
   logger.debug('Initializing sentry...');
   Sentry.init({
     dsn: 'https://228d64fe4724349cb4a82b982c7b1133@o4510246020710401.ingest.us.sentry.io/4510252638666752',
-    enableLogs: true,
-    // Setting this option to true will send default PII data to Sentry.
-    // For example, automatic IP address collection on events
-    sendDefaultPii: false,
+    // Preserve the restrictive data collection used before Sentry 11.
+    dataCollection: {
+      userInfo: false,
+      cookies: false,
+      httpHeaders: {
+        request: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+        response: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+      },
+      httpBodies: [],
+      urlQueryParams: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+      genAI: { inputs: false, outputs: false },
+      databaseQueryData: false,
+      queues: false,
+      graphQL: { document: false, variables: false },
+      frameContextLines: 7,
+    },
+    traceLifecycle: 'static',
     tracesSampleRate: 1.0,
     initialScope: {
       tags: {

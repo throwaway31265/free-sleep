@@ -44,13 +44,13 @@ export default function (app: Express) {
   // --- JSON parse / body parser errors (normalize to 400)
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     // If this isn't a body-parse error, pass it on to the central handler
-    if (!err || err.type !== 'entity.parse.failed') return next(err);
+    if (err?.type !== 'entity.parse.failed') return next(err);
     res.status(400).json({ error: { message: 'Invalid JSON' } });
   });
   Sentry.setupExpressErrorHandler(app);
 
   // --- Central error handler (must be AFTER routes and special-case handlers)
-  // eslint-disable-next-line no-unused-vars,@typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const isProd = process.env.NODE_ENV === 'production';
     const status = Number(err?.status) || 500;

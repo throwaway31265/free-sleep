@@ -1,5 +1,5 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="ca07c08e-ac96-5992-9ca4-451a00415d21")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="06b3c546-1950-5ca6-86b4-d42c407fcde2")}catch(e){}}();
 import * as Sentry from '@sentry/node';
 import express from 'express';
 import path from 'path';
@@ -41,13 +41,13 @@ export default function (app) {
     // --- JSON parse / body parser errors (normalize to 400)
     app.use((err, _req, res, next) => {
         // If this isn't a body-parse error, pass it on to the central handler
-        if (!err || err.type !== 'entity.parse.failed')
+        if (err?.type !== 'entity.parse.failed')
             return next(err);
         res.status(400).json({ error: { message: 'Invalid JSON' } });
     });
     Sentry.setupExpressErrorHandler(app);
     // --- Central error handler (must be AFTER routes and special-case handlers)
-    // eslint-disable-next-line no-unused-vars,@typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     app.use((err, _req, res, _next) => {
         const isProd = process.env.NODE_ENV === 'production';
         const status = Number(err?.status) || 500;
@@ -67,4 +67,4 @@ export default function (app) {
     logger.debug('Registered routes!');
 }
 //# sourceMappingURL=routes.js.map
-//# debugId=ca07c08e-ac96-5992-9ca4-451a00415d21
+//# debugId=06b3c546-1950-5ca6-86b4-d42c407fcde2

@@ -5,6 +5,28 @@ Express server intended to run on the 8 sleep pod.
 
 ## Developing
 
+### Dependency compatibility
+
+The Pod installer and Volta configuration use Node 24.11.0. Keep runtime dependencies compatible with that version; upgrading packages does not require changing the Pod runtime.
+
+- Prisma CLI and client are pinned together at 6.19.3. Prisma 7 requires a SQLite driver adapter and testing that native dependency on the Pod before migration.
+- Sentry CLI 3 is a development dependency used when building off the Pod; the production server does not execute it.
+- TypeScript is upgraded to 6.0, the newest version supported by typescript-eslint 8. TypeScript 7 changes the compiler API used by linting and ts-node, so that migration needs compatible tooling. Node type definitions stay on major 24 to match the Pod runtime.
+- Zod stays on major 3 to preserve nested partial REST updates and shared frontend types.
+- ESLint 10 uses `eslint.config.js`. Sentry 11 explicitly preserves the previous data-collection restrictions and transaction lifecycle.
+
+After changing dependencies, regenerate the Prisma client and checked-in server output, then check types and lint:
+
+```bash
+npm ci
+npm run generate
+npm run build:pr
+npm run lint
+npx tsc --noEmit
+```
+
+`build:pr` injects source-map debug IDs locally and does not upload to Sentry.
+
 ### Hot Reloading (on Pod) 
 1. SSH into the Pod and run
 ```
@@ -112,6 +134,3 @@ server/
 ```
 
 ---
-
-
-

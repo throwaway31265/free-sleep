@@ -1,5 +1,5 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="4e6d15f8-c2a4-5fab-8f74-665e169f86d6")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="f6af1dba-89d4-5dd5-90f4-f85e211c7ebc")}catch(e){}}();
 import _ from 'lodash';
 import cbor from 'cbor';
 import { executeFunction } from '../../8sleep/deviceApi.js';
@@ -80,4 +80,4 @@ export const updateDeviceStatus = async (deviceStatus) => {
     logger.info('Finished updating device status');
 };
 //# sourceMappingURL=updateDeviceStatus.js.map
-//# debugId=4e6d15f8-c2a4-5fab-8f74-665e169f86d6
+//# debugId=f6af1dba-89d4-5dd5-90f4-f85e211c7ebc

@@ -1,5 +1,5 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="337ba72b-75fe-5654-9611-e2e6600d4763")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="76488c38-e4a2-508b-93c3-6f918049d257")}catch(e){}}();
 import _ from 'lodash';
 import { connectFranken } from './frankenServer.js';
 import logger from '../logger.js';
@@ -37,4 +37,4 @@ export async function executeFunction(command, arg = 'empty') {
     return response;
 }
 //# sourceMappingURL=deviceApi.js.map
-//# debugId=337ba72b-75fe-5654-9611-e2e6600d4763
+//# debugId=76488c38-e4a2-508b-93c3-6f918049d257

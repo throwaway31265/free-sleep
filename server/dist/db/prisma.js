@@ -1,5 +1,5 @@
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="4ebfa1e8-630b-56e2-bf42-478767adacce")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="86fb3f98-0460-5f2d-b6c4-671bdb27b80a")}catch(e){}}();
 import { PrismaClient } from '@prisma/client';
 import logger from '../logger.js';
 export const prisma = new PrismaClient({
@@ -19,4 +19,4 @@ prisma.$on('warn', (event) => {
     });
 });
 //# sourceMappingURL=prisma.js.map
-//# debugId=4ebfa1e8-630b-56e2-bf42-478767adacce
+//# debugId=86fb3f98-0460-5f2d-b6c4-671bdb27b80a

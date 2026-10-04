@@ -1,6 +1,6 @@
 // WARNING! - Any changes here MUST be the same between app/src/api & server/src/db/
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="ea58dc83-8f79-5277-9f1f-c28054af9a80")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="404daa21-2bac-56ff-86f7-99a4d95e38c4")}catch(e){}}();
 import { z } from 'zod';
 const timeRegexFormat = /^([01]\d|2[0-3]):([0-5]\d)$/;
 export const SideSchema = z.enum(['right', 'left']);
@@ -47,4 +47,4 @@ export const SchedulesSchema = z.object({
     right: SideScheduleSchema,
 }).strict();
 //# sourceMappingURL=schedulesSchema.js.map
-//# debugId=ea58dc83-8f79-5277-9f1f-c28054af9a80
+//# debugId=404daa21-2bac-56ff-86f7-99a4d95e38c4

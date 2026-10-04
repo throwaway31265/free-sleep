@@ -1,6 +1,6 @@
 // WARNING! - Any changes here MUST be the same between app/src/api & server/src/db/
 
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="9ba781ac-210f-5bc4-be58-c5a18801893c")}catch(e){}}();
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="86403e2b-51bc-50d5-85c9-ed554c77aec9")}catch(e){}}();
 import { z } from 'zod';
 const StatusSchema = z.enum([
     'failed',
@@ -18,4 +18,4 @@ export const StatusInfoSchema = z.object({
     timestamp: z.string().optional(),
 });
 //# sourceMappingURL=serverStatusSchema.js.map
-//# debugId=9ba781ac-210f-5bc4-be58-c5a18801893c
+//# debugId=86403e2b-51bc-50d5-85c9-ed554c77aec9
