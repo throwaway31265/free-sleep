@@ -1,30 +1,8 @@
-import { DayOfWeek, Side, Time } from '../db/schedulesSchema.js';
+import { DayOfWeek, Side } from '../db/schedulesSchema.js';
 import logger from '../logger.js';
+import { DAYS_OF_WEEK } from './scheduleTiming.js';
 
-export const DAYS_OF_WEEK = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-export function getDayOfWeekIndex(day: DayOfWeek): number {
-  return DAYS_OF_WEEK.indexOf(day);
-}
-
-function getNextDayOfWeekIndex(day: DayOfWeek): number {
-  const dayIndex = getDayOfWeekIndex(day);
-  if (dayIndex === 6) return 0;
-  return dayIndex + 1;
-}
-
-
-function isEndTimeNextDay(endTime: Time) {
-  const endHour = Number(endTime.split(':')[0]);
-  return endHour <= 12;
-}
-
-export function getDayIndexForSchedule(scheduleDay: DayOfWeek, time: Time) {
-  if (isEndTimeNextDay(time)) {
-    return getNextDayOfWeekIndex(scheduleDay);
-  } else {
-    return getDayOfWeekIndex(scheduleDay);
-  }
-}
+export { DAYS_OF_WEEK, getDayOfWeekIndex, getDayIndexForSchedule } from './scheduleTiming.js';
 
 
 export function logJob(message: string, side: Side, day: DayOfWeek, dayIndex: number, time: string) {

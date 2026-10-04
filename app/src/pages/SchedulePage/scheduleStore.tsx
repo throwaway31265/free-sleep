@@ -6,11 +6,11 @@ import { AccordionExpanded } from './SchedulePage.types.ts';
 import { DaysSelected } from './SchedulePage.types.ts';
 import { useAppStore } from '@state/appStore.tsx';
 import { LOWERCASE_DAYS } from './days';
+import { isPowerScheduleDurationValid } from './scheduleValidation';
 
 
 
 type Validations = {
-  powerOffTimeIsValid: boolean;
   alarmTimeIsValid: boolean;
   // TODO: Validate temperature adjustments
   // temperatureAdjustmentsValid: boolean,
@@ -27,7 +27,6 @@ export const DEFAULT_DAYS_SELECTED: DaysSelected = {
 };
 
 const DEFAULT_VALIDATIONS: Validations = {
-  powerOffTimeIsValid: true,
   alarmTimeIsValid: true,
   // temperatureAdjustmentsValid: true,
 };
@@ -94,7 +93,6 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
   },
 
   validations: {
-    powerOffTimeIsValid: true,
     alarmTimeIsValid: true,
   },
   setValidations: (newValidations) => {
@@ -102,8 +100,10 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => ({
     set({ validations: _.merge(validations, newValidations) });
   },
   isValid: () => {
-    const { validations } = get();
-    return _.every(validations);
+    const { validations, selectedSchedule } = get();
+    return _.every(validations)
+      && !!selectedSchedule
+      && isPowerScheduleDurationValid(selectedSchedule.power.on, selectedSchedule.power.off);
   },
   changesPresent: false,
   checkForChanges: () => {

@@ -47,7 +47,7 @@ async function setupJobs() {
       Object.entries(sideSchedule).forEach(([day, schedule]) => {
         schedulePowerOn(settingsData, side as Side, day as DayOfWeek, schedule.power);
         schedulePowerOffAndSleepAnalysis(settingsData, side as Side, day as DayOfWeek, schedule.power);
-        scheduleTemperatures(settingsData, side as Side, day as DayOfWeek, schedule.temperatures);
+        scheduleTemperatures(settingsData, side as Side, day as DayOfWeek, schedule);
         scheduleAlarm(settingsData, side as Side, day as DayOfWeek, schedule);
       });
     });

@@ -92,7 +92,7 @@ export const schedulePowerOffAndSleepAnalysis = (settingsData: Settings, side: S
   if (settingsData.timeZone === null) return;
 
   const offRule = new schedule.RecurrenceRule();
-  const dayOfWeekIndex = getDayIndexForSchedule(day, power.off);
+  const dayOfWeekIndex = getDayIndexForSchedule(day, power.off, power.on);
   offRule.dayOfWeek = dayOfWeekIndex;
   const time = power.off;
   const [offHour, offMinute] = time.split(':').map(Number);

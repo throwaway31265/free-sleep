@@ -129,7 +129,7 @@ export const scheduleAlarm = (settingsData: Settings, side: Side, day: DayOfWeek
 
   const alarmRule = new schedule.RecurrenceRule();
 
-  const dayIndex = getDayIndexForSchedule(day, dailySchedule.power.off);
+  const dayIndex = getDayIndexForSchedule(day, dailySchedule.alarm.time, dailySchedule.power.on);
   alarmRule.dayOfWeek = dayIndex;
 
   const { time } = dailySchedule.alarm;
