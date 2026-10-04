@@ -21,6 +21,7 @@ import DeviceInfo from './DeviceSettingsSection/DeviceInfo.tsx';
 import DailyReboot from './DeviceSettingsSection/DailyReboot.tsx';
 import ErrorBoundary from '@components/ErrorBoundary.tsx';
 import PageHeader from '@components/PageHeader.tsx';
+import ConnectionBadge from '@components/ConnectionBadge.tsx';
 
 export default function SettingsPage() {
   const { data: settings, refetch } = useSettings();
@@ -39,7 +40,9 @@ export default function SettingsPage() {
 
   return (
     <PageContainer sx={ { maxWidth: 760, gap: 2.5 } }>
-      <PageHeader title="Settings"/>
+      <PageHeader title="Settings">
+        <Box sx={ { display: { xs: 'flex', md: 'none' } } }><ConnectionBadge/></Box>
+      </PageHeader>
       <ErrorBoundary componentName="Device settings">
         <DeviceSettingsSection updateSettings={ updateSettings }/>
       </ErrorBoundary>

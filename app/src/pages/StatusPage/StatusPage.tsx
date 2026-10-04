@@ -1,14 +1,14 @@
 import moment from 'moment-timezone';
 import { useServerStatus } from '@api/serverStatus.ts';
 import {
+  Box,
   CircularProgress,
   Typography,
 } from '@mui/material';
-import Grid from '@mui/material/GridLegacy';
 
 import PageContainer from '../PageContainer.tsx';
 import PageHeader from '@components/PageHeader.tsx';
-import StatusCard from './StatusCard.tsx';
+import StatusRow from './StatusRow.tsx';
 import { ServerStatusKey, StatusInfo } from '@api/serverStatusSchema.ts';
 
 export default function StatusPage() {
@@ -19,38 +19,40 @@ export default function StatusPage() {
     <PageContainer
       sx={ {
         width: '100%',
-        maxWidth: { xs: '100%', sm: '800px' },
+        maxWidth: 760,
         mx: 'auto',
       } }
     >
-      <PageHeader title="Server Status"/>
-      <Typography
-        variant="body2"
-        sx={ {
-          color: (t) => t.palette.text.secondary,
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-          minHeight: 24,
-        } }
-      >
+      <Box>
+        <PageHeader title="Server Status"/>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={ { display: 'block', mt: 1, fontVariantNumeric: 'tabular-nums', overflowWrap: 'anywhere' } }
+        >
           Updated at: { formatted }
-      </Typography>
+        </Typography>
+      </Box>
       { isLoading && <CircularProgress /> }
 
       {
         data && (
-          <Grid container spacing={ 2.5 } sx={ { mt: 1 } }>
+          <Box
+            component="ul"
+            aria-label="Service status"
+            sx={ { listStyle: 'none', m: 0, p: 0, borderTop: '1px solid', borderColor: 'divider' } }
+          >
             {
               // @ts-expect-error
               Object.keys(data).map((job: ServerStatusKey) => (
-                <StatusCard
+                <StatusRow
                   key={ job }
                   job={ job }
                   statusInfo={ data[job] as StatusInfo }
                 />
               ))
             }
-          </Grid>
+          </Box>
         )
 
       }

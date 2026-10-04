@@ -52,7 +52,7 @@ export default function StatusChip({ info }: { info: StatusInfo }) {
       color={ meta.color }
       variant={ meta.color === 'default' ? 'outlined' : 'filled' }
       size="small"
-      sx={ { fontWeight: 600, ml: 'auto' } }
+      sx={ { fontWeight: 500, flexShrink: 0, '& .MuiChip-icon': { fontSize: 15 } } }
     />
   );
 }

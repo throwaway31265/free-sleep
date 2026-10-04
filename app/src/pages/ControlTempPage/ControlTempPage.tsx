@@ -32,7 +32,12 @@ export default function ControlTempPage() {
   return (
     <PageContainer sx={ { maxWidth: 600, gap: 2, pt: { xs: 2.5, md: 5 } } }>
       <SideControl showTemp/>
-      <Paper sx={ { p: { xs: 2, sm: 3 }, overflow: 'hidden' } }>
+      <Paper
+        sx={ {
+          px: { xs: 0, sm: 3 }, py: { xs: 1.5, sm: 3 }, overflow: 'hidden',
+          bgcolor: { xs: 'transparent', sm: 'background.paper' },
+          borderWidth: { xs: 0, sm: 1 }, borderRadius: { xs: 0, sm: 3 },
+        } }>
         <Box sx={ { display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 } }>
           <Box sx={ { display: 'flex', alignItems: 'center', gap: 0.75 } }>
             <ThermostatOutlinedIcon sx={ { color: 'text.secondary', fontSize: 17 } }/>

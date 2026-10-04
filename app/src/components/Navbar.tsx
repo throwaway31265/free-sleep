@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppStore } from '@state/appStore.tsx';
 import { useServerInfo } from '@api/serverInfo.ts';
 import { PAGES, getPageForPath } from './pages';
+import ConnectionBadge from './ConnectionBadge';
 
 export default function Navbar() {
   const { pathname } = useLocation();
@@ -20,7 +21,7 @@ export default function Navbar() {
       variant="dot"
       color="info"
       invisible={ route !== '/settings' || !updateAvailable }
-      sx={ { '& .MuiBadge-badge': { boxShadow: '0 0 0 2px #111111' } } }
+      sx={ theme => ({ '& .MuiBadge-badge': { boxShadow: `0 0 0 2px ${theme.palette.background.default}` } }) }
     >
       { icon }
     </Badge>
@@ -33,7 +34,7 @@ export default function Navbar() {
         component="aside"
         sx={ {
           display: { xs: 'none', md: 'flex' }, position: 'fixed', inset: '0 auto 0 0', width: 224, p: 2,
-          flexDirection: 'column', borderRight: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', zIndex: 1100,
+          flexDirection: 'column', borderRight: '1px solid', borderColor: 'divider', bgcolor: 'background.default', zIndex: 1100,
         } }
       >
         <Box component={ Link } to="/" sx={ { display: 'flex', alignItems: 'center', gap: 1.25, p: 1, mb: 4, textDecoration: 'none' } }>
@@ -65,13 +66,14 @@ export default function Navbar() {
             </Button>
           )) }
         </Box>
+        <Box sx={ { mt: 'auto', px: 1, pt: 3 } }><ConnectionBadge/></Box>
       </Box>
       <Box
         component="nav"
         aria-label="Mobile navigation"
         sx={ {
           display: { xs: 'block', md: 'none' }, position: 'fixed', bottom: 0, left: 0, right: 0,
-          borderTop: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', zIndex: 1100,
+          borderTop: '1px solid', borderColor: 'divider', bgcolor: 'background.default', zIndex: 1100,
           pb: 'env(safe-area-inset-bottom)',
         } }
       >
