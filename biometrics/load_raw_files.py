@@ -7,9 +7,6 @@ import gc
 import sys
 import os
 import asyncio
-import socket
-import nats
-from nats.js.api import ConsumerConfig, DeliverPolicy
 
 # Add the current directory to sys.path
 sys.path.append(os.getcwd())
@@ -17,6 +14,7 @@ from data_types import *
 from get_logger import get_logger
 from raw_records import read_raw_record
 from capacitance import normalize_capacitance_record
+from nats_client import is_nats_running, load_nats_client
 
 logger = get_logger()
 
@@ -34,17 +32,9 @@ SUBJECT_MAP = {
 }
 
 
-def is_nats_running(host="127.0.0.1", port=4222, timeout=2):
-    """Checks if NATS server is active on localhost."""
-    try:
-        with socket.create_connection((host, port), timeout=timeout):
-            return True
-    except (ConnectionRefusedError, TimeoutError, OSError):
-        return False
-
-
 async def _fetch_jetstream_historical_data(start_time: datetime, end_time: datetime, raw_data_types: list, side: Side, sensor_count: int) -> dict:
     """Connects to JetStream and fetches historical messages inside the time window."""
+    nats, nats_api = load_nats_client()
     nc = None
     # Initialize dictionary keys exactly matching raw_data_types (e.g. 'piezo-dual', 'capSense' for analyze sleep)
     extracted_data = {field: [] for field in raw_data_types}
@@ -64,8 +54,8 @@ async def _fetch_jetstream_historical_data(start_time: datetime, end_time: datet
                 sub = await js.subscribe(
                     subject, 
                     stream="raw", 
-                    config=ConsumerConfig(
-                        deliver_policy=DeliverPolicy.BY_START_TIME,
+                    config=nats_api.ConsumerConfig(
+                        deliver_policy=nats_api.DeliverPolicy.BY_START_TIME,
                         opt_start_time=start_time
                     )
                 )

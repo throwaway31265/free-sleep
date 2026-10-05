@@ -5,7 +5,7 @@ on:
 
 jobs:
   biometrics:
-    name: RAW reader (Python ${{ matrix.python-version }}, cbor2 ${{ matrix.cbor-version }})
+    name: Biometrics (Python ${{ matrix.python-version }}, cbor2 ${{ matrix.cbor-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -21,10 +21,12 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install RAW reader test dependencies
-        run: python -m pip install "cbor2==${{ matrix.cbor-version }}" numpy watchdog nats-py
-      - name: Test RAW readers
+      - name: Install biometrics dependencies
+        run: python -m pip install -r biometrics/requirements.txt "cbor2==${{ matrix.cbor-version }}"
+      - name: Test biometrics
         run: python -m unittest discover -s biometrics/tests -v
+      - name: Test maintenance and dependency installation
+        run: python -m unittest discover -s scripts/tests -v
 
   build:
     name: Build

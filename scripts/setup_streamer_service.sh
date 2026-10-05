@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eu
 
 # Create a systemd service file for python streamer
 
@@ -22,11 +23,11 @@ echo "Reloading systemd daemon and enabling the service..."
 systemctl daemon-reload
 systemctl enable free-sleep-stream.service
 
-# Start the service
-echo "Starting the free-sleep-stream service..."
-systemctl start free-sleep-stream.service
+# Reload installed code and clear the start limit after missing-package crash loops.
+echo "Restarting the free-sleep-stream service..."
+systemctl reset-failed free-sleep-stream.service
+systemctl restart free-sleep-stream.service
 
 # Display service status
 echo "Checking service status..."
 systemctl status free-sleep-stream.service --no-pager
-

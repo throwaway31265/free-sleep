@@ -1,35 +1,35 @@
-#!/bin/bash
+#!/bin/sh
 
 python3 /home/dac/free-sleep/scripts/is_biometrics_installed.py
 result=$?
+biometrics_installed=false
 
 if [ $result -eq 0 ]; then
   echo "Biometrics environment not setup, continuing with installation..."
 elif [ $result -eq 1 ]; then
-  echo "Biometrics environment setup already, exiting!"
-  exit 0
+  echo "Biometrics is already installed; refreshing dependencies and enabling the streamer..."
+  biometrics_installed=true
 else
   echo "Unable to check if biometrics installed, exiting..."
   exit 1
 fi
 
 
-set -e  # Exit immediately if any command fails
-set -o pipefail  # Catch errors in piped commands
-set -u  # Treat unset variables as errors
+set -eu
 
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Catch any errors
 trap '
-  rc=$?;
-  if [ "$rc" -ne 0 ]; then
+  exit_status=$?
+  # Reporting an error must not prevent firewall cleanup or hide the original failure.
+  set +e
+  if [ "$exit_status" -ne 0 ]; then
     echo ""
-    echo -e "${RED}Error enabling biometrics!${NC}"
-    echo -e "${RED}Command that failed: $BASH_COMMAND - Exit code $rc ${NC}"
+    printf "%b\n" "${RED}Error enabling biometrics! Exit code $exit_status${NC}"
     echo ""
-    curl -s -X POST http://127.0.0.1:3000/api/services \
+    curl -s --max-time 10 -X POST http://127.0.0.1:3000/api/services \
       -H "Content-Type: application/json" \
       -d "{
         \"biometrics\": {
@@ -42,12 +42,14 @@ trap '
       }"
   fi
   sh /home/dac/free-sleep/scripts/block_internet_access.sh
-  exit $rc
+  exit "$exit_status"
 ' EXIT
 
 
 sh /home/dac/free-sleep/scripts/unblock_internet_access.sh
-sh /home/dac/free-sleep/scripts/setup_python.sh
+if [ "$biometrics_installed" = false ] || [ ! -x /home/dac/venv/bin/python ]; then
+  sh /home/dac/free-sleep/scripts/setup_python.sh
+fi
 sh /home/dac/free-sleep/scripts/install_python_packages.sh
 sh /home/dac/free-sleep/scripts/setup_streamer_service.sh
 
@@ -65,5 +67,6 @@ curl -X POST http://127.0.0.1:3000/api/services \
   }'
 
 sh /home/dac/free-sleep/scripts/block_internet_access.sh
-cd /home/dac/free-sleep/biometrics/sleep_detection && /home/dac/venv/bin/python calibrate_sensor_thresholds.py
-
+if [ "$biometrics_installed" = false ]; then
+  cd /home/dac/free-sleep/biometrics/sleep_detection && /home/dac/venv/bin/python calibrate_sensor_thresholds.py
+fi

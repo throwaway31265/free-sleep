@@ -12,6 +12,7 @@ import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
 import cbor2
+import nats
 import numpy as np
 import pandas as pd
 
@@ -254,7 +255,7 @@ class CapacitanceNatsTests(unittest.TestCase):
                     subscription = Mock(next_msg=AsyncMock(side_effect=messages))
                     jetstream = Mock(subscribe=AsyncMock(return_value=subscription))
                     connection = Mock(is_connected=True, jetstream=Mock(return_value=jetstream), close=AsyncMock())
-                    with patch.object(load_raw_files.nats, 'connect', AsyncMock(return_value=connection)):
+                    with patch.object(nats, 'connect', AsyncMock(return_value=connection)):
                         data = asyncio.run(load_raw_files._fetch_jetstream_historical_data(
                             start, start + timedelta(seconds=2), ['capSense'], side, 1
                         ))

@@ -22,9 +22,6 @@ import platform
 import cbor2
 from datetime import datetime, timedelta
 import asyncio
-import socket
-import nats
-from nats.js.api import ConsumerConfig, DeliverPolicy
 
 if platform.system().lower() == 'linux':
     sys.path.append('/home/dac/free-sleep/biometrics/')
@@ -48,19 +45,10 @@ from stream_processor import StreamProcessor
 from load_raw_files import load_piezo_row
 from raw_records import read_raw_record
 from service_health import update_health
+from nats_client import is_nats_running, load_nats_client
 
 # Global queue for processing decoded biometric data
 piezo_record_queue = queue.Queue()
-
-
-# Check if NATS is handling data collection (with newer firmware)
-def is_nats_running(host="127.0.0.1", port=4222, timeout=2):
-    # Connects to the NATS JetStream server if it's running
-    try:
-        with socket.create_connection((host, port), timeout=timeout):
-            return True
-    except (ConnectionRefusedError, TimeoutError, OSError):
-        return False
 
 
 # When NATS is running, we can listen directly for incoming data and send it to the legacy pipeline
@@ -72,12 +60,13 @@ async def watch_jetstream_directly():
     nc = None
 
     try:
+        nats, nats_api = load_nats_client()
         nc = await nats.connect("nats://127.0.0.1:4222")
         js = nc.jetstream()
 
         # Only listen to piezo records for processing
-        sub = await js.subscribe("raw.sens.piezo", stream="raw", config=ConsumerConfig(
-            deliver_policy=DeliverPolicy.NEW
+        sub = await js.subscribe("raw.sens.piezo", stream="raw", config=nats_api.ConsumerConfig(
+            deliver_policy=nats_api.DeliverPolicy.NEW
         ))
 
         while True:
@@ -203,6 +192,8 @@ class LatestRawFileHandler(FileSystemEventHandler):
 
 def process_biometrics():
     piezo_record = piezo_record_queue.get()
+    if piezo_record is None:
+        return
     stream_processor = StreamProcessor(piezo_record, debug=False)
     ix = 0
     while True:

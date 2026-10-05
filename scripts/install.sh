@@ -44,6 +44,12 @@ mv free-sleep-main "$REPO_DIR"
 
 chown -R "$USERNAME":"$USERNAME" "$REPO_DIR"
 
+# Synchronize installed biometrics before restarting services. Old updaters also
+# download this installer, so this repairs environments created before new dependencies.
+if [ -x /home/dac/venv/bin/python ]; then
+  sh "$REPO_DIR/scripts/install_python_packages.sh"
+fi
+
 # --------------------------------------------------------------------------------
 # Install or update Volta
 # - We check once. If it’s not installed, install it.
@@ -219,6 +225,12 @@ systemctl enable free-sleep.service
 
 echo "Starting free-sleep.service..."
 systemctl start free-sleep.service
+
+# Recover an enabled streamer even if it was already failing before the update.
+if systemctl is-enabled --quiet free-sleep-stream.service; then
+  systemctl reset-failed free-sleep-stream.service
+  systemctl restart free-sleep-stream.service
+fi
 
 echo "Checking free-sleep service status..."
 systemctl status free-sleep.service --no-pager || true

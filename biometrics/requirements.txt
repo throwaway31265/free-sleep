@@ -1,0 +1,7 @@
+numpy
+scipy
+pandas
+cbor2
+watchdog
+sentry-sdk
+nats-py

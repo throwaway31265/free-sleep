@@ -1,5 +1,32 @@
 # Biometrics
 
+## Python dependencies and updates
+
+`requirements.txt` is shared by initial installation, updates, and CI. The installer
+synchronizes it into an existing `/home/dac/venv` before restarting services. It
+reuses the environment and does not request upgrades of already satisfied packages.
+An enabled streamer is restarted even if it was failing before the update;
+disabled biometrics stays disabled. Running the enable script again also refreshes
+dependencies instead of exiting because installation was previously marked healthy.
+
+The NATS client (`nats-py`, imported as `nats`) is loaded only when the Pod uses a
+local NATS server. Legacy RAW-file reading works without that package. A missing
+client on a NATS Pod reports a dependency repair instruction.
+
+For installations already failing with `ModuleNotFoundError: No module named 'nats'`,
+this can be repaired over SSH before updating. The exit trap restores the usual
+Free Sleep internet block even if installation fails:
+
+```sh
+sudo bash -e -c '
+  trap "sh /home/dac/free-sleep/scripts/block_internet_access.sh" EXIT
+  sh /home/dac/free-sleep/scripts/unblock_internet_access.sh
+  /home/dac/venv/bin/python -m pip install nats-py
+  systemctl reset-failed free-sleep-stream.service
+  systemctl restart free-sleep-stream.service
+'
+```
+
 ## Stream Processor - Calculates vitals (`stream/`)
 
 - `stream.py`: Monitors the latest `.RAW` file and continuously processes biometric data.
@@ -148,6 +175,4 @@ Pod 5 sample (before normalization):
   "type": "piezo-dual"
 }
 ```
-
-
 
