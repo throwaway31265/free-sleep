@@ -260,6 +260,12 @@ sh /home/dac/free-sleep/scripts/setup_ssh.sh
 ```
 
 ## 19. Add firewall rules to block access to the internet (optional, but recommended)
+
+The firewall allows DNS queries (UDP/TCP port 53) and NTP (UDP port 123) so the Pod
+can find time servers and keep its clock synchronized. DNS queries are allowed to
+any resolver, including after your router changes DNS settings. Incoming DNS
+replies must belong to an established connection.
+
 ```
 sh /home/dac/free-sleep/scripts/block_internet_access.sh
 

@@ -2,36 +2,26 @@
 
 echo "Blocking internet access..."
 
-allow_dns_to_configured_resolvers() {
-  if [ ! -f /etc/resolv.conf ]; then
-    echo "No /etc/resolv.conf found; skipping DNS firewall allowances."
-    return
-  fi
+# Move an allowance ahead of existing DROP rules without accumulating duplicates.
+prepend_firewall_rule() (
+  firewall_command="$1"
+  shift
+  while "$firewall_command" -C "$@" 2>/dev/null; do
+    "$firewall_command" -D "$@" || return 1
+  done
+  "$firewall_command" -I "$@"
+)
 
-  echo "Allowing DNS traffic to configured resolvers..."
-  while read -r keyword resolver _; do
-    if [ "$keyword" != "nameserver" ] || [ -z "$resolver" ]; then
-      continue
-    fi
-
-    case "$resolver" in
-      *:*)
-        ip6tables -A OUTPUT -d "$resolver" -p udp --dport 53 -j ACCEPT
-        ip6tables -A INPUT -s "$resolver" -p udp --sport 53 -j ACCEPT
-        ip6tables -A OUTPUT -d "$resolver" -p tcp --dport 53 -j ACCEPT
-        ip6tables -A INPUT -s "$resolver" -p tcp --sport 53 -j ACCEPT
-        ;;
-      *.*)
-        iptables -A OUTPUT -d "$resolver" -p udp --dport 53 -j ACCEPT
-        iptables -A INPUT -s "$resolver" -p udp --sport 53 -j ACCEPT
-        iptables -A OUTPUT -d "$resolver" -p tcp --dport 53 -j ACCEPT
-        iptables -A INPUT -s "$resolver" -p tcp --sport 53 -j ACCEPT
-        ;;
-      *)
-        echo "Skipping unrecognized resolver address: $resolver"
-        ;;
-    esac
-  done < /etc/resolv.conf
+# DNS must survive resolver changes and upgrades that leave old firewall rules active.
+allow_dns_traffic() {
+  echo "Allowing DNS queries and established replies..."
+  for firewall_command in iptables ip6tables; do
+    for protocol in udp tcp; do
+      prepend_firewall_rule "$firewall_command" OUTPUT -p "$protocol" --dport 53 -j ACCEPT || return 1
+      prepend_firewall_rule "$firewall_command" INPUT -p "$protocol" --sport 53 \
+        -m conntrack --ctstate ESTABLISHED -j ACCEPT || return 1
+    done
+  done
 }
 
 # IPv4 Rules
@@ -80,7 +70,8 @@ iptables -A OUTPUT -d 172.16.0.0/12 -j ACCEPT
 iptables -A INPUT -s 192.168.0.0/16 -j ACCEPT
 iptables -A OUTPUT -d 192.168.0.0/16 -j ACCEPT
 
-allow_dns_to_configured_resolvers
+dns_rules_status=0
+allow_dns_traffic || dns_rules_status=$?
 
 # Allow NTP traffic - this allows us to synchronize the system time
 iptables -I OUTPUT -p udp --dport 123 -j ACCEPT
@@ -127,5 +118,10 @@ ip6tables -I INPUT -p udp --sport 123 -j ACCEPT
 ip6tables -A INPUT -j DROP
 ip6tables -A OUTPUT -j DROP
 ip6tables-save > /etc/iptables/ip6tables.rules
+
+if [ "$dns_rules_status" -ne 0 ]; then
+  echo "Failed to install DNS allowances; time synchronization may fail." >&2
+  exit "$dns_rules_status"
+fi
 
 echo "Blocked WAN internet access successfully!"
