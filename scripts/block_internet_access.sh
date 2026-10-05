@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "Blocking internet access..."
+firewall_rules_status=0
 
 # Move an allowance ahead of existing DROP rules without accumulating duplicates.
 prepend_firewall_rule() (
@@ -31,6 +32,7 @@ echo "Configuring IPv4 rules..."
 # Allow traffic to Sentry servers for error logging
 
 # https://docs.sentry.io/security-legal-pii/security/ip-ranges/#event-ingestion
+# Organization ingestion ranges used by our DSNs; verified 2026-10-05.
 
 # Check if ALLOW_SENTRY is true
 if [ "$ALLOW_SENTRY" = "false" ]; then
@@ -41,19 +43,24 @@ else
   echo -e "\e[33mSentry error logs will NOT be sent to Sentry unless error logging is explicitly enabled in the UI. (It's off by default)\e[0m"
   echo -e "\e[33mIf you'd like to block Sentry servers, run: 'ALLOW_SENTRY=false sh scripts/block_internet_access.sh'\e[0m"
   echo -e "\e[33m\e[0m"
-  # --- US IPs ---
   iptables -C INPUT  -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \
   iptables -I INPUT  -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
   iptables -C OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \
   iptables -I OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-  iptables -A OUTPUT -d 35.186.247.156 -j ACCEPT
-  iptables -A OUTPUT -d 34.120.195.249 -j ACCEPT
-  iptables -A OUTPUT -d 34.36.122.224  -j ACCEPT
-  iptables -A OUTPUT -d 34.36.87.148 -j ACCEPT
-  iptables -A OUTPUT -d 34.120.62.213 -j ACCEPT
-  iptables -A OUTPUT -d 130.211.36.74 -j ACCEPT
-  echo "Sentry error logging IP rules applied successfully."
+  for sentry_range in 34.160.81.0/32 34.102.210.18/32; do
+    prepend_firewall_rule iptables OUTPUT -d "$sentry_range" -j ACCEPT || firewall_rules_status=1
+  done
+  for sentry_range in 2600:1901:0:5e8a::/64 2600:1901:0:7edb::/64; do
+    prepend_firewall_rule ip6tables OUTPUT -d "$sentry_range" -j ACCEPT || firewall_rules_status=1
+    prepend_firewall_rule ip6tables INPUT -s "$sentry_range" \
+      -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT || firewall_rules_status=1
+  done
+  if [ "$firewall_rules_status" -eq 0 ]; then
+    echo "Sentry error logging IP rules applied successfully."
+  else
+    echo "Failed to install Sentry allowances; error logging may fail." >&2
+  fi
 fi
 
 # -----------------------------------------------------------------------------------------------------
@@ -70,8 +77,10 @@ iptables -A OUTPUT -d 172.16.0.0/12 -j ACCEPT
 iptables -A INPUT -s 192.168.0.0/16 -j ACCEPT
 iptables -A OUTPUT -d 192.168.0.0/16 -j ACCEPT
 
-dns_rules_status=0
-allow_dns_traffic || dns_rules_status=$?
+if ! allow_dns_traffic; then
+  echo "Failed to install DNS allowances; time synchronization may fail." >&2
+  firewall_rules_status=1
+fi
 
 # Allow NTP traffic - this allows us to synchronize the system time
 iptables -I OUTPUT -p udp --dport 123 -j ACCEPT
@@ -119,9 +128,8 @@ ip6tables -A INPUT -j DROP
 ip6tables -A OUTPUT -j DROP
 ip6tables-save > /etc/iptables/ip6tables.rules
 
-if [ "$dns_rules_status" -ne 0 ]; then
-  echo "Failed to install DNS allowances; time synchronization may fail." >&2
-  exit "$dns_rules_status"
+if [ "$firewall_rules_status" -ne 0 ]; then
+  exit "$firewall_rules_status"
 fi
 
 echo "Blocked WAN internet access successfully!"

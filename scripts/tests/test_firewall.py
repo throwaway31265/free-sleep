@@ -17,6 +17,8 @@ import unittest
 scripts_path = Path(__file__).resolve().parents[1]
 firewall_commands = ('iptables', 'ip6tables')
 public_resolvers = ('50.0.1.1', '2001:4860:4860::8888')
+sentry_ingestion_addresses = ('34.160.81.0', '34.102.210.18',
+                             '2600:1901:0:5e8a::1234', '2600:1901:0:7edb::abcd')
 
 
 class FirewallTests(unittest.TestCase):
@@ -186,6 +188,27 @@ class FirewallTests(unittest.TestCase):
         self.block(ALLOW_SENTRY='true')
         self.assert_dns_allowed()
         self.assert_wan_blocked()
+
+    def test_current_sentry_ingestion_ranges_work_on_an_already_blocked_pod(self):
+        self.block()
+        self.block(ALLOW_SENTRY='true')
+        for address in sentry_ingestion_addresses:
+            with self.subTest(address=address):
+                self.assertEqual(self.verdict(address, 'OUTPUT', 'tcp', 443), 'ACCEPT')
+                self.assertEqual(self.verdict(address, 'INPUT', 'tcp', 40000,
+                                              connection='ESTABLISHED', source_port=443), 'ACCEPT')
+                self.assertEqual(self.verdict(address, 'INPUT', 'tcp', 3000, source_port=443), 'DROP')
+        for address in ('35.186.247.156', '34.120.195.249', '34.36.122.224',
+                        '34.36.87.148', '34.120.62.213', '130.211.36.74'):
+            self.assertEqual(self.verdict(address, 'OUTPUT', 'tcp', 443), 'DROP')
+        self.assert_dns_allowed()
+        self.assert_wan_blocked()
+
+    def test_sentry_opt_out_keeps_ingestion_traffic_blocked(self):
+        self.block(ALLOW_SENTRY='false')
+        for address in sentry_ingestion_addresses:
+            self.assertEqual(self.verdict(address, 'OUTPUT', 'tcp', 443), 'DROP')
+        self.assert_dns_allowed()
 
 
 if __name__ == '__main__':
