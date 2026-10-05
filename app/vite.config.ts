@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import info from '../server/src/serverInfo.json' with { type: 'json' };
 
 const isDemoMode = process.env.VITE_ENV === 'demo';
+const isPrMode = process.env.VITE_ENV === 'pr';
 const isProdMode = process.env.VITE_ENV === 'prod';
 
 const plugins = [react()];
@@ -29,7 +30,8 @@ export default defineConfig({
   },
   build: {
     sourcemap: !isDemoMode,
-    outDir: isDemoMode ? './dist/' : '../server/public/',
+    // PR builds omit production Sentry code and must not overwrite committed assets.
+    outDir: isDemoMode || isPrMode ? './dist/' : '../server/public/',
     rolldownOptions: {
       output: {
         entryFileNames: 'index.js', // Set the name for the JS entry file
