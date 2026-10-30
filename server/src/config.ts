@@ -7,7 +7,6 @@ function checkIfDacSockPathConfigured(): string | undefined {
     // Check if the file exists
     const filePath = '/persistent/free-sleep-data/dac_sock_path.txt';
     if (!existsSync(filePath)) {
-      logger.debug(`dac.sock path not configured, defaulting to pod 3 path...`);
       return;
     }
 
@@ -66,7 +65,10 @@ class Config {
       logger.debug(`'Custom dac.sock path configured, using ${dacSockPath}`);
       return dacSockPath;
     } else if (!this.remoteDevMode){
-      logger.debug('No dac.sock path configured, defaulting to pod 3 path');
+      logger.warn(
+        `dac.sock path not configured in /persistent/free-sleep-data/dac_sock_path.txt, falling back to pod 3 path ` +
+        `${FIRMWARE_MAP.pod3FirmwareReset.dacLocation}. If Franken can't connect, write frank's DAC_SOCKET path to that file.`
+      );
       return FIRMWARE_MAP.pod3FirmwareReset.dacLocation;
 
     } else if (this.remoteDevMode) {
