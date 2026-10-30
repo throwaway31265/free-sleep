@@ -79,24 +79,27 @@ sudo -u "$USERNAME" bash -c "source /home/$USERNAME/.profile && volta install no
 mkdir -p /persistent/free-sleep-data/logs/
 mkdir -p /persistent/free-sleep-data/lowdb/
 
-SRC_FILE="/opt/eight/bin/frank.sh"
+# frank.sh can be missing on Pod 4, which sets DAC_SOCKET in the frank systemd unit instead
+SRC_FILES=("/opt/eight/bin/frank.sh" "/lib/systemd/system/frank.service")
 DEST_FILE="/persistent/free-sleep-data/dac_sock_path.txt"
 
 if [ -f "$DEST_FILE" ]; then
   echo "Destination file $DEST_FILE already exists, skipping copy."
 else
-  if [ -r "$SRC_FILE" ]; then
+  for SRC_FILE in "${SRC_FILES[@]}"; do
+    if [ ! -r "$SRC_FILE" ]; then
+      echo "File $SRC_FILE not found or not readable, skipping."
+      continue
+    fi
     echo "Found $SRC_FILE, searching for dac.sock path..."
-    result=$(grep -oP '(?<=DAC_SOCKET=)[^ ]*dac\.sock' "$SRC_FILE" || true)
+    result=$(grep -oP '(?<=DAC_SOCKET=)[^ ]*dac\.sock' "$SRC_FILE" | head -n 1 || true)
     if [ -n "$result" ]; then
       echo "$result" > "$DEST_FILE"
       echo "DAC socket path saved to $DEST_FILE"
-    else
-      echo "No dac.sock path found in $SRC_FILE, skipping write."
+      break
     fi
-  else
-    echo "File $SRC_FILE not found or not readable, skipping."
-  fi
+    echo "No dac.sock path found in $SRC_FILE."
+  done
 fi
 
 
