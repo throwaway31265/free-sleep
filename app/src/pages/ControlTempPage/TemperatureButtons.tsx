@@ -51,10 +51,13 @@ export default function TemperatureButtons({ refetch, currentTargetTemp }: Tempe
 
   const handleClick = (change: number) => {
     if (!deviceStatus) return;
-    if (deviceStatus === undefined) return;
+    // Presses land before the Pod reports back, so the pending value can run past the limits.
+    // The server rejects an out-of-range target and the whole adjustment is lost.
+    const nextTargetTemperatureF = Math.min(MAX_TEMP_F, Math.max(MIN_TEMP_F, deviceStatus[side].targetTemperatureF + change));
+    if (nextTargetTemperatureF === deviceStatus[side].targetTemperatureF) return;
     setDeviceStatus({
       [side]: {
-        targetTemperatureF: deviceStatus[side].targetTemperatureF + change,
+        targetTemperatureF: nextTargetTemperatureF,
       }
     });
 
