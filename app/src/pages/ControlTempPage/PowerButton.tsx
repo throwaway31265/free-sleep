@@ -15,16 +15,19 @@ import { useControlTempStore } from './controlTempStore.tsx';
 
 type PowerButtonProps = {
   isOn: boolean;
+  // False until the Pod has reported its state. Until then `isOn` is a placeholder (false),
+  // so the button reads "Turn on" and a press could act on a side that is already on.
+  isStatusLoaded: boolean;
   refetch: any;
 }
 
-export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
+export default function PowerButton({ isOn, isStatusLoaded, refetch }: PowerButtonProps) {
   const { isUpdating, setIsUpdating, side } = useAppStore();
   const { data: settings } = useSettings();
   const { data: services } = useServices();
   const setDeviceStatus = useControlTempStore(state => state.setDeviceStatus);
   const isInAwayMode = settings?.[side]?.awayMode;
-  const disabled = isUpdating || isInAwayMode;
+  const disabled = isUpdating || isInAwayMode || !isStatusLoaded;
   const [showAnalyzeSleep, setShowAnalyzeSleep] = useState(false);
   const [showAnalyzeNotification, setShowAnalyzeNotification] = useState(false);
 
