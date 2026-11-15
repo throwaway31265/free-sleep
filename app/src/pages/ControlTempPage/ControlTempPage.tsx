@@ -63,7 +63,7 @@ export default function ControlTempPage() {
         { isError ? (
           <Button fullWidth variant="contained" onClick={ () => refetch() } disabled={ isUpdating }>Reconnect</Button>
         ) : (
-          <PowerButton isOn={ isOn } refetch={ refetch }/>
+          <PowerButton isOn={ isOn } isStatusLoaded={ sideStatus !== undefined } refetch={ refetch }/>
         ) }
       </Paper>
       <Box sx={ { display: 'flex', flexDirection: 'column', gap: 1.5 } }>
