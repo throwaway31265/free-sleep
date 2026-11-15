@@ -10,7 +10,6 @@ import { DailySchedule, Time } from '../../../../server/src/db/schedulesSchema.t
 import { useSettings } from '@api/settings.ts';
 import {
   farenheitToCelcius,
-  formatTemperature,
   MAX_TEMP_C,
   MAX_TEMP_F,
   MIN_TEMP_C,
@@ -229,7 +228,9 @@ export default function TemperatureScheduleChart() {
           min: yMin,
           max: yMax,
           tickLabelStyle: { fill: axisColor },
-          valueFormatter: (value: number) => formatTemperature(value, isCelsius) ,
+          // The series is already in the display unit, so the tick only needs its suffix.
+          // formatTemperature would convert a °C value from °F a second time.
+          valueFormatter: (value: number) => `${value}°${isCelsius ? 'C' : 'F'}`,
         }] }
         series={ [{
           id: 'targeTempF',
