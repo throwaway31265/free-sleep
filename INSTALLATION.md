@@ -172,6 +172,18 @@ systemctl mask swupdate-progress swupdate defibrillator eight-kernel telegraf ve
 
 ## 12. Setup internet access
 
+**Pod 5, or any Pod that was already set up in the Eight Sleep app:** the Pod already has a saved Wi-Fi profile
+(`customer-wifi`) and is normally online at this point. Check before adding anything:
+```
+nmcli -g ip4.address device show wlan0
+```
+If that prints an address, **skip this step**. Adding a second profile and then running the `sed` line below gives
+every saved profile the same UUID. The Pod keeps working until the next reboot and then does not rejoin Wi-Fi
+(`nmcli connection up` reports that the network could not be found), which leaves the serial console as the only way in.
+
+If that already happened, log in over serial, keep one profile in `/persistent/system-connections/` and move the
+others out of that folder, then run `nmcli connection reload` and `nmcli connection up customer-wifi`.
+
 ```
 # Replace WIFI_NAME and PASSWORD with your actual WiFi credentials
 # (WIFI_NAME appears twice)
