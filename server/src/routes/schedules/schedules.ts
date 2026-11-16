@@ -43,7 +43,8 @@ router.post('/schedules', async (req: Request, res: Response) => {
         _.merge(schedulesDB.data[side][day].power, schedule.power);
       }
       if (schedule.temperatures) schedulesDB.data[side][day].temperatures = schedule.temperatures;
-      if (schedule.alarm) schedulesDB.data[side][day].alarm = schedule.alarm;
+      // Merged, like power: a request with only some alarm fields must keep the others
+      if (schedule.alarm) _.merge(schedulesDB.data[side][day].alarm, schedule.alarm);
     });
   });
   await schedulesDB.write();
