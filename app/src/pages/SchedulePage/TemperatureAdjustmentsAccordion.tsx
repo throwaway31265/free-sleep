@@ -18,12 +18,12 @@ import { useAppStore } from '@state/appStore.tsx';
 import { DailySchedule } from '@api/schedulesSchema.ts';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 
-import { formatTemperature } from '@lib/temperatureConversions.ts';
+import { MAX_TEMP_F, MIN_TEMP_F, formatTemperature } from '@lib/temperatureConversions.ts';
 import AccessTime from '@mui/icons-material/AccessTime';
 import { useTheme } from '@mui/material/styles';
 
 const ACCORDION_NAME = 'temperatureAdjustments';
-const TEMPERATURES_LIST = _.range(55, 111); // Generates a range from 55 to 110 inclusive
+const TEMPERATURES_LIST = _.range(MIN_TEMP_F, MAX_TEMP_F + 1);
 
 export default function TemperatureAdjustmentsAccordion({ displayCelsius }: { displayCelsius: boolean }) {
   const {
