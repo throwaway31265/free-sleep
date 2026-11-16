@@ -10,8 +10,8 @@ const closeTo = (actual, expected) => assert.ok(Math.abs(actual - expected) < 0.
 test('levels give the temperatures the firmware reported aiming for', () => {
   // [level, °C] as reported by a Pod 5's firmware
   const measured = [
-    [-100, 10], [-90, 16.2], [-80, 17.4], [-50, 21], [-10, 25.8], [0, 27],
-    [10, 28.8], [40, 34.2], [50, 36], [60, 37.2], [90, 40.8], [100, 42],
+    [-100, 10], [-99, 15.12], [-98, 15.24], [-95, 15.6], [-91, 16.08], [-90, 16.2], [-80, 17.4], [-50, 21], [-10, 25.8], [0, 27],
+    [10, 28.8], [25, 31.5], [40, 34.2], [50, 36], [60, 37.2], [70, 38.4], [90, 40.8], [100, 42],
   ];
   for (const [level, temperatureC] of measured) {
     closeTo(levelToTemperatureF(level), temperatureC * 9 / 5 + 32);
@@ -42,6 +42,7 @@ test('temperatures saved under the old even spread keep their level', () => {
   assert.equal(convertFromEvenSpreadF(110), 108);
   assert.equal(convertFromEvenSpreadF(83), 81);
   assert.equal(convertFromEvenSpreadF(58), 61);
+  assert.equal(convertFromEvenSpreadF(56), 60);
   for (let oldF = 55; oldF <= 110; oldF++) {
     const oldLevel = Math.round((oldF - 82.5) / 0.275);
     const newLevel = temperatureFToLevel(convertFromEvenSpreadF(oldF));

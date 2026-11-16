@@ -3,11 +3,11 @@
 //
 // The firmware works in levels from -100 to 100. These are the temperatures it reported aiming
 // for at each level on a Pod 5 (published on NATS as `rawmem.frz.therm`): three straight
-// stretches, plus a drop to "as cold as possible" at -100. Levels between the points are on the
-// straight line between them.
+// stretches, with levels between the points on the straight line between them. Level -100 alone
+// is different: it drops to 10°C, "as cold as possible", while -99 is still on the first stretch.
 const CURVE_POINTS_C: [level: number, temperatureC: number][] = [
   [-100, 10],
-  [-90, 16.2],
+  [-99, 15.12],
   [0, 27],
   [50, 36],
   [100, 42],
