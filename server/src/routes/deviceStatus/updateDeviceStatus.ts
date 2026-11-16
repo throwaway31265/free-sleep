@@ -58,7 +58,9 @@ const updateSide = async (side: 'left' | 'right', sideStatus: DeepPartial<SideSt
     logger.debug('Can only set isAlarmVibrating to false for now...');
     if (!isAlarmVibrating) await executeFunction('ALARM_CLEAR', 'empty');
     await memoryDB.read();
-    memoryDB.data[side].isAlarmVibrating = false;
+    // ALARM_CLEAR takes no side: the firmware stops the vibration on both, so neither is vibrating
+    memoryDB.data.left.isAlarmVibrating = false;
+    memoryDB.data.right.isAlarmVibrating = false;
     await memoryDB.write();
   }
 };
