@@ -1,12 +1,14 @@
 // WARNING! - Any changes here MUST be the same between app/src/api & server/src/db/
 
 import { z } from 'zod';
+import { MIN_TEMPERATURE_F } from '../../db/temperatureCurve.js';
 
 const SideStatusSchema = z.object({
   currentTemperatureLevel: z.number(),
   currentTemperatureF: z.number(),
   targetTemperatureF: z.number()
-    .min(55, { message: 'Temperature must be at least 55°F' })
+    .min(MIN_TEMPERATURE_F, { message: `Temperature must be at least ${MIN_TEMPERATURE_F}°F` })
+    // Up to the old maximum is still accepted and treated as the hottest setting
     .max(110, { message: 'Temperature cannot exceed 110°F' }),
   secondsRemaining: z.number(),
   isOn: z.boolean(),

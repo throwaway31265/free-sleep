@@ -6,13 +6,11 @@ import { DeviceStatus, SideStatus } from './deviceStatusSchema.js';
 import { executeFunction } from '../../8sleep/deviceApi.js';
 import logger from '../../logger.js';
 import settingsDB from '../../db/settings.js';
+import { temperatureFToLevel } from '../../db/temperatureCurve.js';
 import memoryDB from '../../db/memoryDB.js';
 import { INVERTED_SETTINGS_KEY_MAPPING } from '../../8sleep/loadDeviceStatus.js';
 
-const calculateLevelFromF = (temperatureF: number) => {
-  const level = (temperatureF - 82.5) / 27.5 * 100;
-  return Math.round(level).toString();
-};
+const calculateLevelFromF = (temperatureF: number) => temperatureFToLevel(temperatureF).toString();
 
 const updateSide = async (side: 'left' | 'right', sideStatus: DeepPartial<SideStatus>) => {
   await settingsDB.read();

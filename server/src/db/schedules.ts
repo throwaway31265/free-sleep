@@ -4,6 +4,7 @@ import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 import { DailySchedule, Schedules, SideSchedule } from './schedulesSchema.js';
 import config from '../config.js';
+import { migrateTemperatureScaleOnce } from './migrateTemperatureScale.js';
 
 
 const defaultDailySchedule: DailySchedule = {
@@ -39,11 +40,14 @@ const defaultData: Schedules = {
   right: _.cloneDeep(defaultSideSchedule),
 };
 
-const file = new JSONFile<Schedules>(`${config.lowDbFolder}schedulesDB.json`);
+const schedulesFile = `${config.lowDbFolder}schedulesDB.json`;
+const file = new JSONFile<Schedules>(schedulesFile);
 const schedulesDB = new Low<Schedules>(file, defaultData);
 await schedulesDB.read();
 // Allows us to add default values to the schedules if users have existing schedulesDB.json data
 schedulesDB.data = _.merge({}, defaultData, schedulesDB.data);
+// Temperatures saved before the level-to-temperature curve was measured are converted once
+schedulesDB.data = migrateTemperatureScaleOnce(schedulesDB.data, { schedulesFile, dataFolder: config.dbFolder });
 await schedulesDB.write();
 
 export default schedulesDB;

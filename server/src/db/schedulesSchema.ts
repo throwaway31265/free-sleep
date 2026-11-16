@@ -1,13 +1,15 @@
 // WARNING! - Any changes here MUST be the same between app/src/api & server/src/db/
 
 import { z } from 'zod';
+import { MIN_TEMPERATURE_F } from './temperatureCurve.js';
 const timeRegexFormat = /^([01]\d|2[0-3]):([0-5]\d)$/;
 export const SideSchema = z.enum(['right', 'left']);
 
 
 // Reusable Zod type for time
 export const TimeSchema = z.string().regex(timeRegexFormat, 'Invalid time format, must be HH:mm');
-export const TemperatureSchema = z.number().int().min(55).max(110);
+// 50°F is the coldest the Pod can be set to. Up to 110 is accepted (the old maximum) and treated as the hottest.
+export const TemperatureSchema = z.number().int().min(MIN_TEMPERATURE_F).max(110);
 
 
 export const AlarmSchema = z.object({
