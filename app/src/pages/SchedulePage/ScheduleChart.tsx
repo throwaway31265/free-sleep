@@ -9,6 +9,8 @@ import { useScheduleStore } from './scheduleStore.tsx';
 import { DailySchedule, Time } from '../../../../server/src/db/schedulesSchema.ts';
 import { useSettings } from '@api/settings.ts';
 import {
+  COOL_COLOR,
+  HOT_COLOR,
   farenheitToCelcius,
   formatTemperature,
   MAX_TEMP_C,
@@ -272,8 +274,8 @@ export default function TemperatureScheduleChart() {
           idLine={ gradLineId }
           points={ points }
           threshold={ isCelsius ? THRESHOLD_C : THRESHOLD_F }
-          colorCool="#2196f3"
-          colorHot="#d32f2f"
+          colorCool={ COOL_COLOR }
+          colorHot={ HOT_COLOR }
           areaAlpha={ AREA_ALPHA }
           lineAlpha={ LINE_ALPHA }
         />

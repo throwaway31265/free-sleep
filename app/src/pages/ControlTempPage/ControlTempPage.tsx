@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Alert, Box, Button, Chip, Paper, Skeleton, Typography } from '@mui/material';
-import ThermostatOutlinedIcon from '@mui/icons-material/ThermostatOutlined';
+import { alpha } from '@mui/material/styles';
 import AlarmDismissal from './AlarmDismissal.tsx';
 import AlarmNotification from './AlarmNotification.tsx';
 import AwayNotification from './AwayNotification.tsx';
@@ -15,14 +15,19 @@ import { useAppStore } from '@state/appStore.tsx';
 import { useControlTempStore } from './controlTempStore.tsx';
 import { useDeviceStatus } from '@api/deviceStatus';
 import { useSettings } from '@api/settings.ts';
+import { getTemperatureColor } from '@lib/temperatureConversions.ts';
 
 export default function ControlTempPage() {
   const { isError, isPending, refetch, data: deviceStatus } = useDeviceStatus();
   const setDeviceStatus = useControlTempStore(state => state.setDeviceStatus);
   const { data: settings } = useSettings();
   const { isUpdating, side } = useAppStore();
+  const liveTargetTempF = useControlTempStore(state => state.deviceStatus?.[side]?.targetTemperatureF);
   const sideStatus = deviceStatus?.[side];
   const isOn = sideStatus?.isOn || false;
+  const sideName = settings?.[side]?.name || `${side === 'left' ? 'Left' : 'Right'} side`;
+  // Glow follows the dial while it's being dragged, falling back to the Pod's reported target
+  const glowColor = isOn ? getTemperatureColor(liveTargetTempF ?? sideStatus?.targetTemperatureF) : undefined;
 
   useEffect(() => { refetch(); }, [side, refetch]);
   useEffect(() => {
@@ -30,27 +35,39 @@ export default function ControlTempPage() {
   }, [deviceStatus, setDeviceStatus]);
 
   return (
-    <PageContainer sx={ { maxWidth: 600, gap: 2, pt: { xs: 2.5, md: 5 } } }>
+    <PageContainer sx={ { maxWidth: 560, gap: 2, pt: { xs: 2, md: 5 } } }>
       <SideControl showTemp/>
       <Paper
-        sx={ {
-          px: { xs: 0, sm: 3 }, py: { xs: 1.5, sm: 3 }, overflow: 'hidden',
-          bgcolor: { xs: 'transparent', sm: 'background.paper' },
-          borderWidth: { xs: 0, sm: 1 }, borderRadius: { xs: 0, sm: 3 },
-        } }>
-        <Box sx={ { display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 } }>
-          <Box sx={ { display: 'flex', alignItems: 'center', gap: 0.75 } }>
-            <ThermostatOutlinedIcon sx={ { color: 'text.secondary', fontSize: 17 } }/>
-            <Typography variant="body2" sx={ { fontWeight: 500 } }>Bed temperature</Typography>
+        sx={ theme => ({
+          position: 'relative', overflow: 'hidden', isolation: 'isolate',
+          px: { xs: 2, sm: 3 }, pt: 2.5, pb: { xs: 2.5, sm: 3 }, borderRadius: '28px',
+          // Static temperature glow. Background color changes are cheap; no blur or animation loop.
+          '&::before': {
+            content: '""', position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
+            background: glowColor
+              ? `radial-gradient(70% 55% at 50% 42%, ${alpha(glowColor, theme.palette.mode === 'dark' ? 0.22 : 0.16)} 0%, transparent 72%)`
+              : 'none',
+            transition: 'background 400ms ease',
+          },
+        }) }
+      >
+        <Box sx={ { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 } }>
+          <Box sx={ { minWidth: 0 } }>
+            <Typography variant="overline" sx={ { color: 'text.secondary', display: 'block', lineHeight: 1.4 } }>Bed temperature</Typography>
+            <Typography variant="h5" component="h1" noWrap>{ sideName }</Typography>
           </Box>
-          <Chip label={ isPending ? 'Connecting' : isOn ? 'Active' : 'Standby' } color={ isOn ? 'success' : 'default' } size="small"/>
+          <Chip
+            label={ isPending ? 'Connecting' : isError ? 'Offline' : isOn ? 'Active' : 'Standby' }
+            color={ isError ? 'error' : isOn ? 'success' : 'default' }
+            size="small"
+          />
         </Box>
         { isPending ? (
-          <Skeleton variant="circular" width={ 240 } height={ 240 } sx={ { mx: 'auto', my: 3 } }/>
+          <Skeleton variant="circular" width={ 260 } height={ 260 } sx={ { mx: 'auto', my: 3 } }/>
         ) : isError ? (
           <Alert severity="error" sx={ { my: 3 } }>Unable to reach your Pod. Try connecting again.</Alert>
         ) : (
-          <Box sx={ { display: 'flex', justifyContent: 'center', pt: 1 } }>
+          <Box sx={ { display: 'flex', justifyContent: 'center', pt: 1.5 } }>
             <Slider
               isOn={ isOn }
               currentTargetTemp={ sideStatus?.targetTemperatureF ?? 55 }

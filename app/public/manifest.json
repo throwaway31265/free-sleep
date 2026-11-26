@@ -3,8 +3,8 @@
   "short_name": "Free Sleep",
   "start_url": "/temperature",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#070a12",
+  "theme_color": "#070a12",
   "description": "Free Sleep",
   "icons": [
     {

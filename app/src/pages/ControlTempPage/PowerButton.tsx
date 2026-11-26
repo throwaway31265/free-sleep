@@ -1,4 +1,4 @@
-import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNewRounded';
 import SearchIcon from '@mui/icons-material/Search';
 import { Button, Box } from '@mui/material';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
@@ -77,7 +77,8 @@ export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
         variant={ isOn ? 'outlined' : 'contained' }
         disabled={ disabled }
         onClick={ () => handleOnClick(!isOn) }
-        startIcon={ <PowerSettingsNewIcon sx={ { fontSize: 17 } }/> }
+        startIcon={ <PowerSettingsNewIcon sx={ { fontSize: 20 } }/> }
+        sx={ { minHeight: 52, fontSize: 15 } }
       >
         { isOn ? 'Turn off' : 'Turn on' }
       </Button>

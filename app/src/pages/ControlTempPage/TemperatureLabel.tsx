@@ -1,4 +1,5 @@
 import { Box, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import moment from 'moment-timezone';
 import { useSchedules } from '@api/schedules.ts';
 import { useSettings } from '@api/settings.ts';
@@ -25,39 +26,54 @@ export default function TemperatureLabel({
   const power = currentDay ? schedules?.[side]?.[currentDay]?.power : undefined;
   const temperature = formatTemperature(sliderTemp, displayCelsius);
   const isAdjusting = sliderTemp !== currentTargetTemp;
-  let targetLabel = '';
+  let targetLabel = 'Holding';
   if (sliderTemp < currentTemperatureF) targetLabel = isAdjusting ? 'Cool to' : 'Cooling to';
   if (sliderTemp > currentTemperatureF) targetLabel = isAdjusting ? 'Warm to' : 'Warming to';
 
   return (
-    <Box sx={ { textAlign: 'center', whiteSpace: 'nowrap', pointerEvents: 'none' } }>
-      <Typography variant="body2" sx={ { color: 'text.secondary', minHeight: 21 } }>{ isOn ? targetLabel : '' }</Typography>
+    <Box sx={ { textAlign: 'center', whiteSpace: 'nowrap', pointerEvents: 'none', mt: -2 } }>
+      <Typography
+        variant="overline"
+        sx={ { color: isOn ? sliderColor : 'text.secondary', minHeight: 22, display: 'block', fontSize: 11 } }
+      >
+        { isOn ? targetLabel : 'Standby' }
+      </Typography>
       <Typography
         component="p"
         sx={ {
-          fontSize: isOn ? 'clamp(44px, 14vw, 64px)' : 'clamp(40px, 12vw, 52px)',
-          fontWeight: 500, letterSpacing: '-0.065em', lineHeight: 1.2, my: 0.5,
+          fontSize: isOn ? 'clamp(56px, 17vw, 76px)' : 'clamp(44px, 13vw, 56px)',
+          fontWeight: 300, letterSpacing: '-0.05em', lineHeight: 1, my: 0.75,
+          fontVariantNumeric: 'tabular-nums',
+          color: isOn ? 'text.primary' : 'text.secondary',
         } }
       >
         { isOn ? (
           <>
             { temperature.split('°')[0] }
-            <Box component="span" sx={ { fontSize: 27, verticalAlign: 'top', lineHeight: 2 } }>
+            <Box
+              component="span"
+              sx={ { fontSize: '0.38em', fontWeight: 400, verticalAlign: 'top', lineHeight: 1.6, ml: 0.25, color: 'text.secondary' } }
+            >
               °{ displayCelsius ? 'C' : 'F' }
             </Box>
           </>
         ) : 'Off' }
       </Typography>
       { isOn && (
-        <Box sx={ { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.75 } }>
-          <Box component="span" sx={ { width: 5, height: 5, borderRadius: '50%', bgcolor: sliderColor } }/>
-          <Typography variant="caption" sx={ { color: 'text.secondary' } }>
-            Currently at { formatTemperature(currentTemperatureF, displayCelsius) }
+        <Box
+          sx={ theme => ({
+            display: 'inline-flex', alignItems: 'center', gap: 0.75, px: 1.25, py: 0.4, borderRadius: 999,
+            bgcolor: alpha(theme.palette.text.primary, 0.05),
+          }) }
+        >
+          <Box component="span" sx={ { width: 6, height: 6, borderRadius: '50%', bgcolor: sliderColor } }/>
+          <Typography variant="caption" sx={ { color: 'text.secondary', fontWeight: 500 } }>
+            Now { formatTemperature(currentTemperatureF, displayCelsius) }
           </Typography>
         </Box>
       ) }
       { power?.enabled && (isOn || !settings?.[side]?.awayMode) && (
-        <Typography variant="caption" sx={ { color: 'text.secondary', display: 'block', mt: 0.75 } }>
+        <Typography variant="caption" sx={ { color: 'text.secondary', display: 'block', mt: 1 } }>
           { isOn ? 'Turns off at' : 'Turns on at' } { moment(isOn ? power.off : power.on, 'HH:mm').format('h:mm A') }
         </Typography>
       ) }

@@ -13,7 +13,7 @@ export default function PageContainer({ children, sx = [], containerProps }: Pro
         maxWidth={ false }
         sx={ [
           { display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 2.5,
-            width: '100%', maxWidth: 1000, mx: 'auto', px: { xs: 2.5, sm: 4, lg: 5 }, py: { xs: 3, md: 5 } },
+            width: '100%', maxWidth: 1000, mx: 'auto', px: { xs: 2, sm: 4, lg: 5 }, py: { xs: 2.5, md: 5 } },
           ...(Array.isArray(sx) ? sx : [sx]),
         ] }
       >

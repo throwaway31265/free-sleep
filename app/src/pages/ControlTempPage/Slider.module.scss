@@ -3,7 +3,19 @@
     &:hover {
       cursor: pointer;
     }
-    color: #87868b;
+    // Handle fill. Uses currentColor so it follows the light/dark theme.
+    color: #f4f6ff;
+    overflow: visible;
+  }
+
+  // Rounded arc ends for a softer, modern dial
+  path {
+    stroke-linecap: round;
+  }
+
+  // Subtle drop shadow under the drag handle so it reads as touchable
+  circle {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
   }
 
   &.Disabled {
