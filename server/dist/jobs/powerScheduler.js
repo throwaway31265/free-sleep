@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="6b43c70f-e2b3-5d28-8caa-657592d8aaa4")}catch(e){}}();
 import schedule from 'node-schedule';
 import { updateDeviceStatus } from '../routes/deviceStatus/updateDeviceStatus.js';
 import { getDayIndexForSchedule, getDayOfWeekIndex, logJob } from './utils.js';
@@ -9,6 +7,7 @@ import serverStatus from '../serverStatus.js';
 import logger from '../logger.js';
 import servicesDB from '../db/services.js';
 import memoryDB from '../db/memoryDB.js';
+import { scheduledTarget } from '../autopilot/state.js';
 export const schedulePowerOn = (settingsData, side, day, power) => {
     if (!power.enabled)
         return;
@@ -31,7 +30,7 @@ export const schedulePowerOn = (settingsData, side, day, power) => {
             await updateDeviceStatus({
                 [side]: {
                     isOn: true,
-                    targetTemperatureF: power.onTemperature
+                    targetTemperatureF: scheduledTarget(side, power.onTemperature),
                 }
             });
             serverStatus.status.powerSchedule.status = 'healthy';
@@ -114,4 +113,3 @@ export const schedulePowerOffAndSleepAnalysis = (settingsData, side, day, power)
     });
 };
 //# sourceMappingURL=powerScheduler.js.map
-//# debugId=6b43c70f-e2b3-5d28-8caa-657592d8aaa4

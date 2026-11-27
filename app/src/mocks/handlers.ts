@@ -13,6 +13,9 @@ import {
   getDeviceStatus,
   updateDeviceStatus,
   getServerStatus,
+  getAutopilotStatus,
+  pauseAutopilot,
+  resumeAutopilot,
   listSleepRecords,
   setSleepRecords,
   listMovementRecords,
@@ -88,6 +91,27 @@ export const handlers = [
   http.get('/api/serverStatus', async () => {
     await delay(150);
     return HttpResponse.json(deepClone(getServerStatus()));
+  }),
+  http.get('/api/autopilot/status', async () => {
+    await delay(120);
+    return HttpResponse.json(deepClone(getAutopilotStatus()));
+  }),
+  http.post('/api/autopilot/:side/pause', async ({ params, request }) => {
+    const side = params.side;
+    const body = (await request.json()) as { minutes?: number };
+    if ((side !== 'left' && side !== 'right') || typeof body.minutes !== 'number') {
+      return HttpResponse.json({ error: 'Invalid request data' }, { status: 400 });
+    }
+    await delay(120);
+    return HttpResponse.json(deepClone(pauseAutopilot(side, body.minutes)));
+  }),
+  http.post('/api/autopilot/:side/resume', async ({ params }) => {
+    const side = params.side;
+    if (side !== 'left' && side !== 'right') {
+      return HttpResponse.json({ error: 'Invalid side' }, { status: 400 });
+    }
+    await delay(120);
+    return HttpResponse.json(deepClone(resumeAutopilot(side)));
   }),
   http.get('/api/metrics/sleep', async ({ request }) => {
     const filters = toFilters(request);

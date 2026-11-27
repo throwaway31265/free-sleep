@@ -1,5 +1,7 @@
 import { CircularSliderWithChildren } from 'react-circular-slider-svg';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
+import { invalidateAutopilotStatus } from '@api/autopilot.ts';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@state/appStore';
 import styles from './Slider.module.scss';
 import TemperatureLabel from './TemperatureLabel.tsx';
@@ -22,6 +24,7 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
   const { deviceStatus, setDeviceStatus } = useControlTempStore();
   const { isUpdating, setIsUpdating, side } = useAppStore();
   const { data: settings } = useSettings();
+  const queryClient = useQueryClient();
   const isInAwayMode = settings?.[side]?.awayMode;
   const disabled = isUpdating || isInAwayMode || !isOn;
   const { width, ref } = useResizeDetector();
@@ -40,7 +43,7 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
         // Wait 1 second before refreshing the device status
         return new Promise((resolve) => setTimeout(resolve, 1_500));
       })
-      .then(() => refetch())
+      .then(() => Promise.all([refetch(), invalidateAutopilotStatus(queryClient)]))
       .catch(error => {
         console.error(error);
       })

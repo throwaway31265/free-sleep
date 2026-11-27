@@ -1,7 +1,8 @@
 import moment from 'moment-timezone';
 import type { Services } from '@api/services.ts';
 import type { Schedules } from '@api/schedulesSchema.ts';
-import type { Settings } from '@api/settingsSchema.ts';
+import type { AutopilotSettings, Settings } from '@api/settingsSchema.ts';
+import type { AutopilotSideStatus, AutopilotStatus, Decision } from '@api/autopilot.ts';
 import type { DeviceStatus } from '@api/deviceStatusSchema';
 import type { MovementRecord } from '@api/movement.ts';
 import type { SleepRecord } from '@api/sleepSchema.ts';
@@ -194,6 +195,21 @@ const createSchedules = (): Schedules => ({
   },
 });
 
+// Server defaults (server/src/db/settings.ts), optionally enabled for the demo
+const createAutopilotSettings = (enabled: boolean): AutopilotSettings => ({
+  enabled,
+  mode: 'active',
+  maxOffsetF: 3,
+  stepF: 1,
+  minMinutesBetweenChanges: 20,
+  manualHoldMinutes: 180,
+  absoluteMinF: 55,
+  absoluteMaxF: 110,
+  room: { enabled: true, referenceC: null, gainFPerC: 1.0, deadbandC: 0.5 },
+  wakeWarmup: { enabled: false, minutes: 30, deltaF: 2 },
+  vitals: { enabled: false, hrDropBpm: 6, deltaF: -1 },
+});
+
 const createSettings = (): Settings => ({
   id: 'demo-user',
   timeZone: 'America/Los_Angeles',
@@ -223,7 +239,8 @@ const createSettings = (): Settings => ({
         snoozeDuration: 60,
         inactiveAlarmBehavior: 'power',
       },
-    }
+    },
+    autopilot: createAutopilotSettings(true),
   },
   right: {
     name: 'Right side',
@@ -249,7 +266,8 @@ const createSettings = (): Settings => ({
         snoozeDuration: 60,
         inactiveAlarmBehavior: 'power',
       },
-    }
+    },
+    autopilot: createAutopilotSettings(false),
   },
   primePodDaily: { enabled: true, time: '14:30' },
 });
@@ -341,12 +359,81 @@ const createDeviceStatus = (): DeviceStatus => ({
   wifiStrength: 82,
 });
 
+const createDecision = (minutesAgo: number, partial: Partial<Decision> & Pick<Decision, 'sentence'>): Decision => ({
+  at: now.getTime() - minutesAgo * MINUTES_TO_MS,
+  side: 'left',
+  kind: 'tick',
+  state: 'ACTIVE',
+  anchorF: 85,
+  appliedOffset: 0,
+  newF: null,
+  wrote: false,
+  desiredOffset: 0,
+  step: 0,
+  rules: { room: 0, wake: 0, sleep: 0 },
+  degraded: [],
+  skippedBecause: null,
+  ...partial,
+});
+
+const createAutopilotSideStatus = (side: Side): AutopilotSideStatus => {
+  const isLeft = side === 'left';
+  return {
+    enabled: isLeft,
+    mode: 'active',
+    state: isLeft ? 'ACTIVE' : 'OFF',
+    anchorF: isLeft ? 85 : null,
+    anchorSource: isLeft ? 'schedule' : null,
+    appliedOffset: isLeft ? -1 : 0,
+    offsetIsVirtual: false,
+    lastWrittenF: isLeft ? 84 : null,
+    lastWriteAt: isLeft ? now.getTime() - 25 * MINUTES_TO_MS : null,
+    holdUntil: null,
+    pausedUntil: null,
+    failCount: 0,
+    writesTonight: isLeft ? 1 : 0,
+    inputs: {
+      ambientC: 22.6,
+      humidity: 48.2,
+      envAgeS: 14,
+      refC: isLeft ? 21.5 : null,
+      bedCenC: 29.4,
+      bedInC: 29.9,
+      thermPower: -0.42,
+      thermTargetC: 28.9,
+    },
+    decisions: isLeft ? [
+      createDecision(55, { state: 'SETTLING', skippedBecause: 'settling', sentence: 'Settling after schedule change to 85°F' }),
+      createDecision(25, {
+        appliedOffset: -1, newF: 84, wrote: true, desiredOffset: -1, step: -1, rules: { room: -1, wake: 0, sleep: 0 },
+        sentence: 'Room 22.6 C (+1.1 vs 21.5 ref) → −1 F; wake 0; wrote 84 F (anchor 85, offset −1)',
+      }),
+      createDecision(5, {
+        appliedOffset: -1, desiredOffset: -1, rules: { room: -1, wake: 0, sleep: 0 }, skippedBecause: 'at target',
+        sentence: 'Room 22.6 C (+1.1 vs 21.5 ref) → −1 F; wake 0; holding 84 F (anchor 85, offset −1)',
+      }),
+    ] : [],
+  };
+};
+
 const createServerStatus = (): ServerStatus => ({
   alarmSchedule: {
     name: 'Alarm schedule',
     status: 'healthy',
     description: 'Alarm scheduling service',
     message: 'Next alarm ready',
+  },
+  autopilot: {
+    name: 'Autopilot',
+    status: 'healthy',
+    description: 'Nudges bed temperature around your setpoint based on room conditions',
+    message: '',
+  },
+  environment: {
+    name: 'Environment sensors',
+    status: 'healthy',
+    description: 'Room temperature and humidity samples used by autopilot',
+    message: '',
   },
   database: {
     name: 'Database',
@@ -486,6 +573,7 @@ let settings = createSettings();
 let services = createServices();
 let deviceStatus = createDeviceStatus();
 let serverStatus = createServerStatus();
+const autopilotStatus: AutopilotStatus = { left: createAutopilotSideStatus('left'), right: createAutopilotSideStatus('right') };
 let logsStore = createLogs();
 
 export const mergeDeep = (target: unknown, source: unknown): unknown => {
@@ -538,6 +626,29 @@ export const getServerStatus = () => serverStatus;
 export const setServerStatus = (next: ServerStatus) => {
   serverStatus = clone(next);
   return serverStatus;
+};
+
+// Runtime comes from the mock store; enabled / mode always follow the current mock settings
+export const getAutopilotStatus = (): AutopilotStatus => {
+  const withSettings = (side: Side): AutopilotSideStatus => {
+    const config = settings[side].autopilot;
+    const runtime = autopilotStatus[side];
+    if (!config.enabled) return { ...runtime, enabled: false, mode: config.mode, state: 'OFF' };
+    const isPaused = runtime.pausedUntil !== null && runtime.pausedUntil > Date.now();
+    const runningState = config.mode === 'shadow' ? 'SHADOW' : 'ACTIVE';
+    return { ...runtime, enabled: true, mode: config.mode, state: isPaused ? 'PAUSED' : runningState };
+  };
+  return { left: withSettings('left'), right: withSettings('right') };
+};
+
+export const pauseAutopilot = (side: Side, minutes: number) => {
+  autopilotStatus[side] = { ...autopilotStatus[side], pausedUntil: Date.now() + minutes * MINUTES_TO_MS };
+  return getAutopilotStatus()[side];
+};
+
+export const resumeAutopilot = (side: Side) => {
+  autopilotStatus[side] = { ...autopilotStatus[side], pausedUntil: null };
+  return getAutopilotStatus()[side];
 };
 
 export const listSleepRecords = () => sleepRecords;

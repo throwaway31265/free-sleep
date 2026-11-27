@@ -37,7 +37,33 @@ const defaultSideSettings: SideSettings = {
       snoozeDuration: 60,
       inactiveAlarmBehavior: 'power',
     },
-  }
+  },
+  autopilot: {
+    enabled: false,
+    mode: 'active',
+    maxOffsetF: 3,
+    stepF: 1,
+    minMinutesBetweenChanges: 20,
+    manualHoldMinutes: 180,
+    absoluteMinF: 55,
+    absoluteMaxF: 110,
+    room: {
+      enabled: true,
+      referenceC: null,
+      gainFPerC: 1.0,
+      deadbandC: 0.5,
+    },
+    wakeWarmup: {
+      enabled: false,
+      minutes: 30,
+      deltaF: 2,
+    },
+    vitals: {
+      enabled: false,
+      hrDropBpm: 6,
+      deltaF: -1,
+    },
+  },
 };
 
 const defaultData: Settings = {

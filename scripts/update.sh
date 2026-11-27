@@ -30,7 +30,7 @@ restore_services() {
   done
 }
 trap restore_services EXIT
-for service_name in free-sleep-stream free-sleep; do
+for service_name in free-sleep-environment free-sleep-stream free-sleep; do
   if systemctl is-active --quiet "$service_name"; then
     services_to_restore="$service_name $services_to_restore"
     systemctl stop "$service_name"
@@ -41,6 +41,11 @@ if [ -f /persistent/free-sleep-data/free-sleep.db ]; then
   python3 "$APP_DIR/scripts/sqlite_maintenance.py" backup \
     /persistent/free-sleep-data/free-sleep.db \
     /persistent/free-sleep-data/free-sleep-copy.db --checkpoint
+fi
+
+# Snapshot the current build for scripts/autopilot_rollback.sh --full (never blocks the update).
+if [ -f "$APP_DIR/scripts/autopilot_snapshot.sh" ]; then
+  sh "$APP_DIR/scripts/autopilot_snapshot.sh" || echo "WARNING: autopilot snapshot failed; continuing update."
 fi
 
 systemctl disable free-sleep
@@ -70,8 +75,27 @@ else
   mv "$BACKUP_PATH" /home/dac/free-sleep
 fi
 
+# A checkout without the environment reader (e.g. upstream main) leaves its unit pointing at a
+# missing file; retire the unit instead of letting the EXIT trap restart it forever.
+if [ ! -f "$APP_DIR/biometrics/environment/environment_reader.py" ] \
+  && [ -f /etc/systemd/system/free-sleep-environment.service ]; then
+  echo "Installed build has no environment reader; removing free-sleep-environment.service"
+  systemctl disable --now free-sleep-environment || true
+  rm -f /etc/systemd/system/free-sleep-environment.service
+  systemctl daemon-reload || true
+  systemctl reset-failed free-sleep-environment 2>/dev/null || true
+  services_to_restore=$(echo "$services_to_restore" | sed 's/free-sleep-environment//')
+fi
+
 systemctl enable free-sleep || true
 systemctl start free-sleep || true
+
+# The downloaded installer may predate the environment reader, so (re)create its unit here too.
+# Skipped when the installed (or restored) checkout does not ship the script.
+if [ -f "$APP_DIR/scripts/setup_environment_service.sh" ]; then
+  bash "$APP_DIR/scripts/setup_environment_service.sh" \
+    || echo "WARNING: Unable to set up free-sleep-environment.service" >&2
+fi
 
 # Block internet access again
 sh /home/dac/free-sleep/scripts/block_internet_access.sh

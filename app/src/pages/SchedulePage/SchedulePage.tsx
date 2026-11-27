@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { useEffect } from 'react';
-import { Box } from '@mui/material';
+import { Alert, Box } from '@mui/material';
 import { DeepPartial } from 'ts-essentials';
 import moment from 'moment-timezone';
 
@@ -23,6 +23,7 @@ import { LOWERCASE_DAYS } from './days.ts';
 import TemperatureScheduleChart from './ScheduleChart.tsx';
 import ErrorBoundary from '@components/ErrorBoundary.tsx';
 import PageHeader from '@components/PageHeader.tsx';
+import { formatTemperatureDelta } from '@lib/temperatureConversions.ts';
 
 
 const getAdjustedDayOfWeek = (): DayOfWeek => {
@@ -53,6 +54,10 @@ export default function SchedulePage() {
   } = useScheduleStore();
   const { data: settings } = useSettings();
   const displayCelsius = settings?.temperatureFormat === 'celsius';
+  const autopilot = settings?.[side]?.autopilot;
+  // Shadow mode only logs, and away mode on either side keeps autopilot idle
+  const autopilotAdjustsSchedule = autopilot?.enabled === true && autopilot.mode === 'active'
+    && !settings?.left.awayMode && !settings?.right.awayMode;
   // TODO: Add changes lost notification using changesPresent when user tries to switch tab before saving
 
   useEffect(() => {
@@ -107,6 +112,11 @@ export default function SchedulePage() {
     >
       <PageHeader title="Schedules"/>
       <SideControl/>
+      { autopilotAdjustsSchedule && autopilot && (
+        <Alert severity="info" sx={ { width: '100%' } }>
+          Autopilot may adjust these temperatures by up to ±{ formatTemperatureDelta(autopilot.maxOffsetF, displayCelsius, false) }.
+        </Alert>
+      ) }
 
       <DayTabs/>
       <ErrorBoundary componentName='Scheduling chart'>

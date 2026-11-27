@@ -18,7 +18,7 @@ restore_services() {
   done
 }
 trap restore_services EXIT
-for service_name in free-sleep-stream free-sleep; do
+for service_name in free-sleep-environment free-sleep-stream free-sleep; do
   if systemctl is-active --quiet "$service_name"; then
     services_to_restore="$service_name $services_to_restore"
     systemctl stop "$service_name"
@@ -231,6 +231,10 @@ if systemctl is-enabled --quiet free-sleep-stream.service; then
   systemctl reset-failed free-sleep-stream.service
   systemctl restart free-sleep-stream.service
 fi
+
+# Autopilot room-temperature input. Optional: a failure here must not fail the install.
+bash "$REPO_DIR/scripts/setup_environment_service.sh" \
+  || echo -e "\033[33mWARNING: Unable to set up free-sleep-environment.service\033[0m"
 
 echo "Checking free-sleep service status..."
 systemctl status free-sleep.service --no-pager || true

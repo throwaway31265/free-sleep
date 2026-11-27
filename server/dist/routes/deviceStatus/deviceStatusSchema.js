@@ -1,6 +1,4 @@
 // WARNING! - Any changes here MUST be the same between app/src/api & server/src/db/
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="97b23902-cbac-52f6-9514-cd7b161195f4")}catch(e){}}();
 import { z } from 'zod';
 const SideStatusSchema = z.object({
     currentTemperatureLevel: z.number(),
@@ -44,4 +42,3 @@ export var Version;
     Version["Pod5"] = "Pod 5";
 })(Version || (Version = {}));
 //# sourceMappingURL=deviceStatusSchema.js.map
-//# debugId=97b23902-cbac-52f6-9514-cd7b161195f4

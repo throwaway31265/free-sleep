@@ -3,6 +3,9 @@ import { isSystemDateValid } from './jobs/isSystemDateValid.js';
 import servicesDB from './db/services.js';
 import { prisma } from './db/prisma.js';
 import moment from 'moment-timezone';
+import settingsDB from './db/settings.js';
+import { getEnvironment } from './routes/metrics/environment.js';
+import { ENV_STALE_S } from './autopilot/decide.js';
 
 await servicesDB.read();
 
@@ -18,6 +21,18 @@ class ServerStatus {
         name: 'Alarm schedule',
         status: 'not_started',
         description: '',
+        message: '',
+      },
+      autopilot: {
+        name: 'Autopilot',
+        status: 'not_started',
+        description: 'Nudges bed temperature around your setpoint based on room conditions',
+        message: '',
+      },
+      environment: {
+        name: 'Environment sensors',
+        status: 'not_started',
+        description: 'Room temperature and humidity samples used by autopilot',
         message: '',
       },
       database: {
@@ -154,10 +169,30 @@ class ServerStatus {
     }
   }
 
+  // Environment samples are only required while autopilot is enabled on a side
+  updateEnvironment() {
+    const autopilotEnabled = settingsDB.data.left.autopilot?.enabled || settingsDB.data.right.autopilot?.enabled;
+    const environment = getEnvironment();
+    if (environment && environment.ageS <= ENV_STALE_S) {
+      this.status.environment.status = 'healthy';
+      this.status.environment.message = '';
+    } else if (autopilotEnabled) {
+      const hint = 'Check `systemctl status free-sleep-environment`';
+      this.status.environment.status = 'failed';
+      this.status.environment.message = environment
+        ? `Newest environment sample is ${environment.ageS} s old. ${hint}`
+        : `No environment samples received. ${hint}`;
+    } else {
+      this.status.environment.status = 'not_started';
+      this.status.environment.message = '';
+    }
+  }
+
   async toJSON(): Promise<ServerStatusType> {
     await this.updateDB();
     await this.updateServices();
     this.updateSystemDate();
+    this.updateEnvironment();
     return this.status;
   }
 }

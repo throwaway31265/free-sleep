@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="22ec4c1a-3f40-5941-82f3-5aed862a585f")}catch(e){}}();
 import express from 'express';
 import moment from 'moment-timezone';
 import { sleepRecordSchema } from '../../db/sleepRecordsSchema.js';
@@ -91,4 +89,3 @@ router.delete('/sleep/:id', async (req, res) => {
 });
 export default router;
 //# sourceMappingURL=sleep.js.map
-//# debugId=22ec4c1a-3f40-5941-82f3-5aed862a585f

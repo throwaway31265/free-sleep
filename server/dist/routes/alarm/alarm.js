@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="92fe727d-7f1a-57be-a8a7-a6d0e52f30c4")}catch(e){}}();
 import express from 'express';
 import { AlarmJobSchema, } from '../../db/schedulesSchema.js';
 import logger from '../../logger.js';
@@ -23,4 +21,3 @@ router.post('/alarm', async (req, res) => {
 });
 export default router;
 //# sourceMappingURL=alarm.js.map
-//# debugId=92fe727d-7f1a-57be-a8a7-a6d0e52f30c4

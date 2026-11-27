@@ -3,6 +3,7 @@ import { Alert, Box, Button, Chip, Paper, Skeleton, Typography } from '@mui/mate
 import { alpha } from '@mui/material/styles';
 import AlarmDismissal from './AlarmDismissal.tsx';
 import AlarmNotification from './AlarmNotification.tsx';
+import AutopilotCard from './AutopilotCard.tsx';
 import AwayNotification from './AwayNotification.tsx';
 import ErrorBoundary from '@components/ErrorBoundary.tsx';
 import PageContainer from '../PageContainer.tsx';
@@ -83,6 +84,7 @@ export default function ControlTempPage() {
           <PowerButton isOn={ isOn } refetch={ refetch }/>
         ) }
       </Paper>
+      <ErrorBoundary componentName="Autopilot"><AutopilotCard settings={ settings }/></ErrorBoundary>
       <Box sx={ { display: 'flex', flexDirection: 'column', gap: 1.5 } }>
         { deviceStatus?.isPriming && <PrimingNotification/> }
         <ErrorBoundary componentName="Alarm notification"><AlarmNotification/></ErrorBoundary>

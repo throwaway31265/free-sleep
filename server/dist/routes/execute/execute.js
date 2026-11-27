@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="9a9b115d-d17d-50cc-8579-b6b885a924f8")}catch(e){}}();
 import express from 'express';
 import { frankenCommands, executeFunction } from '../../8sleep/deviceApi.js';
 const router = express.Router();
@@ -18,4 +16,3 @@ router.post('/execute', async (req, res) => {
 });
 export default router;
 //# sourceMappingURL=execute.js.map
-//# debugId=9a9b115d-d17d-50cc-8579-b6b885a924f8

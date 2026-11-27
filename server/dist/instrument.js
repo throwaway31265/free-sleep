@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="d4fdce12-9fc3-53be-8ae5-541aae713a8f")}catch(e){}}();
 import * as Sentry from '@sentry/node';
 import servicesDB from './db/services.js';
 import serverInfo from './serverInfo.json' with { type: 'json' };
@@ -41,4 +39,3 @@ if (servicesDB.data.sentryLogging.enabled) {
     initSentry();
 }
 //# sourceMappingURL=instrument.js.map
-//# debugId=d4fdce12-9fc3-53be-8ae5-541aae713a8f

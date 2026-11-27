@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="47fc4c11-6646-58e2-929a-2106c66b743f")}catch(e){}}();
 import moment from 'moment-timezone';
 import logger from '../logger.js';
 import settingsDB from '../db/settings.js';
@@ -9,6 +7,7 @@ import { Version } from '../routes/deviceStatus/deviceStatusSchema.js';
 import { GestureSchema } from '../db/settingsSchema.js';
 import { updateDeviceStatus } from '../routes/deviceStatus/updateDeviceStatus.js';
 import serverStatus from '../serverStatus.js';
+import { noteSetpoint } from '../autopilot/state.js';
 export class FrankenMonitor {
     isRunning;
     deviceStatus;
@@ -48,6 +47,7 @@ export class FrankenMonitor {
                 newTemperatureTargetF = currentTemperatureTarget + (-1 * change);
             }
             logger.debug(`Processing gesture temperature change for ${side}. ${currentTemperatureTarget} -> ${newTemperatureTargetF}`);
+            noteSetpoint(side, newTemperatureTargetF, 'tap');
             return await updateDeviceStatus({ [side]: { targetTemperatureF: newTemperatureTargetF } });
         }
         else if (behavior.type) {
@@ -120,4 +120,3 @@ export class FrankenMonitor {
     }
 }
 //# sourceMappingURL=frankenMonitor.js.map
-//# debugId=47fc4c11-6646-58e2-929a-2106c66b743f

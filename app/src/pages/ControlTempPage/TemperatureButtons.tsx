@@ -6,6 +6,8 @@ import RemoveRoundedIcon from '@mui/icons-material/RemoveRounded';
 import { useControlTempStore } from './controlTempStore.tsx';
 import { useAppStore } from '@state/appStore.tsx';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
+import { invalidateAutopilotStatus } from '@api/autopilot.ts';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSettings } from '@api/settings.ts';
 import { MIN_TEMP_F, MAX_TEMP_F } from '@lib/temperatureConversions.ts';
 
@@ -19,6 +21,7 @@ export default function TemperatureButtons({ refetch, currentTargetTemp }: Tempe
   const { side, setIsUpdating, isUpdating } = useAppStore();
   const { deviceStatus, setDeviceStatus } = useControlTempStore();
   const { data: settings } = useSettings();
+  const queryClient = useQueryClient();
   const theme = useTheme();
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -29,13 +32,13 @@ export default function TemperatureButtons({ refetch, currentTargetTemp }: Tempe
         [side]: { targetTemperatureF: deviceStatus?.[side]?.targetTemperatureF },
       });
       await new Promise(r => setTimeout(r, 1_500));
-      await refetch?.();
+      await Promise.all([refetch?.(), invalidateAutopilotStatus(queryClient)]);
     } catch (err) {
       console.error(err);
     } finally {
       setIsUpdating(false);
     }
-  }, [deviceStatus, side, refetch, setIsUpdating]);
+  }, [deviceStatus, side, refetch, setIsUpdating, queryClient]);
 
   const scheduleUpdate = useCallback(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);

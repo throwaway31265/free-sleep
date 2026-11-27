@@ -14,6 +14,7 @@ import { scheduleAlarm, scheduleAlarmOverride } from './alarmScheduler.js';
 import { schedulePowerOffAndSleepAnalysis, schedulePowerOn } from './powerScheduler.js';
 import { schedulePrimingRebootAndCalibration } from './primeScheduler.js';
 import { scheduleTemperatures } from './temperatureScheduler.js';
+import { scheduleAutopilot } from './autopilotScheduler.js';
 
 
 async function setupJobs() {
@@ -52,6 +53,8 @@ async function setupJobs() {
       });
     });
     schedulePrimingRebootAndCalibration(settingsData);
+    scheduleAutopilot(settingsData, 'left');
+    scheduleAutopilot(settingsData, 'right');
 
     logger.info('Done scheduling jobs!');
     serverStatus.status.alarmSchedule.status = 'healthy';

@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="115a15c4-dfee-5dfb-a5f6-b6e06ca6206b")}catch(e){}}();
 export const TIME_ZONES = [
     'UTC', // Coordinated Universal Time
     'America/Anchorage', // Alaska
@@ -24,4 +22,3 @@ export const TIME_ZONES = [
     'Pacific/Auckland', // New Zealand
 ];
 //# sourceMappingURL=timeZones.js.map
-//# debugId=115a15c4-dfee-5dfb-a5f6-b6e06ca6206b

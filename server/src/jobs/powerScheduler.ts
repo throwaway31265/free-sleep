@@ -10,6 +10,7 @@ import serverStatus from '../serverStatus.js';
 import logger from '../logger.js';
 import servicesDB from '../db/services.js';
 import memoryDB from '../db/memoryDB.js';
+import { scheduledTarget } from '../autopilot/state.js';
 
 
 
@@ -35,7 +36,7 @@ export const schedulePowerOn = (settingsData: Settings, side: Side, day: DayOfWe
       await updateDeviceStatus({
         [side]: {
           isOn: true,
-          targetTemperatureF: power.onTemperature
+          targetTemperatureF: scheduledTarget(side, power.onTemperature),
         }
       });
       serverStatus.status.powerSchedule.status = 'healthy';

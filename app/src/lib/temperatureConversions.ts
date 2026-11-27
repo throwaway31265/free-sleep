@@ -7,6 +7,22 @@ export function formatTemperature(temperature: number, celcius: boolean) {
   return celcius ? `${farenheitToCelcius(temperature)}°C` : `${temperature}°F`;
 }
 
+/**
+ * Formats a temperature difference given in °F (e.g. an autopilot offset).
+ * Celsius differences scale by 5/9 without the 32° shift, rounded to 0.5.
+ * `signed` prefixes + / − (a true minus sign); otherwise the magnitude is returned.
+ */
+export function formatTemperatureDelta(deltaF: number, celcius: boolean, signed = true) {
+  const magnitude = celcius ? Math.round(Math.abs(deltaF) * 5 / 9 * 2) / 2 : Math.abs(deltaF);
+  const sign = !signed || magnitude === 0 ? '' : deltaF < 0 ? '−' : '+';
+  return `${sign}${magnitude}°${celcius ? 'C' : 'F'}`;
+}
+
+// Formats a sensor reading that is natively in °C (room / bed sensors), one decimal
+export function formatCelsiusReading(valueC: number, celcius: boolean) {
+  return celcius ? `${valueC.toFixed(1)}°C` : `${(valueC * 9 / 5 + 32).toFixed(1)}°F`;
+}
+
 
 export const MIN_TEMP_F = 55;
 export const MAX_TEMP_F = 110;

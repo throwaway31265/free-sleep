@@ -1,6 +1,4 @@
 // LowDB, stores the schedules in /persistent/free-sleep-data/lowdb/settingsDB.json
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="3abe3420-793f-5f0f-9e3b-adec5590b8b6")}catch(e){}}();
 import _ from 'lodash';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
@@ -36,7 +34,33 @@ const defaultSideSettings = {
             snoozeDuration: 60,
             inactiveAlarmBehavior: 'power',
         },
-    }
+    },
+    autopilot: {
+        enabled: false,
+        mode: 'active',
+        maxOffsetF: 3,
+        stepF: 1,
+        minMinutesBetweenChanges: 20,
+        manualHoldMinutes: 180,
+        absoluteMinF: 55,
+        absoluteMaxF: 110,
+        room: {
+            enabled: true,
+            referenceC: null,
+            gainFPerC: 1.0,
+            deadbandC: 0.5,
+        },
+        wakeWarmup: {
+            enabled: false,
+            minutes: 30,
+            deltaF: 2,
+        },
+        vitals: {
+            enabled: false,
+            hrDropBpm: 6,
+            deltaF: -1,
+        },
+    },
 };
 const defaultData = {
     id: crypto.randomUUID(),
@@ -64,4 +88,3 @@ settingsDB.data = _.merge({}, defaultData, settingsDB.data);
 await settingsDB.write();
 export default settingsDB;
 //# sourceMappingURL=settings.js.map
-//# debugId=3abe3420-793f-5f0f-9e3b-adec5590b8b6

@@ -25,7 +25,9 @@ export type StatusInfo = z.infer<typeof StatusInfoSchema>;
 
 export type ServerStatus = {
   alarmSchedule: StatusInfo;
+  autopilot: StatusInfo;
   database: StatusInfo;
+  environment: StatusInfo;
   express: StatusInfo;
   franken: StatusInfo;
   frankenMonitor: StatusInfo;

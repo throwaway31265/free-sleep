@@ -7,6 +7,7 @@ import { TimeZone } from '../db/timeZones.js';
 import { updateDeviceStatus } from '../routes/deviceStatus/updateDeviceStatus.js';
 import serverStatus from '../serverStatus.js';
 import logger from '../logger.js';
+import { scheduledTarget } from '../autopilot/state.js';
 
 
 const scheduleAdjustment = (timeZone: TimeZone, side: Side, day: DayOfWeek, time: Time, temperature: number, powerOnTime: Time) => {
@@ -27,7 +28,7 @@ const scheduleAdjustment = (timeZone: TimeZone, side: Side, day: DayOfWeek, time
       logJob('Executing temperature adjustment job', side, day, dayOfWeekIndex, time);
       await updateDeviceStatus({
         [side]: {
-          targetTemperatureF: temperature,
+          targetTemperatureF: scheduledTarget(side, temperature),
         }
       });
       serverStatus.status.temperatureSchedule.status = 'healthy';

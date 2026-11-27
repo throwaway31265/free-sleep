@@ -22,3 +22,6 @@ app/dist/
 /server/free-sleep-data/*
 
 !.gitkeep
+
+# Python bytecode
+__pycache__/

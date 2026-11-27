@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="5f492ea1-ca8b-5d19-ad19-07bee9f42293")}catch(e){}}();
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -105,4 +103,3 @@ router.get('/:filename', async (req, res) => {
 });
 export default router;
 //# sourceMappingURL=logs.js.map
-//# debugId=5f492ea1-ca8b-5d19-ad19-07bee9f42293

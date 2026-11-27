@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="73c91880-3b33-53d0-b74f-cc5445cff742")}catch(e){}}();
 import express from 'express';
 import moment from 'moment-timezone';
 import settingsDB from '../../db/settings.js';
@@ -68,4 +66,3 @@ router.get('/vitals/summary', async (req, res) => {
 });
 export default router;
 //# sourceMappingURL=vitals.js.map
-//# debugId=73c91880-3b33-53d0-b74f-cc5445cff742

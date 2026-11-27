@@ -9,6 +9,7 @@ import { Gesture, GestureSchema } from '../db/settingsSchema.js';
 import { updateDeviceStatus } from '../routes/deviceStatus/updateDeviceStatus.js';
 import { DeepPartial } from 'ts-essentials';
 import serverStatus from '../serverStatus.js';
+import { noteSetpoint } from '../autopilot/state.js';
 
 
 
@@ -53,6 +54,7 @@ export class FrankenMonitor {
         newTemperatureTargetF = currentTemperatureTarget + (-1 * change);
       }
       logger.debug(`Processing gesture temperature change for ${side}. ${currentTemperatureTarget} -> ${newTemperatureTargetF}`);
+      noteSetpoint(side, newTemperatureTargetF, 'tap');
       return await updateDeviceStatus({ [side]: { targetTemperatureF: newTemperatureTargetF } } as DeepPartial<DeviceStatus>);
     } else if (behavior.type) {
       // TODO: Add alarm handling

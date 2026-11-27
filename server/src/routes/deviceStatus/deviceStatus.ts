@@ -4,6 +4,8 @@ import { DeviceStatus, DeviceStatusSchema } from './deviceStatusSchema.js';
 import logger from '../../logger.js';
 import { updateDeviceStatus } from './updateDeviceStatus.js';
 import { DeepPartial } from 'ts-essentials';
+import { SideSchema } from '../../db/schedulesSchema.js';
+import { noteSetpoint } from '../../autopilot/state.js';
 
 const router = express.Router();
 
@@ -24,6 +26,12 @@ router.post('/deviceStatus', async (req: Request, res: Response) => {
       details: validationResult?.error?.errors,
     });
     return;
+  }
+
+  // Manual changes become the autopilot anchor and start a hold
+  for (const side of SideSchema.options) {
+    const targetTemperatureF = validationResult.data[side]?.targetTemperatureF;
+    if (typeof targetTemperatureF === 'number') noteSetpoint(side, targetTemperatureF, 'manual');
   }
 
   await updateDeviceStatus(body as DeepPartial<DeviceStatus>);

@@ -1,13 +1,15 @@
 // This is for storing data in memory when we don't want to update any files in the config.dbFolder
 // Updating files in the config.dbFolder will re-trigger job deletion and creation
-// This only keeps track of if the alarm is running, since we can't get that programmatically from the pod
+// Tracks if the alarm is running (we can't get that programmatically from the pod) and autopilot runtime state
 import { Low, Memory } from 'lowdb';
+import { AutopilotRuntime, createDefaultRuntime } from '../autopilot/types.js';
 
 type SideState = {
   isAlarmVibrating: boolean;
   analyzeSleep: {
     lastRan?: number;
-  }
+  };
+  autopilot: AutopilotRuntime;
 };
 
 type MemoryDB = {
@@ -20,13 +22,15 @@ const defaultMemoryDB: MemoryDB = {
     isAlarmVibrating: false,
     analyzeSleep: {
       lastRan: undefined,
-    }
+    },
+    autopilot: createDefaultRuntime(),
   },
   right: {
     isAlarmVibrating: false,
     analyzeSleep: {
       lastRan: undefined,
-    }
+    },
+    autopilot: createDefaultRuntime(),
   },
 };
 

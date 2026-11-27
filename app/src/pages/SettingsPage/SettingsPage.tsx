@@ -14,6 +14,7 @@ import PrimeControl from './PrimeControl.tsx';
 import Donate from './Donate.tsx';
 import DiscordLink from './DiscordLink.tsx';
 import FeaturesSection from './FeaturesSection/FeaturesSection.tsx';
+import AutopilotSection from './AutopilotSection/AutopilotSection.tsx';
 import Section from './Section.tsx';
 import SettingsHint from './SettingsHint.tsx';
 import DeviceSettingsSection from './DeviceSettingsSection/DeviceSettingsSection.tsx';
@@ -61,6 +62,9 @@ export default function SettingsPage() {
             </SettingsHint>
           </Box>
         </Section>
+      </ErrorBoundary>
+      <ErrorBoundary componentName="Autopilot settings">
+        <AutopilotSection settings={ settings } updateSettings={ updateSettings }/>
       </ErrorBoundary>
       <ErrorBoundary componentName="Priming settings">
         <Section title="Priming" icon={ <WaterDropOutlinedIcon/> }>

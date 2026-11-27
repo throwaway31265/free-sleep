@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="04ac16c8-264b-56af-83e6-cf6d68a77abb")}catch(e){}}();
 import { exec } from 'child_process';
 import logger from '../logger.js';
 export default function reboot() {
@@ -17,4 +15,3 @@ export default function reboot() {
     });
 }
 //# sourceMappingURL=reboot.js.map
-//# debugId=04ac16c8-264b-56af-83e6-cf6d68a77abb

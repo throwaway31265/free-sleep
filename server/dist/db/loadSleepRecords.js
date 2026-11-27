@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="cafa41f0-b233-538c-8184-61f76e3bc4d6")}catch(e){}}();
 import settingsDB from './settings.js';
 import moment from 'moment-timezone';
 export const loadSleepRecords = async (sleepRecords) => {
@@ -25,4 +23,3 @@ export const loadSleepRecords = async (sleepRecords) => {
     }));
 };
 //# sourceMappingURL=loadSleepRecords.js.map
-//# debugId=cafa41f0-b233-538c-8184-61f76e3bc4d6

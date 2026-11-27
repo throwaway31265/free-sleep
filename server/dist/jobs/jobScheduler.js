@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="e04ed3df-4335-5b56-b872-dbdcff97d46a")}catch(e){}}();
 import path from 'path';
 import chokidar from 'chokidar';
 import moment from 'moment-timezone';
@@ -14,6 +12,7 @@ import { scheduleAlarm, scheduleAlarmOverride } from './alarmScheduler.js';
 import { schedulePowerOffAndSleepAnalysis, schedulePowerOn } from './powerScheduler.js';
 import { schedulePrimingRebootAndCalibration } from './primeScheduler.js';
 import { scheduleTemperatures } from './temperatureScheduler.js';
+import { scheduleAutopilot } from './autopilotScheduler.js';
 async function setupJobs() {
     try {
         if (serverStatus.status.jobs.status === 'started') {
@@ -44,6 +43,8 @@ async function setupJobs() {
             });
         });
         schedulePrimingRebootAndCalibration(settingsData);
+        scheduleAutopilot(settingsData, 'left');
+        scheduleAutopilot(settingsData, 'right');
         logger.info('Done scheduling jobs!');
         serverStatus.status.alarmSchedule.status = 'healthy';
         serverStatus.status.jobs.status = 'healthy';
@@ -102,4 +103,3 @@ chokidar.watch(config.lowDbFolder).on('change', (changedPath) => {
 // Initial job setup
 waitForValidDateAndSetupJobs();
 //# sourceMappingURL=jobScheduler.js.map
-//# debugId=e04ed3df-4335-5b56-b872-dbdcff97d46a

@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="eaf48186-a5b6-54da-ab23-bdff5c9496c4")}catch(e){}}();
 import _ from 'lodash';
 import express from 'express';
 import logger from '../../logger.js';
@@ -29,4 +27,3 @@ router.post('/settings', async (req, res) => {
 });
 export default router;
 //# sourceMappingURL=settings.js.map
-//# debugId=eaf48186-a5b6-54da-ab23-bdff5c9496c4

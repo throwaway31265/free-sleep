@@ -1,5 +1,3 @@
-
-!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="29364e05-57b8-52f6-89dd-72009ad15e54")}catch(e){}}();
 import './instrument.js';
 import express from 'express';
 import schedule from 'node-schedule';
@@ -7,6 +5,7 @@ import logger from './logger.js';
 import { connectFranken, disconnectFranken } from './8sleep/frankenServer.js';
 import { FrankenMonitor } from './8sleep/frankenMonitor.js';
 import './jobs/jobScheduler.js';
+import { restoreAnchors } from './jobs/autopilotScheduler.js';
 // Setup code
 import setupMiddleware from './setup/middleware.js';
 import setupRoutes from './setup/routes.js';
@@ -54,6 +53,25 @@ async function gracefulShutdown(signal) {
         logger.error({ error });
         process.exit(1);
     }, 15_000);
+    // Put any autopilot offset back to the anchor before the jobs stop (best effort, 5 s max)
+    if (!config.remoteDevMode) {
+        let restoreTimer;
+        try {
+            await Promise.race([
+                restoreAnchors(),
+                new Promise((resolve) => {
+                    restoreTimer = setTimeout(resolve, 5_000);
+                }),
+            ]);
+        }
+        catch (error) {
+            logger.error(`Error restoring autopilot anchors: ${error instanceof Error ? error.message : String(error)}`);
+        }
+        finally {
+            if (restoreTimer)
+                clearTimeout(restoreTimer);
+        }
+    }
     logger.debug('Stopping node-schedule');
     await schedule.gracefulShutdown();
     await disconnectPrisma();
@@ -139,4 +157,3 @@ startServer().catch((err) => {
     process.exit(1);
 });
 //# sourceMappingURL=server.js.map
-//# debugId=29364e05-57b8-52f6-89dd-72009ad15e54
