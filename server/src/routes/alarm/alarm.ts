@@ -21,7 +21,8 @@ router.post('/alarm', async (req: Request, res: Response) => {
     return;
   }
   const alarmJob: AlarmJob = validationResult.data;
-  void executeAlarm(alarmJob);
+  // Await so the 200 means the alarm command reached the firmware (a Stop sent after it wins).
+  await executeAlarm(alarmJob);
   res.status(200).json(schedulesDB.data);
 });
 

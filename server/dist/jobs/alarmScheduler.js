@@ -8,7 +8,9 @@ import schedulesDB from '../db/schedules.js';
 import settingsDB from '../db/settings.js';
 import { executeFunction } from '../8sleep/deviceApi.js';
 import { getDayIndexForSchedule, logJob } from './utils.js';
+import { getScheduleDayForAlarm } from './scheduleTiming.js';
 import { connectFranken } from '../8sleep/frankenServer.js';
+const vibrationResetTimers = {};
 export const executeAlarm = async ({ vibrationIntensity, duration, vibrationPattern, side, force = false }) => {
     try {
         const min10Duration = Math.max(10, duration);
@@ -43,8 +45,10 @@ export const executeAlarm = async ({ vibrationIntensity, duration, vibrationPatt
         await memoryDB.read();
         memoryDB.data[side].isAlarmVibrating = true;
         await memoryDB.write();
-        setTimeout(async () => {
-            logger.debug('');
+        // A newer alarm on this side replaces the older one, so its reset timer must not clear the flag early.
+        clearTimeout(vibrationResetTimers[side]);
+        vibrationResetTimers[side] = setTimeout(async () => {
+            delete vibrationResetTimers[side];
             await memoryDB.read();
             memoryDB.data[side].isAlarmVibrating = false;
             await memoryDB.write();
@@ -72,6 +76,31 @@ function nextOccurrenceHhMm(tz, hhmm) {
     }
     return candidate;
 }
+const DEFAULT_OVERRIDE_ALARM = {
+    vibrationIntensity: 100,
+    duration: 60,
+    vibrationPattern: 'rise',
+};
+/**
+ * Pick the vibration settings for an alarm override firing on fireDay at time. Uses the schedule
+ * of the night that owns that morning (thursday's schedule for a Friday 07:00 alarm). When that
+ * night's alarm is disabled its fields are leftover defaults, so prefer any alarm the user has
+ * actually enabled on this side.
+ */
+export function resolveOverrideAlarm(side, fireDay, time) {
+    const sideSchedule = schedulesDB.data?.[side];
+    if (!sideSchedule)
+        return DEFAULT_OVERRIDE_ALARM;
+    const ownerDay = getScheduleDayForAlarm(fireDay, time, sideSchedule);
+    const owner = ownerDay ? sideSchedule[ownerDay].alarm : undefined;
+    const chosen = (owner?.enabled ? owner : undefined)
+        ?? Object.values(sideSchedule).map((daily) => daily.alarm).find((alarm) => alarm.enabled)
+        ?? owner;
+    if (!chosen)
+        return DEFAULT_OVERRIDE_ALARM;
+    const { vibrationIntensity, duration, vibrationPattern } = chosen;
+    return { vibrationIntensity, duration, vibrationPattern };
+}
 export function scheduleAlarmOverride(settingsData, side) {
     const alarmOverride = settingsData[side]?.scheduleOverrides?.alarm;
     if (!alarmOverride || alarmOverride.disabled)
@@ -85,13 +114,8 @@ export function scheduleAlarmOverride(settingsData, side) {
     const next = nextOccurrenceHhMm(settingsData.timeZone, alarmOverride.timeOverride);
     logger.debug(`Alarm override is set! Scheduling alarm for ${next.format()}`);
     schedule.scheduleJob(`${side}-alarm-override-${alarmOverride.timeOverride}`, next.toDate(), async () => {
-        const dayKey = next.tz(settingsData.timeZone).format('dddd').toLowerCase();
-        const daySchedule = schedulesDB.data?.[side]?.[dayKey];
-        const { vibrationIntensity, duration, vibrationPattern } = daySchedule?.alarm ?? {
-            vibrationIntensity: 100,
-            duration: 60,
-            vibrationPattern: 'rise',
-        };
+        const { vibrationIntensity, duration, vibrationPattern } = resolveOverrideAlarm(side, next.tz(settingsData.timeZone).format('dddd').toLowerCase(), alarmOverride.timeOverride);
+        logger.debug(`Alarm override settings: ${JSON.stringify({ vibrationIntensity, duration, vibrationPattern })}`);
         await executeAlarm({
             side,
             vibrationIntensity,
