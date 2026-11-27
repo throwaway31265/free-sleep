@@ -29,7 +29,7 @@ with patch.dict(sys.modules, {
 }):
     import load_raw_files
     from sleep_detection import cap_data, sleep_detector
-    from piezo_data import identify_baseline_period
+    from piezo_data import identify_baseline_period, load_piezo_df
     # The CLI imports cap_data by its script-local name.
     with patch.dict(sys.modules, {'cap_data': cap_data}):
         from sleep_detection import calibrate_sensor_thresholds as calibration
@@ -266,6 +266,51 @@ class CapacitanceNatsTests(unittest.TestCase):
                     for message in messages:
                         message.ack.assert_awaited_once()
                     connection.close.assert_awaited_once()
+
+
+
+def pod5_piezo_record(timestamp=TIMESTAMP, offset=0):
+    """Pod 5 piezo-dual (version 2) shape: per-side gain maps beside the int32 sample buffers."""
+    samples = struct.pack('<4i', 100 + offset, 200 + offset, 300 + offset, 400 + offset)
+    return {
+        'type': 'piezo-dual', 'ts': timestamp, 'freq': 500, 'adc': 66, 'gain': 400, 'version': 2,
+        'left': {'gain': 400}, 'right': {'gain': 400},
+        'left1': samples, 'left2': samples, 'right1': samples, 'right2': samples,
+    }
+
+
+class Pod5PiezoTests(unittest.TestCase):
+    def test_delete_other_side_drops_per_side_metadata_maps(self):
+        record = pod5_piezo_record()
+        load_raw_files._delete_other_side(record, 'right', sensor_count=1)
+        self.assertNotIn('left', record)
+        self.assertNotIn('right', record)
+        self.assertNotIn('left1', record)
+        self.assertNotIn('right2', record)
+        self.assertIn('right1', record)
+
+    def test_merged_piezo_and_cap_frames_can_drop_duplicates(self):
+        piezo_records, cap_records = [], []
+        for second in range(60):
+            record = pod5_piezo_record(TIMESTAMP + second, offset=second * 1000)
+            load_raw_files._delete_other_side(record, 'right', sensor_count=1)
+            load_raw_files.load_piezo_row(record, 'right')
+            record['ts'] = datetime.fromtimestamp(record['ts'], timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+            piezo_records.append(record)
+
+            cap = normalize_capacitance_record(cap_record(timestamp=TIMESTAMP + second, offset=second))
+            load_raw_files._delete_other_side(cap, 'right', sensor_count=1)
+            cap['ts'] = datetime.fromtimestamp(cap['ts'], timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+            cap_records.append(cap)
+
+        piezo_df = load_piezo_df({'piezo_dual': piezo_records}, 'right')
+        cap_df = cap_data.load_cap_df({'cap_senses': cap_records}, 'right')
+        merged_df = piezo_df.merge(cap_df, on='ts', how='inner')
+        # Raised "TypeError: unhashable type: 'dict'" before the metadata maps were stripped.
+        merged_df.drop_duplicates(inplace=True)
+        self.assertGreater(len(merged_df), 0)
+        self.assertNotIn('left', merged_df.columns)
+        self.assertNotIn('right', merged_df.columns)
 
 
 if __name__ == '__main__':
