@@ -1,0 +1,14 @@
+# /etc/default/led-sync - front LED sync settings. Apply with: systemctl restart led-sync
+LED_SYNC_ENABLED=1
+# Colors as R,G,B. Stock Eight Sleep: cooling aqua 0,255,255 / heating 255,16,16 / idle white.
+COOL_RGB=0,255,255
+HEAT_RGB=255,16,16
+IDLE_RGB=255,255,255
+# stock = a side set at or below COOL_THRESHOLD_C counts as cooling (Eight Sleep behaviour)
+# direction = cooling when the target is below the current temperature
+COLOR_LOGIC=stock
+COOL_THRESHOLD_C=27.0
+POLL_S=3
+REASSERT_S=10
+YIELD_WHEN_OFFLINE=1
+DRY_RUN=0

@@ -1,0 +1,18 @@
+[Unit]
+Description=free-sleep front LED sync (cool/heat colors)
+After=capybara.service free-sleep.service
+Wants=free-sleep.service
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/led-sync
+ExecStart=/usr/bin/python3 -I -u /usr/local/lib/led-sync/led_sync.py
+User=root
+Restart=on-failure
+RestartSec=10
+KillSignal=SIGTERM
+TimeoutStopSec=5
+Nice=10
+
+[Install]
+WantedBy=multi-user.target
