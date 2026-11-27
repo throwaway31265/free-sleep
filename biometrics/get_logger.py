@@ -31,7 +31,9 @@ class BaseLogger(logging.Logger):
     def error(self, msg, *args, **kwargs):
         super().error(msg, *args, **kwargs)
         if isinstance(msg, Exception):
-            super().error(traceback.print_exception(msg), *args, **kwargs)
+            # Explicit (type, value, tb) form works on Python 3.9 (Pod 3) as well as 3.10+.
+            formatted = ''.join(traceback.format_exception(type(msg), msg, msg.__traceback__))
+            super().error(formatted, *args, **kwargs)
 
 
 def _get_logger_instance(name: str = None) -> Tuple[BaseLogger, LoggerName]:
