@@ -152,6 +152,12 @@ def _delete_other_side(decoded_data: dict, side: Side, sensor_count: int):
             del decoded_data[f'{del_side}1']
             if f'{del_side}2' in decoded_data:
                 del decoded_data[f'{del_side}2']
+            # Pod 5 piezo (version 2) adds per-side metadata maps such as {'left': {'gain': 400}}.
+            # Nothing downstream reads them, and dict-valued DataFrame columns are unhashable,
+            # which crashes drop_duplicates() in sleep detection.
+            for meta_key in ('left', 'right'):
+                if isinstance(decoded_data.get(meta_key), dict):
+                    del decoded_data[meta_key]
         else:
             decoded_data.pop(del_side, None)
     except Exception as error:
