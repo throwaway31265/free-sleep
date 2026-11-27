@@ -1,0 +1,7 @@
+# Holds your Wi-Fi and root passwords
+sd-card.env
+# Image files and work folders, if the script is run from this folder
+*.tar.gz
+*.tar.gz.orig
+patched/
+.pod-image.*/

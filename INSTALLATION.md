@@ -13,6 +13,8 @@
       - It's important you run step 11 ASAP after you ssh in, or else your pod will auto update firmware and kick you out
     - Option 2:
       - Try [this script](https://github.com/Pixel-Meister/freesleep_script/blob/main/modify_eight_sleep.sh) to modify 8 sleeps SD card (I have not personally tested this)
+    - Option 3:
+      - Patch the SD card's factory image with [scripts/sd-card](scripts/sd-card/README.md) (Wi-Fi, SSH key and disabled updates; tested against the 2021 factory image)
 
 
 - Pod 3 - **(No SD card)** - ✅ FCC ID: 2AYXT61100001 (The FCC ID is located in the back of the pod where you plug in the water tubes)
