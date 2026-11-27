@@ -11,6 +11,24 @@ from get_logger import get_logger
 
 logger = get_logger()
 
+# Empty-bed ceiling for the piezo range when looking for a calibration baseline.
+# Measured on a Pod 5 cover (piezo-dual version 2): the quietest empty-bed five-minute windows
+# peaked at 8k-18k, so the original 10k ceiling rarely matched, while occupied windows stayed above ~380k.
+LEGACY_BASELINE_RANGE_THRESHOLD = 10_000
+PIEZO_V2_BASELINE_RANGE_THRESHOLD = 50_000
+
+
+def _detect_piezo_version(df: pd.DataFrame) -> int:
+    """Highest piezo record version present; records without a version field count as 1."""
+    if 'version' not in df.columns:
+        return 1
+    versions = pd.to_numeric(df['version'], errors='coerce')
+    return int(versions.max()) if versions.notna().any() else 1
+
+
+def baseline_range_threshold(piezo_version: int) -> int:
+    return PIEZO_V2_BASELINE_RANGE_THRESHOLD if piezo_version >= 2 else LEGACY_BASELINE_RANGE_THRESHOLD
+
 
 def _calculate_avg(arr: np.ndarray):
     return np.mean(arr)
@@ -30,6 +48,7 @@ def load_piezo_df(data: Data, side: Side, lower_percentile=2, upper_percentile=9
     df = df[(df[f'{side}1_avg'] >= lower_bound) & (df[f'{side}1_avg'] <= upper_bound)]
 
     df.drop(columns=[f'{side}1', 'type', 'freq', 'adc', 'gain'], inplace=True)
+    df.attrs['piezo_version'] = _detect_piezo_version(df)
     logger.debug(f'Piezo rows loaded: {df.shape[0]:,}')
     if expected_row_count is not None:
         row_count = df.shape[0]

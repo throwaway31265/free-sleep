@@ -36,7 +36,7 @@ logger = get_logger('calibrate-sensor')
 
 from data_types import *
 from load_raw_files import load_raw_files
-from piezo_data import load_piezo_df, detect_presence_piezo, identify_baseline_period
+from piezo_data import load_piezo_df, detect_presence_piezo, identify_baseline_period, baseline_range_threshold
 from cap_data import load_cap_df, create_cap_baseline_from_cap_df, save_baseline
 from resource_usage import get_memory_usage_unix, get_available_memory_mb
 from biometrics_helpers import validate_datetime_utc
@@ -94,6 +94,8 @@ def calibrate_sensor_thresholds(side: Side, start_time: datetime, end_time: date
     cap_df = load_cap_df(data, side, expected_row_count=expected_row_count)
     cap_format = cap_df.attrs['cap_format']
     piezo_df = load_piezo_df(data, side, expected_row_count=expected_row_count)
+    # Read before the merge below: DataFrame attrs do not survive merge().
+    baseline_threshold = baseline_range_threshold(piezo_df.attrs['piezo_version'])
     detect_presence_piezo(
         piezo_df,
         side,
@@ -117,7 +119,7 @@ def calibrate_sensor_thresholds(side: Side, start_time: datetime, end_time: date
     gc.collect()
 
     # Create baseline
-    baseline_start_time, baseline_end_time = identify_baseline_period(merged_df, side, threshold_range=10_000, empty_minutes=5)
+    baseline_start_time, baseline_end_time = identify_baseline_period(merged_df, side, threshold_range=baseline_threshold, empty_minutes=5)
     cap_baseline = create_cap_baseline_from_cap_df(
         merged_df, baseline_start_time, baseline_end_time, side, cap_format=cap_format
     )
