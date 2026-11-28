@@ -29,7 +29,7 @@ with patch.dict(sys.modules, {
 }):
     import load_raw_files
     from sleep_detection import cap_data, sleep_detector
-    from piezo_data import identify_baseline_period
+    from piezo_data import baseline_range_threshold, identify_baseline_period, load_piezo_df
     # The CLI imports cap_data by its script-local name.
     with patch.dict(sys.modules, {'cap_data': cap_data}):
         from sleep_detection import calibrate_sensor_thresholds as calibration
@@ -235,6 +235,38 @@ class CapacitanceBaselineTests(unittest.TestCase):
                         self.assertTrue(frame.index.is_unique)
                         self.assertEqual(frame[f'cap_{side}_occupied'].sum(), 0)
 
+    def test_calibration_finds_a_baseline_in_pod5_empty_bed_noise(self):
+        # Per-second piezo means alternate by 20k: above the old 10k ceiling, below the Pod 5 one.
+        start = datetime.fromtimestamp(TIMESTAMP, timezone.utc)
+        with tempfile.TemporaryDirectory() as directory:
+            records = []
+            for offset in range(360):
+                records.append(wrap_record(cap_record(LEGACY_CAP_FORMAT, TIMESTAMP + offset, offset * 0.001)))
+                level = 20_000 if offset % 2 else 0
+                samples = struct.pack('<iii', level, level + 1, level + 2)
+                piezo = {'type': 'piezo-dual', 'ts': TIMESTAMP + offset, 'freq': 500, 'adc': 66, 'gain': 400,
+                         'version': 2, 'left': {'gain': 400}, 'right': {'gain': 400}}
+                for side in ('left', 'right'):
+                    piezo[f'{side}1'] = samples
+                records.append(wrap_record(piezo))
+            Path(directory, 'sample.RAW').write_bytes(b''.join(records))
+            with patch.object(load_raw_files, 'is_nats_running', return_value=False), \
+                    patch.object(calibration, 'identify_baseline_period', wraps=calibration.identify_baseline_period) as spy:
+                calibration.calibrate_sensor_thresholds('right', start, start + timedelta(minutes=6), directory)
+            self.assertEqual(spy.call_args.kwargs['threshold_range'], 50_000)
+            baseline = cap_data.load_baseline('right', LEGACY_CAP_FORMAT)
+            self.assertIn('right_out', baseline)
+
+    def test_pod5_empty_bed_noise_finds_a_baseline(self):
+        index = pd.date_range('2026-11-27 18:30:00', periods=600, freq='s')
+        merged_df = pd.DataFrame({
+            'right1_range': np.where(np.arange(600) % 60 == 0, 15_000, 5_000),  # quiet bed with small spikes
+            'right_out': 978.0, 'right_cen': 1160.0, 'right_in': 1372.0,
+        }, index=index)
+        self.assertEqual(identify_baseline_period(merged_df, 'right', threshold_range=10_000), (None, None))
+        start, _ = identify_baseline_period(merged_df, 'right', threshold_range=baseline_range_threshold(2))
+        self.assertEqual(start, index[0])
+
 
 class CapacitanceNatsTests(unittest.TestCase):
     def test_nats_normalizes_formats_and_continues_after_bad_messages(self):
@@ -266,6 +298,91 @@ class CapacitanceNatsTests(unittest.TestCase):
                     for message in messages:
                         message.ack.assert_awaited_once()
                     connection.close.assert_awaited_once()
+
+
+
+def pod5_piezo_record(timestamp=TIMESTAMP, offset=0):
+    """Pod 5 piezo-dual (version 2) shape: per-side gain maps beside the int32 sample buffers."""
+    samples = struct.pack('<4i', 100 + offset, 200 + offset, 300 + offset, 400 + offset)
+    return {
+        'type': 'piezo-dual', 'ts': timestamp, 'freq': 500, 'adc': 66, 'gain': 400, 'version': 2,
+        'left': {'gain': 400}, 'right': {'gain': 400},
+        'left1': samples, 'left2': samples, 'right1': samples, 'right2': samples,
+    }
+
+
+class Pod5PiezoTests(unittest.TestCase):
+    def test_delete_other_side_drops_per_side_metadata_maps(self):
+        record = pod5_piezo_record()
+        load_raw_files._delete_other_side(record, 'right', sensor_count=1)
+        self.assertNotIn('left', record)
+        self.assertNotIn('right', record)
+        self.assertNotIn('left1', record)
+        self.assertNotIn('right2', record)
+        self.assertIn('right1', record)
+
+    def test_merged_piezo_and_cap_frames_can_drop_duplicates(self):
+        piezo_records, cap_records = [], []
+        for second in range(60):
+            record = pod5_piezo_record(TIMESTAMP + second, offset=second * 1000)
+            load_raw_files._delete_other_side(record, 'right', sensor_count=1)
+            load_raw_files.load_piezo_row(record, 'right')
+            record['ts'] = datetime.fromtimestamp(record['ts'], timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+            piezo_records.append(record)
+
+            cap = normalize_capacitance_record(cap_record(timestamp=TIMESTAMP + second, offset=second))
+            load_raw_files._delete_other_side(cap, 'right', sensor_count=1)
+            cap['ts'] = datetime.fromtimestamp(cap['ts'], timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+            cap_records.append(cap)
+
+        piezo_df = load_piezo_df({'piezo_dual': piezo_records}, 'right')
+        cap_df = cap_data.load_cap_df({'cap_senses': cap_records}, 'right')
+        merged_df = piezo_df.merge(cap_df, on='ts', how='inner')
+        # Raised "TypeError: unhashable type: 'dict'" before the metadata maps were stripped.
+        merged_df.drop_duplicates(inplace=True)
+        self.assertGreater(len(merged_df), 0)
+        self.assertNotIn('left', merged_df.columns)
+        self.assertNotIn('right', merged_df.columns)
+
+
+def loaded_piezo_df(make_record, seconds=30):
+    records = []
+    for second in range(seconds):
+        record = make_record(TIMESTAMP + second, offset=second * 1000)
+        load_raw_files._delete_other_side(record, 'right', sensor_count=1)
+        load_raw_files.load_piezo_row(record, 'right')
+        record['ts'] = datetime.fromtimestamp(record['ts'], timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+        records.append(record)
+    return load_piezo_df({'piezo_dual': records}, 'right')
+
+
+def pod3_piezo_record(timestamp=TIMESTAMP, offset=0):
+    record = pod5_piezo_record(timestamp, offset)
+    for key in ('version', 'left', 'right'):
+        del record[key]
+    return record
+
+
+class BaselineThresholdTests(unittest.TestCase):
+    def test_pod5_records_use_the_pod5_baseline_threshold(self):
+        piezo_df = loaded_piezo_df(pod5_piezo_record)
+        self.assertEqual(piezo_df.attrs['piezo_version'], 2)
+        self.assertEqual(baseline_range_threshold(piezo_df.attrs['piezo_version']), 50_000)
+
+    def test_records_without_a_version_keep_the_pod3_threshold(self):
+        piezo_df = loaded_piezo_df(pod3_piezo_record)
+        self.assertEqual(piezo_df.attrs['piezo_version'], 1)
+        self.assertEqual(baseline_range_threshold(piezo_df.attrs['piezo_version']), 10_000)
+
+    def test_version_1_records_keep_the_pod3_threshold(self):
+        def version_1_record(timestamp=TIMESTAMP, offset=0):
+            record = pod3_piezo_record(timestamp, offset)
+            record['version'] = 1
+            return record
+
+        piezo_df = loaded_piezo_df(version_1_record)
+        self.assertEqual(piezo_df.attrs['piezo_version'], 1)
+        self.assertEqual(baseline_range_threshold(piezo_df.attrs['piezo_version']), 10_000)
 
 
 if __name__ == '__main__':
